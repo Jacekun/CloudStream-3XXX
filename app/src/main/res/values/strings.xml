@@ -61,7 +61,7 @@
     <string name="new_update_format" formatted="true">New update found!\n%s -> %s</string>
     <string name="filler_format" formatted="true">(Filler) %s</string>
 
-    <string name="app_name">CloudStream</string>
+    <string name="app_name">CloudStream 3X</string>
     <string name="title_home">Home</string>
     <string name="title_search">Search</string>
     <string name="title_downloads">Downloads</string>
@@ -243,6 +243,7 @@
     <string name="cartoons">Cartoons</string>
     <string name="anime">Anime</string>
     <string name="torrent">Torrent</string>
+    <string name="jav">JAV</string>
 
     <string name="source_error">Source error</string>
     <string name="remote_error">Remote error</string>

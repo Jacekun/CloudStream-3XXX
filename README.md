@@ -1,42 +1,40 @@
-# CloudStream-3
+# CloudStream-3XXX
 
-![GitHub release](https://img.shields.io/github/v/release/LagradOst/cloudstream-3?sort=semver&style=for-the-badge)
-[![Discord](https://img.shields.io/discord/737724143126052974?style=for-the-badge)](https://discord.gg/5Hus6fM)
+A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes.
 
+## Features
 
-**DOWNLOAD:**
-https://github.com/LagradOst/CloudStream-3/releases
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/commit/d338639290beebf32c58e69df75cef1280f2e623) and [**release version**](https://github.com/LagradOst/CloudStream-3/releases/tag/v2.1.2).
+  + [Read full details here](https://github.com/LagradOst/CloudStream-3/tree/v2.1.2).
++ **'Preferred Media'** setting affects *Search filter* choices.
++ **JAV** sites.
 
+## Roadmap
 
-***Features:***
-+ **AdFree**, No ads whatsoever
-+ No tracking/analytics
-+ Bookmarks
-+ Download and stream movies, tv-shows and anime
-+ Chromecast
+### Ongoing dev
++ Jav Guru / https://jav.guru
+  + Watch
++ JavFree sh / https://javfree.sh/
+  + Watch
++ Op Jav / https://opjav.com/
+  + Watch
++ Jav Sub / https://javsub.co
+  + Watch
++ HpJAV.tv / https://hpjav.tv
+  + Watch
++ JAV Most / https://www5.javmost.com
+  + Watch
++ JAV HD / https://javhd.icu
+  + Watch
 
-***The list of supported languages:***
-* 🇱🇧 Arabic
-* 🇬🇧 English
-* 🇳🇱 Dutch
-* 🇫🇷 French
-* 🇬🇷 Greek
-* 🇸🇪 Swedish
-* 🇵🇭 Tagalog
-* 🇵🇱 Polish
-* 🇮🇳 Hindi
-* 🇮🇳 Malayalam
-* 🇪🇸 Spanish
-* 🇳🇴 Norsk
-* 🇩🇪 German
-* 🇹🇷 Turkish
+### To-Add List
++ JAV cl / javcl.com
++ JAV Tube / javtube.watch
++ JAV Rave / javrave.club
++ avgle / avgle.com
++ JAV junkies / javjunkies.com
 
-***SCREENSHOTS:***
-
-<img src="./.github/home.jpg" height="400"/><img src="./.github/search.jpg" height="400"/><img src="./.github/downloads.jpg" height="400"/><img src="./.github/results.jpg" height="400"/>
-<img src="./.github/player.jpg" height="200"/>
-
-***Disclaimer:***
+## Disclaimer
 
 Any legal issues regarding the content on this application should be taken up with the actual file hosts and providers themselves as we are not affiliated with them.
 

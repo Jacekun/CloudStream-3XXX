@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.lagradost.cloudstream3.animeproviders.*
 import com.lagradost.cloudstream3.movieproviders.*
+import com.lagradost.cloudstream3.providersjav.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import java.util.*
 
@@ -50,7 +51,16 @@ object APIHolder {
         AsianLoadProvider(),
 
         SflixProvider(),
-        ZoroProvider()
+        ZoroProvider(),
+
+        // All of JAV sources
+        JavFreeSh(),
+        JavGuru(),
+        OpJavCom(),
+        JavSubCo(),
+        HpJavTv(),
+        JavMost(),
+        Javhdicu()
     )
 
     val restrictedApis = arrayListOf(
@@ -292,11 +302,12 @@ enum class TvType {
     Anime,
     ONA,
     Torrent,
+    JAV
 }
 
 // IN CASE OF FUTURE ANIME MOVIE OR SMTH
 fun TvType.isMovieType(): Boolean {
-    return this == TvType.Movie || this == TvType.AnimeMovie || this == TvType.Torrent
+    return this == TvType.Movie || this == TvType.AnimeMovie || this == TvType.Torrent || this == TvType.JAV
 }
 
 data class SubtitleFile(val lang: String, val url: String)

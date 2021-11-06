@@ -222,7 +222,9 @@ object AppUtils {
             else -> apis
         }
         return if (currentPrefMedia < 1) {
-            allApis
+            val mediaTypeList = listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon,
+                TvType.Anime, TvType.AnimeMovie, TvType.ONA, TvType.Torrent)
+            allApis.filter { api -> api.supportedTypes.any { it in mediaTypeList } }
         } else {
             // Filter API depending on preferred media type
             val mediaTypeList = when (currentPrefMedia) {

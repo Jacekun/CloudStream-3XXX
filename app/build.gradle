@@ -18,7 +18,7 @@ android {
         unitTests.returnDefaultValues = true
     }
     signingConfigs {
-        prerelease {
+        debug {
             if (prerelaseStoreFile != null) {
                 storeFile = file(prerelaseStoreFile)
                 storePassword System.getenv("SIGNING_STORE_PASSWORD")
@@ -31,7 +31,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.lagradost.cloudstream3"
+        applicationId "foss.jacekun.cloudstream3xxx"
         minSdkVersion 21
         targetSdkVersion 31
 
@@ -43,6 +43,8 @@ android {
         buildConfigField("String", "BUILDDATE", "new java.text.SimpleDateFormat(\"yyyy-MM-dd HH:mm\").format(new java.util.Date(" + System.currentTimeMillis() + "L));")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        archivesBaseName = "${applicationId}-${versionName}_(${versionCode})"
 
         kapt {
             includeCompileClasspath = true
@@ -58,7 +60,7 @@ android {
         prerelease {
             applicationIdSuffix ".prerelease"
             buildConfigField("boolean", "BETA", "true")
-            signingConfig signingConfigs.prerelease
+            signingConfig signingConfigs.debug
             versionNameSuffix '-PRE'
             minifyEnabled false
             debuggable true
@@ -66,6 +68,8 @@ android {
         }
         debug {
             applicationIdSuffix ".debug"
+            versionNameSuffix '-DEBUG'
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
