@@ -176,7 +176,7 @@ class HomeFragment : Fragment() {
     private val apiChangeClickListener = View.OnClickListener { view ->
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(context)
         val currentPrefMedia = settingsManager.getInt(getString(R.string.preferred_media_settings), 0)
-        val validAPIs = AppUtils.filterProviderByPreferredMedia(apis, currentPrefMedia).toMutableList()
+        val validAPIs = AppUtils.filterProviderByPreferredMedia(apis, currentPrefMedia, true).toMutableList()
 
         validAPIs.add(0, randomApi)
         validAPIs.add(0, noneApi)
@@ -225,15 +225,9 @@ class HomeFragment : Fragment() {
             context?.setKey(HOMEPAGE_API, apiName)
             home_provider_name?.text = apiName
             home_provider_meta_info?.isVisible = false
-
             getApiFromNameNull(apiName)?.let { currentApi ->
-                val typeChoices = listOf(
-                    Pair(R.string.movies, listOf(TvType.Movie)),
-                    Pair(R.string.tv_series, listOf(TvType.TvSeries)),
-                    Pair(R.string.cartoons, listOf(TvType.Cartoon)),
-                    Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
-                    Pair(R.string.torrent, listOf(TvType.Torrent)),
-                ).filter { item -> currentApi.supportedTypes.any { type -> item.second.contains(type) } }
+                val typeChoices = AppUtils.filterProviderChoicesByPreferredMedia(0)
+                    .filter { item -> currentApi.supportedTypes.any { type -> item.second.contains(type) } }
                 home_provider_meta_info?.text = typeChoices.joinToString(separator = ", ") { getString(it.first) }
                 home_provider_meta_info?.isVisible = true
             }

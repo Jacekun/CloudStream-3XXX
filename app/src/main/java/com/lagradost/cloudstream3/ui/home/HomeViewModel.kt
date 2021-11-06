@@ -153,7 +153,7 @@ class HomeViewModel : ViewModel() {
         if (preferredApiName == noneApi.name)
             loadAndCancel(noneApi)
         else if(preferredApiName == randomApi.name || api == null) {
-            var validAPIs = AppUtils.filterProviderByPreferredMedia(apis, currentPrefMedia)
+            var validAPIs = AppUtils.filterProviderByPreferredMedia(apis, currentPrefMedia, true)
             val apiRandom = validAPIs.random()
             loadAndCancel(apiRandom)
             context?.setKey(HOMEPAGE_API, apiRandom.name)

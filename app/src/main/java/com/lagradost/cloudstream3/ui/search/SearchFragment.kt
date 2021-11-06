@@ -29,6 +29,7 @@ import com.lagradost.cloudstream3.ui.APIRepository.Companion.typesActive
 import com.lagradost.cloudstream3.ui.home.HomeFragment
 import com.lagradost.cloudstream3.ui.home.HomeFragment.Companion.loadHomepageList
 import com.lagradost.cloudstream3.ui.home.ParentItemAdapter
+import com.lagradost.cloudstream3.utils.AppUtils
 import com.lagradost.cloudstream3.utils.DataStore.getKey
 import com.lagradost.cloudstream3.utils.DataStore.setKey
 import com.lagradost.cloudstream3.utils.SEARCH_PROVIDER_TOGGLE
@@ -119,8 +120,11 @@ class SearchFragment : Fragment() {
         search_filter.setOnClickListener { searchView ->
             val apiNamesSetting = activity?.getApiSettings()
             val langs = activity?.getApiProviderLangSettings()
+            val currentPrefMedia = PreferenceManager.getDefaultSharedPreferences(context)
+                .getInt(getString(R.string.preferred_media_settings), 0)
+            val apiList = AppUtils.filterProviderByPreferredMedia(apis, currentPrefMedia, false)
             if (apiNamesSetting != null && langs != null) {
-                val apiNames = apis.filter { langs.contains(it.lang) }.map { it.name }
+                val apiNames = apiList.filter { langs.contains(it.lang) }.map { it.name }
                 val builder =
                     AlertDialog.Builder(searchView.context, R.style.AlertDialogCustom).setView(R.layout.provider_list)
 
@@ -139,14 +143,8 @@ class SearchFragment : Fragment() {
 
                 listView.adapter = arrayAdapter
                 listView.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-
-                val typeChoices = listOf(
-                    Pair(R.string.movies, listOf(TvType.Movie)),
-                    Pair(R.string.tv_series, listOf(TvType.TvSeries)),
-                    Pair(R.string.cartoons, listOf(TvType.Cartoon)),
-                    Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
-                    Pair(R.string.torrent, listOf(TvType.Torrent)),
-                ).filter { item -> apis.any { api -> api.supportedTypes.any { type -> item.second.contains(type) } } }
+                val typeChoicesFiltered = AppUtils.filterProviderChoicesByPreferredMedia(currentPrefMedia)
+                val typeChoices = typeChoicesFiltered.filter { item -> apiList.any { api -> api.supportedTypes.any { type -> item.second.contains(type) } } }
 
                 val arrayAdapter2 = ArrayAdapter<String>(searchView.context, R.layout.sort_bottom_single_choice)
                 arrayAdapter2.addAll(typeChoices.map { getString(it.first) })
@@ -185,7 +183,7 @@ class SearchFragment : Fragment() {
 
                 listView.setOnItemClickListener { _, _, _, _ ->
                     val types = HashSet<TvType>()
-                    for ((index, api) in apis.withIndex()) {
+                    for ((index, api) in apiList.withIndex()) {
                         if (listView.checkedItemPositions[index]) {
                             types.addAll(api.supportedTypes)
                         }
@@ -196,7 +194,7 @@ class SearchFragment : Fragment() {
                 }
 
                 listView2.setOnItemClickListener { _, _, _, _ ->
-                    for ((index, api) in apis.withIndex()) {
+                    for ((index, api) in apiList.withIndex()) {
                         var isSupported = false
 
                         for ((typeIndex, type) in typeChoices.withIndex()) {
@@ -320,7 +318,7 @@ class SearchFragment : Fragment() {
                         if (data.isNotEmpty()) {
                             (cardSpace?.adapter as SearchAdapter?)?.apply {
                                 cardList = data.toList()
-                                notifyDataSetChanged()
+                                this.notifyDataSetChanged()
                             }
                         }
                     }

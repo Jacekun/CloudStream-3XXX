@@ -216,18 +216,51 @@ object AppUtils {
         return currentAudioFocusRequest
     }
 
-    fun filterProviderByPreferredMedia(apis: ArrayList<MainAPI>, currentPrefMedia: Int): List<MainAPI> {
-        val allApis = apis.filter { api -> api.hasMainPage }
+    fun filterProviderByPreferredMedia(apis: ArrayList<MainAPI>, currentPrefMedia: Int, onlyHasMainPage: Boolean): List<MainAPI> {
+        val allApis = when {
+            onlyHasMainPage -> apis.filter { api -> api.hasMainPage }
+            else -> apis
+        }
         return if (currentPrefMedia < 1) {
             allApis
         } else {
             // Filter API depending on preferred media type
-            val listEnumAnime = listOf(TvType.Anime, TvType.AnimeMovie, TvType.ONA)
-            val listEnumMovieTv = listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon)
-            val mediaTypeList = if (currentPrefMedia == 1) listEnumMovieTv else listEnumAnime
+            val mediaTypeList = when (currentPrefMedia) {
+                2 -> listOf(TvType.Anime, TvType.AnimeMovie, TvType.ONA)
+                3 -> listOf(TvType.JAV)
+                else -> listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon)
+            }
 
             val filteredAPI = allApis.filter { api -> api.supportedTypes.any { it in mediaTypeList } }
             filteredAPI
+        }
+    }
+
+    fun filterProviderChoicesByPreferredMedia(currentPrefMedia: Int): List<Pair<Int, List<TvType>>> {
+        when (currentPrefMedia) {
+            1 -> {
+                return listOf(
+                    Pair(R.string.movies, listOf(TvType.Movie)),
+                    Pair(R.string.tv_series, listOf(TvType.TvSeries)),
+                    Pair(R.string.cartoons, listOf(TvType.Cartoon)),
+                    Pair(R.string.torrent, listOf(TvType.Torrent)))
+            }
+            2 -> {
+                return listOf(
+                    Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
+                    Pair(R.string.torrent, listOf(TvType.Torrent)))
+            }
+            3 -> {
+                return listOf(
+                    Pair(R.string.jav, listOf(TvType.JAV)))
+            }
+            else -> return listOf(
+                Pair(R.string.movies, listOf(TvType.Movie)),
+                Pair(R.string.tv_series, listOf(TvType.TvSeries)),
+                Pair(R.string.cartoons, listOf(TvType.Cartoon)),
+                Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
+                Pair(R.string.torrent, listOf(TvType.Torrent))
+            )
         }
     }
 }
