@@ -63,11 +63,11 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 - [wcostream.com](https://www.wcostream.com) 
 - [allmoviesforyou.co](https://allmoviesforyou.co) 
 - [vidembed.cc](https://vidembed.cc) 
-- [vf-film.org](https://vf-film.org) 
+- [vf-film.me](https://vf-film.me) 
+- [vf-serie.org](https://vf-serie.org) 
 - [asianload.cc](https://asianload.cc) 
 - [sflix.to](https://sflix.to) 
 - [zoro.to](https://zoro.to) 
 - [trailers.to](https://trailers.to) 
-- [thenos.org](https://www.thenos.org) 
 - [asiaflix.app](https://asiaflix.app) 
 <!--SITE LIST END-->

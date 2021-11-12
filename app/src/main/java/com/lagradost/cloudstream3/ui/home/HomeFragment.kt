@@ -26,6 +26,7 @@ import com.lagradost.cloudstream3.APIHolder.getApiFromNameNull
 import com.lagradost.cloudstream3.mvvm.Resource
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.mvvm.observe
+import com.lagradost.cloudstream3.syncproviders.OAuth2Interface
 import com.lagradost.cloudstream3.ui.APIRepository.Companion.noneApi
 import com.lagradost.cloudstream3.ui.APIRepository.Companion.randomApi
 import com.lagradost.cloudstream3.ui.AutofitRecyclerView
@@ -48,6 +49,7 @@ import com.lagradost.cloudstream3.utils.UIHelper.fixPaddingStatusbarView
 import com.lagradost.cloudstream3.utils.UIHelper.getGridIsCompact
 import com.lagradost.cloudstream3.utils.UIHelper.popupMenuNoIcons
 import com.lagradost.cloudstream3.utils.UIHelper.popupMenuNoIconsAndNoStringRes
+import com.lagradost.cloudstream3.utils.UIHelper.setImage
 import com.lagradost.cloudstream3.widget.CenterZoomLayoutManager
 import kotlinx.android.synthetic.main.fragment_home.*
 
@@ -106,7 +108,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         //homeViewModel =
-       //     ViewModelProvider(this).get(HomeViewModel::class.java)
+        //     ViewModelProvider(this).get(HomeViewModel::class.java)
 
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
@@ -121,10 +123,14 @@ class HomeFragment : Fragment() {
     private fun chooseRandomMainPage() {
         val home = currentHomePage
         if (home != null && home.items.isNotEmpty()) {
-            val randomItems = home.items.shuffled().flatMap { it.list }.distinctBy { it.url }.toList().shuffled()
-            if (randomItems.isNullOrEmpty()) {
+            val currentList =
+                home.items.shuffled().filter { !it.list.isNullOrEmpty() }.flatMap { it.list }.distinctBy { it.url }
+                    .toList()
+
+            if (currentList.isNullOrEmpty()) {
                 toggleMainVisibility(false)
             } else {
+                val randomItems = currentList.shuffled()
                 val randomSize = randomItems.size
                 home_main_poster_recyclerview.adapter =
                     HomeChildItemAdapter(randomItems, R.layout.home_result_big_grid) { callback ->
@@ -139,7 +145,7 @@ class HomeFragment : Fragment() {
                             manager.snap { dx ->
                                 home_main_poster_recyclerview?.post {
                                     // this is the best I can do, fuck android for not including instant scroll
-                                    home_main_poster_recyclerview?.smoothScrollBy(dx,0)
+                                    home_main_poster_recyclerview?.smoothScrollBy(dx, 0)
                                 }
                             }
                         }
@@ -419,6 +425,20 @@ class HomeFragment : Fragment() {
         if (homeViewModel.apiName.value != apiName || apiName == null) {
             //println("Caught home: " + homeViewModel.apiName.value + " at " + apiName)
             homeViewModel.loadAndCancel(apiName, currentPrefMedia)
+        }
+
+        // nice profile pic on homepage
+        home_profile_picture_holder?.isVisible = false
+        context?.let { ctx ->
+            for (syncApi in OAuth2Interface.OAuth2Apis) {
+                val login = syncApi.loginInfo(ctx)
+                val pic = login?.profilePicture
+                if (pic != null) {
+                    home_profile_picture.setImage(pic)
+                    home_profile_picture_holder.isVisible = true
+                    break
+                }
+            }
         }
     }
 }
