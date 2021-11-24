@@ -36,12 +36,12 @@ jobs:
         SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
         SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-    - name: Create pre-release
+    - name: Create Release
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "jav_${{ github.event.inputs.tag-v }}"
-        prerelease: true
+        prerelease: false
         title: "CloudStream-3XXX ${{ github.event.inputs.tag-v }}"
         files: |
           app/build/outputs/apk/release/*.apk
