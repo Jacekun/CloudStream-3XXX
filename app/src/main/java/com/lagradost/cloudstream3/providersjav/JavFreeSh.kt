@@ -104,12 +104,24 @@ class JavFreeSh : MainAPI() {
         val poster = doc.select("meta[name=og:image]").firstOrNull()?.attr("content")
         val title = doc.select("meta[name=title]").firstOrNull()?.attr("content").toString()
         val descript = doc.select("meta[name=description]").firstOrNull()?.attr("content")
-        val id = ""
-        val yearElem = doc.getElementsByTag("body")
+
+        val body = doc.getElementsByTag("body")
+        val yearElem = body
             ?.select("div#page > div#content > div#primary > main > article")
             ?.select("div.entry-content > div.tab-content > div#video-about > div#video-date")
         //Log.i(this.name, "Result => (yearElem) ${yearElem}")
         val year = yearElem?.text()?.trim()?.takeLast(4)?.toIntOrNull()
+
+        var id = body
+            ?.select("div#page > div#content > div#primary > main > article > header > div > div > div > script")
+            ?.toString() ?: ""
+        if (id != "") {
+            val startS = "<iframe src="
+            id = id.substring(id.indexOf(startS) + startS.length + 1)
+            Log.i(this.name, "Result => (id) ${id}")
+            id = id.substring(0, id.indexOf("\""))
+        }
+        Log.i(this.name, "Result => (id) ${id}")
 
         return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
     }
