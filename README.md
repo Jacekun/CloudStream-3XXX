@@ -4,13 +4,12 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 
 ## Features
 
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/commit/d338639290beebf32c58e69df75cef1280f2e623) and [**release version**](https://github.com/LagradOst/CloudStream-3/releases/tag/v2.1.2).
-  + [Read full details here](https://github.com/LagradOst/CloudStream-3/tree/v2.1.2).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/commit/d2e192cd6f7d767a7f2cbf9729cd655ad1028a91) and [**release version**](https://github.com/LagradOst/CloudStream-3/tree/v2.2.3).
 + **'Preferred Media'** setting affects *Search filter* choices.
 + **JAV** sites.
+  + Only works for searching. No watchable links.
 
 ## Roadmap
-
 ### Ongoing dev
 + Jav Guru / https://jav.guru
   + Watch
