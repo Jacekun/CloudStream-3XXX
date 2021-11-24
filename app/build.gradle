@@ -8,7 +8,7 @@ plugins {
 def tmpFilePath = System.getProperty("user.home") + "/work/_temp/keystore/"
 def allFilesFromDir = new File(tmpFilePath).listFiles()
 def prerelaseStoreFile = null
-def releaseStoreFile = new File(tmpFilePath + "/release_keystore.keystore")
+def releaseStoreFile = new File(tmpFilePath + "release_keystore.keystore")
 if (allFilesFromDir != null) {
     prerelaseStoreFile = allFilesFromDir.first()
 }
