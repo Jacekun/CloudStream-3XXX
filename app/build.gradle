@@ -8,7 +8,6 @@ plugins {
 def tmpFilePath = System.getProperty("user.home") + "/work/_temp/keystore/"
 def allFilesFromDir = new File(tmpFilePath).listFiles()
 def prerelaseStoreFile = null
-def releaseStoreFile = new File(tmpFilePath + "release_keystore.keystore")
 if (allFilesFromDir != null) {
     prerelaseStoreFile = allFilesFromDir.first()
 }
@@ -28,8 +27,8 @@ android {
             }
         }
         release {
-            if (releaseStoreFile != null) {
-                storeFile = file(releaseStoreFile)
+            if (prerelaseStoreFile != null) {
+                storeFile = file(prerelaseStoreFile)
                 storePassword System.getenv("SIGNING_STORE_PASSWORD")
                 keyAlias System.getenv("SIGNING_KEY_ALIAS")
                 keyPassword System.getenv("SIGNING_KEY_PASSWORD")
@@ -65,6 +64,7 @@ android {
             minifyEnabled false
             debuggable true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         prerelease {
             applicationIdSuffix ".prerelease"
