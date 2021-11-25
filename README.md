@@ -10,21 +10,14 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
   + Only works for searching. No watchable links.
 
 ## Roadmap
-### Ongoing dev
+### Search-only sites
 + Jav Guru / https://jav.guru
-  + Watch
 + JavFree sh / https://javfree.sh/
-  + Watch
 + Op Jav / https://opjav.com/
-  + Watch
 + Jav Sub / https://javsub.co
-  + Watch
 + HpJAV.tv / https://hpjav.tv
-  + Watch
 + JAV Most / https://www5.javmost.com
-  + Watch
 + JAV HD / https://javhd.icu
-  + Watch
 
 ### To-Add List
 + JAV cl / javcl.com
