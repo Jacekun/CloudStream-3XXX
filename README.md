@@ -1,6 +1,8 @@
 # CloudStream-3XXX
+A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes. <br>
 
-A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes.
+![Latest Release](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/latest/total?style=for-the-badge)
+![All Releases](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/total?style=for-the-badge) <br>
 
 ## Features
 
