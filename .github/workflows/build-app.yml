@@ -22,7 +22,9 @@ jobs:
       with:
         fetch-depth: 0
     - name: Get commit count
-      run: echo "COMMIT_COUNT=$(git rev-list --count javdev)" >> $GITHUB_ENV
+      run:  |
+        set -e
+        echo "COMMIT_COUNT=$(git rev-list --count javdev)" >> $GITHUB_ENV
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Decode Keystore
