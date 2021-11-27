@@ -2,10 +2,6 @@ name: Build App
 
 on:
   workflow_dispatch:
-    inputs:
-      tag-v:
-        description: Tag version (required)
-        required: true
 
 concurrency: 
   group: "release"
@@ -21,6 +17,8 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+    - name: Get commit count
+      run: echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Decode Keystore
@@ -40,8 +38,8 @@ jobs:
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "jav_${{ github.event.inputs.tag-v }}"
+        automatic_release_tag: "jav_r${{ secrets.COMMIT_COUNT }}"
         prerelease: false
-        title: "CloudStream-3XXX ${{ github.event.inputs.tag-v }}"
+        title: "CloudStream-3XXX r${{ secrets.COMMIT_COUNT }}"
         files: |
           app/build/outputs/apk/release/*.apk
