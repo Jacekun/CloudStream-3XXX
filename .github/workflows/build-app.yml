@@ -43,9 +43,9 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: "jav_r${{ secrets.COMMIT_COUNT }}"
+        tag_name: "jav_r${{ env.COMMIT_COUNT }}"
         prerelease: false
-        name: "CloudStream-3XXX r${{ secrets.COMMIT_COUNT }}"
+        name: "CloudStream-3XXX r${{ env.COMMIT_COUNT }}"
         files: |
           app/build/outputs/apk/release/*.apk
         body: |
