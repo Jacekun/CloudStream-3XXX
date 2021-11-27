@@ -57,13 +57,9 @@
         <item name="white">#FFF</item>
     </style>
 
-    <!--   <style name="PreferencesTheme" parent="@style/Base.Theme.AppCompat">
-         <item name="android:textColorPrimary">?attr/textColor</item>
-         <item name="android:textColorSecondary">?attr/grayTextColor</item>
-         <item name="android:colorAccent">?attr/colorAccent</item>
-         <item name="android:colorControlHighlight">@color/colorPrimary</item>
-       <item name="android:tint">?attr/textColor</item>
-    </style>-->
+    <style name="AmoledModeLight" parent="AmoledMode">
+        <item name="primaryGrayBackground">@color/amoledModeLight</item>
+    </style>
 
     <style name="AmoledMode">
         <item name="primaryGrayBackground">@color/black</item>
@@ -135,9 +131,9 @@
     <style name="OverlayPrimaryColorRed">
         <item name="colorPrimary">@color/colorPrimaryRed</item>
         <item name="android:colorPrimary">@color/colorPrimaryRed</item>
-        <item name="colorPrimaryDark">#D53333</item>
-        <item name="colorAccent">#F53B3B</item>
-        <item name="colorOnPrimary">#EC3838</item>
+        <item name="colorPrimaryDark">#B62B2B</item>
+        <item name="colorAccent">@color/colorPrimaryRed</item> <!--#F53B3B-->
+        <item name="colorOnPrimary">@color/colorPrimaryRed</item> <!--#EC3838-->
         <!-- Needed for leanback fuckery -->
         <item name="android:colorAccent">@color/colorPrimaryRed</item>
     </style>
