@@ -22,7 +22,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Get commit count
-      run: echo "COMMIT_COUNT=$(git rev-list --count HEAD)" >> $GITHUB_ENV
+      run: echo "COMMIT_COUNT=$(git rev-list --count javdev)" >> $GITHUB_ENV
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Decode Keystore
@@ -47,3 +47,5 @@ jobs:
         title: "CloudStream-3XXX r${{ secrets.COMMIT_COUNT }}"
         files: |
           app/build/outputs/apk/release/*.apk
+        body: |
+          [Release notes here](https://github.com/Jacekun/CloudStream-3XXX/blob/javdev/doc/version_log.md)
