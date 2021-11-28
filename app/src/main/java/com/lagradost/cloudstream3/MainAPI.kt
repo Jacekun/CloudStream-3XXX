@@ -304,7 +304,8 @@ enum class TvType {
     Anime,
     ONA,
     Torrent,
-    JAV
+    JAV,
+    Hentai
 }
 
 // IN CASE OF FUTURE ANIME MOVIE OR SMTH

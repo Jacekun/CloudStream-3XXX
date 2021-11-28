@@ -244,6 +244,7 @@
     <string name="anime">Anime</string>
     <string name="torrent">Torrent</string>
     <string name="jav">JAV</string>
+    <string name="hentai">Hentai</string>
 
     <string name="source_error">Source error</string>
     <string name="remote_error">Remote error</string>
