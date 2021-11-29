@@ -5,7 +5,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 ![All Releases](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/total?style=for-the-badge) <br>
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/commit/d2e192cd6f7d767a7f2cbf9729cd655ad1028a91) and [**release version**](https://github.com/LagradOst/CloudStream-3/tree/v2.2.3).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/commit/54effd6c80bf21ee66e49afbd8b7078f4a115d37) and [**release version**](https://github.com/LagradOst/CloudStream-3/tree/v2.2.3).
 + **'Preferred Media'** setting affects *Search filter* choices.
 + **JAV** sites.
   + Only works for searching. No watchable links.
