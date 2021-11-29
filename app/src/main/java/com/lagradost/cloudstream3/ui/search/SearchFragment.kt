@@ -152,10 +152,16 @@ class SearchFragment : Fragment() {
 
                 for ((index, item) in apiNames.withIndex()) {
                     listView.setItemChecked(index, apiNamesSetting.contains(item))
+                    if (currentPrefMedia > 0) {
+                        listView.setItemChecked(index, true)
+                    }
                 }
 
                 for ((index, item) in typeChoices.withIndex()) {
                     listView2.setItemChecked(index, item.second.any { typesActive.contains(it) })
+                    if (currentPrefMedia > 0) {
+                        listView2.setItemChecked(index, true)
+                    }
                 }
 
                 fun toggleSearch(isOn: Boolean) {
