@@ -4,6 +4,8 @@ import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.Jsoup
 
 class JavFreeSh : MainAPI() {
@@ -97,6 +99,29 @@ class JavFreeSh : MainAPI() {
         }
     }
 
+    override fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        if (data == "") return false
+        val code = data.substring(data.indexOf("#") + 1)
+        val stream = "https://sbembed.com/embed-$code.html"
+        Log.i(this.name, "Result => (data) ${data} (stream) ${stream}")
+        callback.invoke(
+            ExtractorLink(
+                this.name,
+                this.name,
+                stream,
+                "",
+                Qualities.P720.value,
+                false
+            )
+        )
+        return true
+    }
+
     override fun load(url: String): LoadResponse {
         val response = get(url).text
         val doc = Jsoup.parse(response)
@@ -118,10 +143,10 @@ class JavFreeSh : MainAPI() {
         if (id != "") {
             val startS = "<iframe src="
             id = id.substring(id.indexOf(startS) + startS.length + 1)
-            Log.i(this.name, "Result => (id) ${id}")
+            //Log.i(this.name, "Result => (id) ${id}")
             id = id.substring(0, id.indexOf("\""))
         }
-        Log.i(this.name, "Result => (id) ${id}")
+        //Log.i(this.name, "Result => (id) ${id}")
 
         return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
     }
