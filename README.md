@@ -1,11 +1,11 @@
 # CloudStream-3XXX
-A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes. <br>
+A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes. Notably, NSFW sites<br>
 
 ![Latest Release](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/latest/total?style=for-the-badge)
 ![All Releases](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/total?style=for-the-badge) <br>
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/commit/54effd6c80bf21ee66e49afbd8b7078f4a115d37) and [**release version**](https://github.com/LagradOst/CloudStream-3/tree/v2.2.3).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/54effd6c80bf21ee66e49afbd8b7078f4a115d37).
 + **'Preferred Media'** setting affects *Search filter* choices.
 + **JAV** sites.
   + Only works for searching. No watchable links.
