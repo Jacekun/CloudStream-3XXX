@@ -106,8 +106,7 @@ class JavFreeSh : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         if (data == "") return false
-        val code = data.substring(data.indexOf("#") + 1)
-        val stream = "https://sbembed.com/embed-$code.html"
+        val stream = data.substring(data.indexOf("#") + 1)
         Log.i(this.name, "Result => (data) ${data} (stream) ${stream}")
         callback.invoke(
             ExtractorLink(
