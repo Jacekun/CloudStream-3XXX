@@ -3,7 +3,7 @@ package com.lagradost.cloudstream3
 import android.app.Activity
 import android.app.PictureInPictureParams
 import android.content.ComponentName
-import android.content.Context
+import android.content.Conjatext
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
