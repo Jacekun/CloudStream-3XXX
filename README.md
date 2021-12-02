@@ -1,8 +1,10 @@
 # CloudStream-3XXX
-A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes. Notably, NSFW sites<br>
+A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes. Notably, NSFW sites <br>
 
-![Latest Release](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/latest/total?style=for-the-badge)
-![All Releases](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/total?style=for-the-badge) <br>
+![Latest Release](https://img.shields.io/github/release/Jacekun/CloudStream-3XXX?style=for-the-badge)
+![Download Count](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/total?style=for-the-badge) <br>
+
+[**Click here to Download latest release**](https://github.com/Jacekun/CloudStream-3XXX/releases/latest)
 
 ## Features
 + All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/54effd6c80bf21ee66e49afbd8b7078f4a115d37).
@@ -11,8 +13,8 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
   + Only works for searching. No watchable links.
 + **Crunchyroll** site. *Thanks to* [@ArjixWasTaken](https://github.com/ArjixWasTaken)
 
-## Roadmap
-### Search-only sites
+## JAV Sites
+### 'Search-only' sites
 + Jav Guru / https://jav.guru
 + JavFree sh / https://javfree.sh/
 + Op Jav / https://opjav.com/
