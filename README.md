@@ -10,19 +10,22 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 + All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/54effd6c80bf21ee66e49afbd8b7078f4a115d37).
 + **'Preferred Media'** setting affects *Search filter* choices.
 + **JAV** sites.
-  + Only works for searching. No watchable links.
+  + Some are watchable. Mostly, search-only.
 + **Crunchyroll** site. *Thanks to* [@ArjixWasTaken](https://github.com/ArjixWasTaken)
 
 ## JAV Sites
+### Watchable
++ Jav Sub / https://javsub.co
+  + Only *StreamTape* server currently. Slow loading, wait upto a minute to load video.
++ Vlxx / https://vlxx.sex
+  + Vietnamese subbed.
 ### 'Search-only' sites
 + Jav Guru / https://jav.guru
 + JavFree sh / https://javfree.sh/
 + Op Jav / https://opjav.com/
-+ Jav Sub / https://javsub.co
 + HpJAV.tv / https://hpjav.tv
 + JAV Most / https://www5.javmost.com
 + JAV HD / https://javhd.icu
-
 ### To-Add List
 + vjav / vjav.com
 + JAV cl / javcl.com
