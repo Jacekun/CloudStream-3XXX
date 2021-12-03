@@ -2,10 +2,11 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.extractors.StreamSB
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.Qualities
+import org.json.JSONObject
 import org.jsoup.Jsoup
 
 class JavFreeSh : MainAPI() {
@@ -26,6 +27,19 @@ class JavFreeSh : MainAPI() {
 
     override val hasQuickSearch: Boolean
         get() = false
+
+    class Response(json: String) : JSONObject(json) {
+        val id: String? = this.optString("id")
+        val poster: String? = this.optString("poster")
+        val list = this.optJSONArray("list")
+            ?.let { 0.until(it.length()).map { i -> it.optJSONObject(i) } } // returns an array of JSONObject
+            ?.map { Links(it.toString()) } // transforms each JSONObject of the array into 'Links'
+    }
+    class Links(json: String) : JSONObject(json) {
+        val url: String? = this.optString("url")
+        val server: String? = this.optString("server")
+        val active: Int? = this.optInt("active")
+    }
 
     override fun getMainPage(): HomePageResponse {
         val html = get("$mainUrl", timeout = 15).text
@@ -135,15 +149,40 @@ class JavFreeSh : MainAPI() {
     ): Boolean {
         if (data == "about:blank") return false
         if (data == "") return false
-        var sources: List<ExtractorLink>? = null
+        var sources: List<ExtractorLink> = listOf()
         try {
             // get request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
-            //val streamdoc = Jsoup.parse(get(data).text)
-            Log.i(this.name, "Result => (id) ${id}")
+            val jsonres = get("https://player.javfree.sh/stream/${id}").text
+            val streamdata = Response(jsonres)
+            //Log.i(this.name, "Result => (jsonres) ${jsonres}")
             try {
                 // Invoke sources
-                if (sources != null) {
+                if (streamdata.list != null) {
+                    for (link in streamdata.list) {
+                        var linkUrl = link.url ?: ""
+                        var server = link.server ?: ""
+                        if (linkUrl != "") {
+                            linkUrl = linkUrl.substring(0, linkUrl.indexOf("?poster"))
+                                .replace("streamsb.net", "sbembed.com")
+                            Log.i(this.name, "Result => (link url) ${linkUrl}")
+                            // identify server
+                            if (server != "") {
+                                server = server.toLowerCase()
+                            }
+                            if (server.contains("streamsb")) {
+                                Log.i(this.name, "Result => (streamsb)")
+                                val extractor = StreamSB()
+                                val src = extractor.getUrl(linkUrl, this.mainUrl)
+                                if (src != null) {
+                                    Log.i(this.name, "Result => (streamsb) ${src.toString()}")
+                                    sources + src
+                                }
+                            }
+                        }
+                    }
+                }
+                if (sources.isNotEmpty()) {
                     for (source in sources) {
                         callback.invoke(source)
                         Log.i(this.name, "Result => (source) ${source.url}")
