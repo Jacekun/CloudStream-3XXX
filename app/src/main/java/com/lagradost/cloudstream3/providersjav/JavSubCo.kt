@@ -2,7 +2,7 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.DoodWsExtractor
+import com.lagradost.cloudstream3.extractors.DoodLaExtractor
 import com.lagradost.cloudstream3.extractors.StreamTape
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
@@ -177,8 +177,10 @@ class JavSubCo : MainAPI() {
                 }
                 if (doodwsUrl != "") {
                     Log.i(this.name, "Result => (doodwsUrl) ${doodwsUrl}")
-                    val extractor = DoodWsExtractor()
-                    val src = extractor.getUrl(doodwsUrl) ?: listOf<ExtractorLink>()
+                    // Probably not gonna work since link is on 'dood.ws' domain
+                    // adding just in case it loads urls ¯\_(ツ)_/
+                    val extractor = DoodLaExtractor()
+                    val src = extractor.getUrl(doodwsUrl, null) ?: listOf<ExtractorLink>()
                     if (src.size > 0) {
                         if (sources != null) {
                             sources += src
