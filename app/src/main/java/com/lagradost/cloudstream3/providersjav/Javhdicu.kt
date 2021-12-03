@@ -113,26 +113,30 @@ class Javhdicu : MainAPI() {
     override fun load(url: String): LoadResponse {
         val response = get(url).text
         val document = Jsoup.parse(response)
-        //Log.i(this.name, "Url => ${url}")
         val body = document.getElementsByTag("body")
             ?.select("div.container > div.row")
-            ?.select("div.col-md-8.col-sm-12.main-content > div.video-details")
+            ?.select("div.col-md-8.col-sm-12.main-content")
             ?.firstOrNull()
-        val innerBody = body?.select("div.post-entry")
-        val innerDiv = innerBody?.select("div")?.firstOrNull()
         //Log.i(this.name, "Result => ${body}")
+        val innerBody = body?.select("div.video-details > div.post-entry")
+        val innerDiv = innerBody?.select("div")?.firstOrNull()
 
+        // Video details
         val poster = innerDiv?.select("img")?.attr("src")
         val title = innerDiv?.select("p")?.firstOrNull()?.text() ?: "<No Title>"
         val descript = innerBody?.select("p")?.firstOrNull()?.text() ?: "<No Synopsis found>"
         //Log.i(this.name, "Result => ${descript}")
-        val id = ""
 
         val re = Regex("[^0-9]")
         var yearString = body?.select("span")?.firstOrNull()?.text()
         yearString = yearString?.let { re.replace(it, "").trim() }
         val year = yearString?.takeLast(4)?.toIntOrNull()
 
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+        // Video link
+        val videoLink = body?.select("div.player.player-small.embed-responsive.embed-responsive-16by9")
+            ?.select("iframe")?.attr("src") ?: ""
+        Log.i(this.name, "Result => (videoLink) ${videoLink}")
+
+        return MovieLoadResponse(title, url, this.name, TvType.JAV, videoLink, poster, year, descript, null, null)
     }
 }
