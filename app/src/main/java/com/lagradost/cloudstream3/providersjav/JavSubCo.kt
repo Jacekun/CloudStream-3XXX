@@ -2,8 +2,11 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.extractors.DoodWsExtractor
+import com.lagradost.cloudstream3.extractors.StreamTape
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.Jsoup
 
 class JavSubCo : MainAPI() {
@@ -103,6 +106,7 @@ class JavSubCo : MainAPI() {
         //Log.i(this.name, "Url => ${url}")
         val body = document.getElementsByTag("body")
         //Log.i(this.name, "Result => ${body}")
+        // Video details
         val poster = body.select("header#header")
             .select("div").select("figure").select("a")
             .select("img").attr("src")
@@ -113,7 +117,6 @@ class JavSubCo : MainAPI() {
         val descript = content.select("main > article > div > div")
             .lastOrNull()?.select("div")?.text() ?: "<No Synopsis found>"
         //Log.i(this.name, "Result => ${descript}")
-        val id = ""
         val re = Regex("[^0-9]")
         var yearString = content.select("main > article > div > div").last()
             ?.select("p")?.filter { it.text()?.contains("Release Date") == true }
@@ -121,8 +124,88 @@ class JavSubCo : MainAPI() {
         yearString = yearString?.split(":")?.get(1)?.trim() ?: ""
         yearString = re.replace(yearString, "")
         val year = yearString?.takeLast(4)?.toIntOrNull()
-        Log.i(this.name, "Result => (year) ${year} / (string) ${yearString}")
+        //Log.i(this.name, "Result => (year) ${year} / (string) ${yearString}")
 
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+        // Video stream
+        val streamUrl: String =  try {
+            val streamdataStart = body?.toString()?.indexOf("var torotube_Public = {") ?: 0
+            var streamdata = body?.toString()?.substring(streamdataStart) ?: ""
+            //Log.i(this.name, "Result => (streamdata) ${streamdata}")
+            streamdata.substring(0, streamdata.indexOf("};"))
+        } catch (e: Exception) {
+            Log.i(this.name, "Result => Exception (load) ${e}")
+            ""
+        }
+        return MovieLoadResponse(title, url, this.name, TvType.JAV, streamUrl, poster, year, descript, null, null)
+    }
+
+    override fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        if (data == "about:blank") return false
+        if (data == "") return false
+        var sources: List<ExtractorLink>? = null
+        try {
+            var streamdata = data.substring(data.indexOf("player"))
+            streamdata = streamdata.substring(streamdata.indexOf("["))
+            streamdata = streamdata.substring(1, streamdata.indexOf("]"))
+                .replace("\\\"", "\"")
+                .replace("\",\"", "")
+                .replace("\\", "")
+            //Log.i(this.name, "Result => (streamdata) ${streamdata}")
+            val streambody =
+                Jsoup.parse(streamdata)?.select("iframe")?.filter { s -> s.hasAttr("src") }
+            //Log.i(this.name, "Result => (streambody) ${streambody.toString()}")
+            // Get all src from iframes
+            val streamtapeUrl =
+                streambody?.filter { a -> a.attr("src").toString().contains("streamtape") }
+                    ?.firstOrNull()?.attr("src")?.toString() ?: ""
+            val doodwsUrl =
+                streambody?.filter { a -> a.attr("src").toString().contains("dood.ws") }
+                    ?.firstOrNull()?.attr("src")?.toString() ?: ""
+            val watchJavUrl =
+                streambody?.filter { a -> a.attr("src").toString().contains("watch-jav") }
+                    ?.firstOrNull()?.attr("src")?.toString() ?: ""
+            try {
+                if (streamtapeUrl != "") {
+                    Log.i(this.name, "Result => (streamtapeUrl) ${streamtapeUrl}")
+                    val extractor = StreamTape()
+                    sources = extractor.getUrl(streamtapeUrl)
+                }
+                if (doodwsUrl != "") {
+                    Log.i(this.name, "Result => (doodwsUrl) ${doodwsUrl}")
+                    val extractor = DoodWsExtractor()
+                    val src = extractor.getUrl(doodwsUrl) ?: listOf<ExtractorLink>()
+                    if (src.size > 0) {
+                        if (sources != null) {
+                            sources += src
+                        } else {
+                            sources = src
+                        }
+                    }
+                }
+                if (watchJavUrl != "") {
+                    Log.i(this.name, "Result => (watchJavUrl) ${watchJavUrl}")
+                }
+                // Invoke sources
+                if (sources != null) {
+                    for (source in sources) {
+                        callback.invoke(source)
+                        Log.i(this.name, "Result => (source) ${source.url}")
+                    }
+                    return true
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.i(this.name, "Result => (e) ${e}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.i(this.name, "Result => (e) ${e}")
+        }
+        return false
     }
 }
