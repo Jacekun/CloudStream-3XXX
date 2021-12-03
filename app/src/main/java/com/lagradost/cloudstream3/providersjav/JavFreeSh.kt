@@ -99,28 +99,6 @@ class JavFreeSh : MainAPI() {
         }
     }
 
-    override fun loadLinks(
-        data: String,
-        isCasting: Boolean,
-        subtitleCallback: (SubtitleFile) -> Unit,
-        callback: (ExtractorLink) -> Unit
-    ): Boolean {
-        if (data == "") return false
-        val stream = data.substring(data.indexOf("#") + 1)
-        Log.i(this.name, "Result => (data) ${data} (stream) ${stream}")
-        callback.invoke(
-            ExtractorLink(
-                this.name,
-                this.name,
-                stream,
-                "",
-                Qualities.P720.value,
-                false
-            )
-        )
-        return true
-    }
-
     override fun load(url: String): LoadResponse {
         val response = get(url).text
         val doc = Jsoup.parse(response)
@@ -146,7 +124,40 @@ class JavFreeSh : MainAPI() {
             id = id.substring(0, id.indexOf("\""))
         }
         //Log.i(this.name, "Result => (id) ${id}")
-
         return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+    }
+
+    override fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        if (data == "about:blank") return false
+        if (data == "") return false
+        var sources: List<ExtractorLink>? = null
+        try {
+            // get request to: https://player.javfree.sh/stream/687234424271726c
+            val id = data.substring(data.indexOf("#")).substring(1)
+            //val streamdoc = Jsoup.parse(get(data).text)
+            Log.i(this.name, "Result => (id) ${id}")
+            try {
+                // Invoke sources
+                if (sources != null) {
+                    for (source in sources) {
+                        callback.invoke(source)
+                        Log.i(this.name, "Result => (source) ${source.url}")
+                    }
+                    return true
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.i(this.name, "Result => (e) ${e}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.i(this.name, "Result => (e) ${e}")
+        }
+        return false
     }
 }
