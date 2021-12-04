@@ -1,4 +1,8 @@
 # CloudStream-3XXX
+<p align="center">
+  <img src="doc/ic_launcher.png" />
+</p> <br>
+
 A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes. Notably, NSFW sites <br>
 
 ![Latest Release](https://img.shields.io/github/release/Jacekun/CloudStream-3XXX?style=for-the-badge)
@@ -7,7 +11,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 [**Click here to Download latest release**](https://github.com/Jacekun/CloudStream-3XXX/releases/latest)
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/54effd6c80bf21ee66e49afbd8b7078f4a115d37).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/29327688911741a075c03e2b586d09e38db8388a).
 + **'Preferred Media'** setting affects *Search filter* choices.
 + **JAV** sites.
   + Some are watchable. Mostly, search-only.
@@ -16,7 +20,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 ## JAV Sites
 ### Watchable
 + Jav Sub / https://javsub.co
-  + Only *StreamTape* server currently. Slow loading, wait upto a minute to load video.
+  + Have issues with ``dood`` server.
 + Vlxx / https://vlxx.sex
   + Vietnamese subbed.
 ### 'Search-only' sites

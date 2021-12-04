@@ -1,3 +1,9 @@
+# CloudStream-3XXX unreleased
++ CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/29327688911741a075c03e2b586d09e38db8388a).
++ Changed Icon.
++ Javsub: Fetch ``fembed`` stream links.
++ vlxx: add null-checker for titles.
+
 # CloudStream-3XXX r636
 + Add: Vlxx site, [PR #4](https://github.com/Jacekun/CloudStream-3XXX/pull/4). *Thanks to [**@duongnv1996**](https://github.com/duongnv1996)*.
 + Add: Javsub streamable links for StreamTape server.
