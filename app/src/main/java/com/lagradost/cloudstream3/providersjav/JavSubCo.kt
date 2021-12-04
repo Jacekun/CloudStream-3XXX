@@ -3,6 +3,7 @@ package com.lagradost.cloudstream3.providersjav
 import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.DoodLaExtractor
+import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.extractors.StreamTape
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
@@ -147,7 +148,7 @@ class JavSubCo : MainAPI() {
     ): Boolean {
         if (data == "about:blank") return false
         if (data == "") return false
-        var sources: List<ExtractorLink>? = null
+        val sources = mutableListOf<ExtractorLink>()
         try {
             var streamdata = data.substring(data.indexOf("player"))
             streamdata = streamdata.substring(streamdata.indexOf("["))
@@ -156,53 +157,53 @@ class JavSubCo : MainAPI() {
                 .replace("\",\"", "")
                 .replace("\\", "")
             //Log.i(this.name, "Result => (streamdata) ${streamdata}")
+
+            // Get all src from iframes
             val streambody =
                 Jsoup.parse(streamdata)?.select("iframe")?.filter { s -> s.hasAttr("src") }
+                    ?.map { a -> a?.attr("src") ?: "" }
             //Log.i(this.name, "Result => (streambody) ${streambody.toString()}")
-            // Get all src from iframes
-            val streamtapeUrl =
-                streambody?.filter { a -> a.attr("src").toString().contains("streamtape") }
-                    ?.firstOrNull()?.attr("src")?.toString() ?: ""
-            val doodwsUrl =
-                streambody?.filter { a -> a.attr("src").toString().contains("dood.ws") }
-                    ?.firstOrNull()?.attr("src")?.toString() ?: ""
-            val watchJavUrl =
-                streambody?.filter { a -> a.attr("src").toString().contains("watch-jav") }
-                    ?.firstOrNull()?.attr("src")?.toString() ?: ""
-            try {
-                if (streamtapeUrl != "") {
-                    Log.i(this.name, "Result => (streamtapeUrl) ${streamtapeUrl}")
-                    val extractor = StreamTape()
-                    sources = extractor.getUrl(streamtapeUrl)
-                }
-                if (doodwsUrl != "") {
-                    Log.i(this.name, "Result => (doodwsUrl) ${doodwsUrl}")
-                    // Probably not gonna work since link is on 'dood.ws' domain
-                    // adding just in case it loads urls ¯\_(ツ)_/
-                    val extractor = DoodLaExtractor()
-                    val src = extractor.getUrl(doodwsUrl, null) ?: listOf<ExtractorLink>()
-                    if (src.size > 0) {
-                        if (sources != null) {
-                            sources += src
-                        } else {
-                            sources = src
+
+            if (streambody != null) {
+                for (link in streambody) {
+                    //Log.i(this.name, "Result => (link) ${link}")
+                    if (link != null) {
+                        if (link.isNotEmpty()) {
+                            if (link.contains("streamtape")) {
+                                val extractor = StreamTape()
+                                val src = extractor.getUrl(link)
+                                if (src != null) {
+                                    sources.addAll(src)
+                                }
+                            }
+                            if (link.contains("dood.ws")) {
+                                //Log.i(this.name, "Result => (doodwsUrl) ${doodwsUrl}")
+                                // Probably not gonna work since link is on 'dood.ws' domain
+                                // adding just in case it loads urls ¯\_(ツ)_/
+                                val extractor = DoodLaExtractor()
+                                val src = extractor.getUrl(link, null)
+                                if (src != null) {
+                                    sources.addAll(src)
+                                }
+                            }
+                            if (link.contains("watch-jav")) {
+                                val extractor = FEmbed()
+                                val src = extractor.getUrl(link)
+                                if (src != null) {
+                                    sources.addAll(src)
+                                }
+                            }
                         }
                     }
                 }
-                if (watchJavUrl != "") {
-                    Log.i(this.name, "Result => (watchJavUrl) ${watchJavUrl}")
+            }
+            // Invoke sources
+            if (sources.size > 0) {
+                for (source in sources) {
+                    callback.invoke(source)
+                    //Log.i(this.name, "Result => (callback) ${source.url}")
                 }
-                // Invoke sources
-                if (sources != null) {
-                    for (source in sources) {
-                        callback.invoke(source)
-                        Log.i(this.name, "Result => (source) ${source.url}")
-                    }
-                    return true
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.i(this.name, "Result => (e) ${e}")
+                return true
             }
         } catch (e: Exception) {
             e.printStackTrace()
