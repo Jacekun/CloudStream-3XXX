@@ -159,9 +159,9 @@ class Vlxx : MainAPI() {
     override fun load(url: String): LoadResponse {
         val response = get(url).text
         val document = Jsoup.parse(response)
-        val title = document.selectFirst(".breadcrumb").text()
-        val descript = document.select(".video-content .content").text()
-        val year = 2021
+        val title = document?.selectFirst(".breadcrumb")?.text() ?: "<No Title>"
+        val descript = document?.select(".video-content .content")?.text()
+        val year = null
         val poster = document.select(".lcol img").attr("src")
         return MovieLoadResponse(
             title,
