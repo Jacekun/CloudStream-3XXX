@@ -163,19 +163,19 @@ class JavFreeSh : MainAPI() {
                         var linkUrl = link.url ?: ""
                         var server = link.server ?: ""
                         if (linkUrl != "") {
-                            linkUrl = linkUrl.substring(0, linkUrl.indexOf("?poster"))
-                                .replace("streamsb.net", "sbembed.com")
                             Log.i(this.name, "Result => (link url) ${linkUrl}")
                             // identify server
                             if (server != "") {
                                 server = server.toLowerCase()
                             }
                             if (server.contains("streamsb")) {
-                                Log.i(this.name, "Result => (streamsb)")
+                                linkUrl = linkUrl.substring(0, linkUrl.indexOf("?poster"))
+                                    //.replace("streamsb.net", "sbembed.com")
+                                Log.i(this.name, "Result => (streamsb link) ${linkUrl}")
                                 val extractor = StreamSB()
                                 val src = extractor.getUrl(linkUrl, this.mainUrl)
                                 if (src != null) {
-                                    Log.i(this.name, "Result => (streamsb) ${src.toString()}")
+                                    Log.i(this.name, "Result => (streamsb) ${src}")
                                     sources + src
                                 }
                             }
