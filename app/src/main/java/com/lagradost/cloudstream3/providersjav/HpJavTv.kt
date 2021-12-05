@@ -107,14 +107,15 @@ class HpJavTv : MainAPI() {
         val body = document.getElementsByTag("body")
             .select("div.video-box-ather.container > div.container > div")
             .select("div > div > img")?.firstOrNull()
-
         //Log.i(this.name, "Result => ${body}")
+        // Video details
         val poster = body?.attr("src")
         val title = body?.attr("alt") ?: "<No Title>"
         val descript = "<No Synopsis found>"
-        //Log.i(this.name, "Result => ${descript}")
-        val id = ""
         val year = null
+
+        // Video link
+        val id = ""
 
         return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
     }
