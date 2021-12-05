@@ -2,8 +2,11 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.extractors.DoodLaExtractor
+import com.lagradost.cloudstream3.extractors.StreamTape
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.Jsoup
 
 class OpJavCom : MainAPI() {
@@ -106,14 +109,46 @@ class OpJavCom : MainAPI() {
     override fun load(url: String): LoadResponse {
         val response = get(url).text
         val doc = Jsoup.parse(response)
-        Log.i(this.name, "Url => ${url}")
+        //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[itemprop=image]")?.get(1)?.attr("content")
         val title = doc.select("meta[property=og:title]").firstOrNull()?.attr("content").toString()
         val descript = doc.select("meta[name=keywords]").firstOrNull()?.attr("content")
-        val id = ""
         val year = doc.select("meta[itemprop=dateCreated]")
             .firstOrNull()?.attr("content")?.toIntOrNull()
 
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+        val watchlink = doc?.select("div.buttons.row > div > div > a")?.attr("href") ?: ""
+        Log.i(this.name, "Result => (watchlink) ${watchlink}")
+        return MovieLoadResponse(title, url, this.name, TvType.JAV, watchlink, poster, year, descript, null, null)
+    }
+
+    override fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        if (data == "about:blank") return false
+        if (data == "") return false
+        var sources: List<ExtractorLink>? = null
+        try {
+            val streamdoc = Jsoup.parse(get(data).text)
+            try {
+                // Invoke sources
+                if (sources != null) {
+                    for (source in sources) {
+                        callback.invoke(source)
+                        Log.i(this.name, "Result => (source) ${source.url}")
+                    }
+                    return true
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.i(this.name, "Result => (e) ${e}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.i(this.name, "Result => (e) ${e}")
+        }
+        return false
     }
 }

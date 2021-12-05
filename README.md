@@ -8,7 +8,9 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 ![Latest Release](https://img.shields.io/github/release/Jacekun/CloudStream-3XXX?style=for-the-badge)
 ![Download Count](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/total?style=for-the-badge) <br>
 
-[**Click here to Download latest release**](https://github.com/Jacekun/CloudStream-3XXX/releases/latest)
+[**Click here to Download latest release**](https://github.com/Jacekun/CloudStream-3XXX/releases/latest) <br>
+
+[**View release history**](doc/version_log.md)
 
 ## Features
 + All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/29327688911741a075c03e2b586d09e38db8388a).
@@ -19,17 +21,18 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 
 ## JAV Sites
 ### Watchable
-+ Jav Sub / https://javsub.co
++ JAVSub / https://javsub.co
   + Have issues with ``dood`` server.
++ JAVHD / https://javhd.icu
+  + All scene parts are loaded as ``'Sources'``.
 + Vlxx / https://vlxx.sex
-  + Vietnamese subbed.
+  + Vietnamese subbed. CloudFare issues on some areas.
 ### 'Search-only' sites
 + Jav Guru / https://jav.guru
 + JavFree sh / https://javfree.sh/
 + Op Jav / https://opjav.com/
 + HpJAV.tv / https://hpjav.tv
 + JAV Most / https://www5.javmost.com
-+ JAV HD / https://javhd.icu
 ### To-Add List
 + vjav / vjav.com
 + JAV cl / javcl.com
