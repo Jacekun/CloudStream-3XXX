@@ -1,4 +1,4 @@
-# CloudStream-3XXX unreleased
+# CloudStream-3XXX r651
 + CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/29327688911741a075c03e2b586d09e38db8388a).
 + Changed Icon.
 + Javsub: Fetch ``fembed`` stream links.
