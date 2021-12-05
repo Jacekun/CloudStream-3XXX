@@ -154,7 +154,7 @@ class JavFreeSh : MainAPI() {
             // get request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
             val jsonres = get("https://player.javfree.sh/stream/${id}").text
-            val streamdata = Response(jsonres)
+            val streamdata = JavFreeSh.Response(jsonres)
             //Log.i(this.name, "Result => (jsonres) ${jsonres}")
             try {
                 // Invoke sources
@@ -175,7 +175,7 @@ class JavFreeSh : MainAPI() {
                                 val extractor = StreamSB()
                                 val src = extractor.getUrl(linkUrl, this.mainUrl)
                                 if (src != null) {
-                                    Log.i(this.name, "Result => (streamsb) ${src}")
+                                    //Log.i(this.name, "Result => (streamsb) ${src}")
                                     sources + src
                                 }
                             }

@@ -2,13 +2,11 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.DoodLaExtractor
 import com.lagradost.cloudstream3.extractors.FEmbed
-import com.lagradost.cloudstream3.extractors.MixDrop
+import com.lagradost.cloudstream3.extractors.StreamLare
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.Jsoup
 
 class Javhdicu : MainAPI() {
@@ -145,12 +143,18 @@ class Javhdicu : MainAPI() {
                 val vidlink = section?.select("a")?.attr("href")
                 if (vidlink != null) {
                     if (vidlink.isNotEmpty()) {
-                        val doc = Jsoup.parse(get(vidlink).text)
-                        val streamLink = doc?.select("div.player.player-small.embed-responsive.embed-responsive-16by9")
-                            ?.select("iframe")?.attr("src") ?: ""
-                        Log.i(this.name, "Result => (streamLink) ${streamLink}")
-                        if (streamLink.isNotEmpty()) {
-                            videoLinks.add(streamLink)
+                        try {
+                            val doc = Jsoup.parse(get(vidlink).text)
+                            val streamLink =
+                                doc?.select("div.player.player-small.embed-responsive.embed-responsive-16by9")
+                                    ?.select("iframe")?.attr("src") ?: ""
+                            //Log.i(this.name, "Result => (streamLink) ${streamLink}")
+                            if (streamLink.isNotEmpty()) {
+                                videoLinks.add(streamLink)
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Log.i(this.name, "Result => (Exception) ${e}")
                         }
                     }
                 }
@@ -190,10 +194,18 @@ class Javhdicu : MainAPI() {
                             }
                             sources.addAll(srcAdd)
                         }
+                        continue
                     }
-
-                    if (vid.startsWith("https://streamlare.com")) {
-                        //
+                    if (vid.contains("streamlare")) {
+                        val extractor = StreamLare()
+                        val src = extractor.getUrl(vid)
+                        if (src != null) {
+                            val srcAdd = src.toMutableList()
+                            for (item in srcAdd) {
+                                item.name += " Scene ${count}"
+                            }
+                            sources.addAll(srcAdd)
+                        }
                     }
                 }
             }
