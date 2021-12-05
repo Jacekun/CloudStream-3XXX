@@ -2,8 +2,13 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.extractors.DoodLaExtractor
+import com.lagradost.cloudstream3.extractors.FEmbed
+import com.lagradost.cloudstream3.extractors.MixDrop
 import com.lagradost.cloudstream3.network.get
 import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.Jsoup
 
 class Javhdicu : MainAPI() {
@@ -133,10 +138,67 @@ class Javhdicu : MainAPI() {
         val year = yearString?.takeLast(4)?.toIntOrNull()
 
         // Video link
-        val videoLink = body?.select("div.player.player-small.embed-responsive.embed-responsive-16by9")
-            ?.select("iframe")?.attr("src") ?: ""
-        Log.i(this.name, "Result => (videoLink) ${videoLink}")
+        val videoLinks: MutableList<String> = mutableListOf()
+        val videotapes = body?.select("ul.pagination.post-tape > li")
+        if (videotapes != null) {
+            for (section in videotapes) {
+                val vidlink = section?.select("a")?.attr("href")
+                if (vidlink != null) {
+                    if (vidlink.isNotEmpty()) {
+                        val doc = Jsoup.parse(get(vidlink).text)
+                        val streamLink = doc?.select("div.player.player-small.embed-responsive.embed-responsive-16by9")
+                            ?.select("iframe")?.attr("src") ?: ""
+                        Log.i(this.name, "Result => (streamLink) ${streamLink}")
+                        if (streamLink.isNotEmpty()) {
+                            videoLinks.add(streamLink)
+                        }
+                    }
+                }
+            }
+        }
 
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, videoLink, poster, year, descript, null, null)
+        return MovieLoadResponse(title, url, this.name, TvType.JAV, videoLinks.toString(), poster, year, descript, null, null)
+    }
+
+    override fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        if (data == "about:blank") return false
+        if (data == "") return false
+        val sources = mutableListOf<ExtractorLink>()
+        try {
+            if (data.isNotEmpty()) {
+                val vidlinks = data.replace("[", "")
+                    .replace("]", "")
+                    .split(",")
+
+                for (vid in vidlinks) {
+                    Log.i(this.name, "Result => (vid) ${vid}")
+                    // parse single link
+                    if (vid.startsWith("https://javhdfree.icu")) {
+                        val extractor = FEmbed()
+                        val src = extractor.getUrl(vid)
+                        if (src != null) {
+                            sources.addAll(src)
+                        }
+                    }
+                }
+            }
+            // Invoke sources
+            if (sources.isNotEmpty()) {
+                for (source in sources) {
+                    callback.invoke(source)
+                    //Log.i(this.name, "Result => (source) ${source.url}")
+                }
+                return true
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.i(this.name, "Result => (e) ${e}")
+        }
+        return false
     }
 }
