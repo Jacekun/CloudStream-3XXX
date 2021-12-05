@@ -349,7 +349,19 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     .putInt(getString(R.string.preferred_media_settings), prefValues[it])
                     .apply()
                 val apilist = AppUtils.filterProviderByPreferredMedia(apis, prefValues[it], true)
-                val apiRandom = if (apilist?.size > 0) { apilist.random().name } else { "" }
+                val apiRandom = if (apilist.isNotEmpty()) { apilist.random().name } else { "" }
+                // Change last saved active apis and types
+                val apiListAll = AppUtils.filterProviderByPreferredMedia(apis, prefValues[it], false)
+                val apiNames = apiListAll.map { a -> a.name }.toHashSet()
+                val activeTypes = AppUtils.filterProviderChoicesByPreferredMedia(prefValues[it])
+                    .map { b -> b.second }.flatten().map{ c -> c.name }.toSet()
+                settingsManager.edit()
+                    .putStringSet(getString(R.string.search_providers_list_key), apiNames)
+                    .apply()
+                settingsManager.edit()
+                    .putStringSet(getString(R.string.search_types_list_key), activeTypes)
+                    .apply()
+
                 context?.setKey(HOMEPAGE_API, apiRandom)
                 context?.initRequestClient()
             }
