@@ -81,7 +81,7 @@ class InAppUpdater {
         }
 
         private fun Activity.getReleaseUpdate(): Update {
-            val url = "https://api.github.com/repos/LagradOst/CloudStream-3/releases"
+            val url = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases"
             val headers = mapOf("Accept" to "application/vnd.github.v3+json")
             val response =
                 mapper.readValue<List<GithubRelease>>(get(url, headers = headers).text)
@@ -136,8 +136,8 @@ class InAppUpdater {
         }
 
         private fun Activity.getPreReleaseUpdate(): Update {
-            val tagUrl = "https://api.github.com/repos/LagradOst/CloudStream-3/git/ref/tags/pre-release"
-            val releaseUrl = "https://api.github.com/repos/LagradOst/CloudStream-3/releases"
+            val tagUrl = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/git/ref/tags/pre-release"
+            val releaseUrl = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases"
             val headers = mapOf("Accept" to "application/vnd.github.v3+json")
             val response =
                 mapper.readValue<List<GithubRelease>>(get(releaseUrl, headers = headers).text)
