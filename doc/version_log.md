@@ -1,6 +1,6 @@
 # CloudStream-3XXX unreleased
-+ CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/29327688911741a075c03e2b586d09e38db8388a).
-+ JavHdicu: Fetch links and stream.
++ CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/64ce14e290670c5214ca05d900acb87218700fb0).
++ JAV HD: Fetch links and stream.
 ## dev
 + Add ``StreamLare`` extractor.
 + Minor refactor to ``FEmbed`` extractor.

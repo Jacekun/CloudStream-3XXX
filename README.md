@@ -13,7 +13,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 [**View release history**](doc/version_log.md)
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/29327688911741a075c03e2b586d09e38db8388a).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/64ce14e290670c5214ca05d900acb87218700fb0).
 + **'Preferred Media'** setting affects *Search filter* choices.
 + **JAV** sites.
   + Some are watchable. Mostly, search-only.
