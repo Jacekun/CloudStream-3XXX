@@ -30,6 +30,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 ### 'Search-only' sites
 + Jav Guru / https://jav.guru
 + JavFree sh / https://javfree.sh/
+  + Can extract streamsb links but StreamSB extractor not working for some reasons.
 + Op Jav / https://opjav.com/
 + HpJAV.tv / https://hpjav.tv
 + JAV Most / https://www5.javmost.com
