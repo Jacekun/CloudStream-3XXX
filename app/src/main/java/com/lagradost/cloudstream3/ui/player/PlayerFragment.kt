@@ -119,6 +119,7 @@ const val EXTRA_CONTROL_TYPE = "control_type"
 const val PLAYBACK_SPEED = "playback_speed"
 const val RESIZE_MODE_KEY = "resize_mode" // Last used resize mode
 const val PLAYBACK_SPEED_KEY = "playback_speed" // Last used playback speed
+const val PREFERRED_SUBS_KEY = "preferred_subtitles" // Last used resize mode
 
 const val OPENING_PERCENTAGE = 50
 const val AUTOLOAD_NEXT_EPISODE_PERCENTAGE = 80
@@ -920,9 +921,9 @@ class PlayerFragment : Fragment() {
 
     private var resizeMode = 0
     private var playbackSpeed = 0f
-    private var allEpisodes: HashMap<Int, ArrayList<ExtractorLink>> = HashMap()
-    private var allEpisodesSubs: HashMap<Int, ArrayList<SubtitleFile>> = HashMap()
-    private var episodes: List<ResultEpisode> = ArrayList()
+    private var allEpisodes: HashMap<Int, List<ExtractorLink>> = HashMap()
+    private var allEpisodesSubs: HashMap<Int, HashMap<String, SubtitleFile>> = HashMap()
+    private var episodes: List<ResultEpisode> = emptyList()
     var currentPoster: String? = null
     var currentHeaderName: String? = null
     var currentIsMovie: Boolean? = null
@@ -1138,7 +1139,7 @@ class PlayerFragment : Fragment() {
                     context?.let { ctx ->
                         //val isPlaying = exoPlayer.isPlaying
                         exoPlayer.pause()
-                        val currentSubtitles = activeSubtitles
+                        val currentSubtitles = context?.getSubs()?.map { it.lang } ?: activeSubtitles
 
                         val sourceBuilder = AlertDialog.Builder(ctx, R.style.AlertDialogCustomBlack)
                             .setView(R.layout.player_select_source_and_subs)
@@ -1189,8 +1190,8 @@ class PlayerFragment : Fragment() {
                         }
 
                         val startIndexFromMap =
-                            currentSubtitles.map { it.removeSuffix(" ") }
-                                .indexOf(preferredSubtitles.removeSuffix(" ")) + 1
+                            currentSubtitles.map { it.trimEnd() }
+                                .indexOf(preferredSubtitles.trimEnd()) + 1
                         var subtitleIndex = startIndexFromMap
 
                         if (currentSubtitles.isEmpty()) {
@@ -1218,13 +1219,27 @@ class PlayerFragment : Fragment() {
                         }
 
                         applyButton.setOnClickListener {
+                            if (this::exoPlayer.isInitialized) playbackPosition = exoPlayer.currentPosition
+
+                            var init = false
                             if (sourceIndex != startSource) {
-                                playbackPosition = if (this::exoPlayer.isInitialized) exoPlayer.currentPosition else 0
                                 setMirrorId(sources[sourceIndex].getId())
-                                initPlayer(getCurrentUrl())
+                                init = true
                             }
                             if (subtitleIndex != startIndexFromMap) {
-                                setPreferredSubLanguage(if (subtitleIndex <= 0) null else currentSubtitles[subtitleIndex - 1])
+                                if (subtitleIndex <= 0) {
+                                    setPreferredSubLanguage(null)
+                                } else {
+                                    val langId = currentSubtitles[subtitleIndex - 1].trimEnd()
+                                    setPreferredSubLanguage(langId)
+
+                                    if (!activeSubtitles.any { it.trimEnd() == langId }) {
+                                        init = true
+                                    }
+                                }
+                            }
+                            if (init) {
+                                initPlayer(getCurrentUrl())
                             }
                             sourceDialog.dismiss()
                         }
@@ -1253,7 +1268,7 @@ class PlayerFragment : Fragment() {
 
     private fun setPreferredSubLanguage(lang: String?) {
         //val textRendererIndex = getRendererIndex(C.TRACK_TYPE_TEXT) ?: return@setOnClickListener
-        val realLang = if (lang.isNullOrBlank()) "" else lang
+        val realLang = if (lang.isNullOrBlank()) "" else lang.trimEnd()
         preferredSubtitles =
             if (realLang.length == 2) SubtitleHelper.fromTwoLettersToLanguage(realLang) ?: realLang else realLang
 
@@ -1268,7 +1283,7 @@ class PlayerFragment : Fragment() {
             } else {
                 trackSelector.setParameters(
                     trackSelector.buildUponParameters()
-                        .setPreferredTextLanguage(realLang)
+                        .setPreferredTextLanguage("_$realLang")
                     //.setRendererDisabled(textRendererIndex, false)
                 )
             }
@@ -1414,6 +1429,10 @@ class PlayerFragment : Fragment() {
             playbackPosition = it
         }
 
+        arguments?.getString(PREFERRED_SUBS_KEY)?.let {
+            setPreferredSubLanguage(it)
+        }
+
         sources_btt.visibility =
             if (isDownloadedFile)
                 if (context?.getSubs()?.isNullOrEmpty() != false)
@@ -1423,15 +1442,23 @@ class PlayerFragment : Fragment() {
         player_media_route_button?.isVisible = !isDownloadedFile
         if (savedInstanceState != null) {
             currentWindow = savedInstanceState.getInt(STATE_RESUME_WINDOW)
-            playbackPosition = savedInstanceState.getLong(STATE_RESUME_POSITION)
+            if (playbackPosition <= 0) {
+                playbackPosition = savedInstanceState.getLong(STATE_RESUME_POSITION)
+            }
             isFullscreen = savedInstanceState.getBoolean(STATE_PLAYER_FULLSCREEN)
             isPlayerPlaying = savedInstanceState.getBoolean(STATE_PLAYER_PLAYING)
             resizeMode = savedInstanceState.getInt(RESIZE_MODE_KEY)
+            savedInstanceState.getString(PREFERRED_SUBS_KEY)?.let {
+                setPreferredSubLanguage(it)
+            }
+            savedInstanceState.getString("data")?.let {
+                playerData = mapper.readValue(it)
+            }
             playbackSpeed = savedInstanceState.getFloat(PLAYBACK_SPEED)
         }
 
-        resizeMode = requireContext().getKey(RESIZE_MODE_KEY, 0)!!
-        playbackSpeed = requireContext().getKey(PLAYBACK_SPEED_KEY, 1f)!!
+        resizeMode = context?.getKey(RESIZE_MODE_KEY, 0) ?: 0
+        playbackSpeed = context?.getKey(PLAYBACK_SPEED_KEY, 1f) ?: 1f
 
         activity?.let {
             it.contentResolver?.registerContentObserver(
@@ -1479,6 +1506,13 @@ class PlayerFragment : Fragment() {
 
             observeDirectly(viewModel.allEpisodesSubs) { _allEpisodesSubs ->
                 allEpisodesSubs = _allEpisodesSubs
+                if (preferredSubtitles != "" && !activeSubtitles.contains(preferredSubtitles) && allEpisodesSubs[getEpisode()?.id]?.containsKey(
+                        preferredSubtitles
+                    ) == true
+                ) {
+                    if (this::exoPlayer.isInitialized) playbackPosition = exoPlayer.currentPosition
+                    initPlayer(getCurrentUrl())
+                }
             }
 
             observeDirectly(viewModel.resultResponse) { data ->
@@ -1494,6 +1528,8 @@ class PlayerFragment : Fragment() {
                     }
                     is Resource.Failure -> {
                         //WTF, HOW DID YOU EVEN GET HERE
+                    }
+                    else -> {
                     }
                 }
             }
@@ -1641,7 +1677,7 @@ class PlayerFragment : Fragment() {
 
         changeSkip()
 
-        // initPlayer()
+        initPlayer()
     }
 
     private fun getCurrentUrl(): ExtractorLink? {
@@ -1685,7 +1721,7 @@ class PlayerFragment : Fragment() {
                 }
                 return list
             } else {
-                allEpisodesSubs[getEpisode()?.id]
+                allEpisodesSubs[getEpisode()?.id]?.values?.toList()?.sortedBy { it.lang }
             }
         } catch (e: Exception) {
             null
@@ -1716,7 +1752,7 @@ class PlayerFragment : Fragment() {
                 if (item.getId() == id) {
                     if (sorted.size > i + 1) {
                         setMirrorId(sorted[i + 1].getId())
-                        initPlayer()
+                        initPlayer(getCurrentUrl())
                     }
                 }
             }
@@ -1744,7 +1780,13 @@ class PlayerFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         if (!isCurrentlyPlaying) {
-            initPlayer()
+            if (isDownloadedFile) {
+                initPlayer(null, uriData.uri)
+            } else {
+                getCurrentUrl()?.let {
+                    initPlayer(it)
+                }
+            }
         }
         if (player_view != null) player_view?.onResume()
     }
@@ -1765,7 +1807,13 @@ class PlayerFragment : Fragment() {
         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         if (Util.SDK_INT <= 23) {
             if (!isCurrentlyPlaying) {
-                initPlayer()
+                if (isDownloadedFile) {
+                    initPlayer(null, uriData.uri)
+                } else {
+                    getCurrentUrl()?.let {
+                        initPlayer(it)
+                    }
+                }
             }
             if (player_view != null) player_view?.onResume()
         }
@@ -1839,6 +1887,7 @@ class PlayerFragment : Fragment() {
         arguments?.putBoolean(STATE_PLAYER_FULLSCREEN, isFullscreen)
         arguments?.putBoolean(STATE_PLAYER_PLAYING, isPlayerPlaying)
         arguments?.putInt(RESIZE_MODE_KEY, resizeMode)
+        arguments?.putString(PREFERRED_SUBS_KEY, preferredSubtitles)
         arguments?.putFloat(PLAYBACK_SPEED, playbackSpeed)
         if (!isDownloadedFile && this::playerData.isInitialized) {
             arguments?.putString("data", mapper.writeValueAsString(playerData))
@@ -1855,6 +1904,7 @@ class PlayerFragment : Fragment() {
         outState.putBoolean(STATE_PLAYER_FULLSCREEN, isFullscreen)
         outState.putBoolean(STATE_PLAYER_PLAYING, isPlayerPlaying)
         outState.putInt(RESIZE_MODE_KEY, resizeMode)
+        outState.putString(PREFERRED_SUBS_KEY, preferredSubtitles)
         outState.putFloat(PLAYBACK_SPEED, playbackSpeed)
         if (!isDownloadedFile && this::playerData.isInitialized) {
             outState.putString("data", mapper.writeValueAsString(playerData))
@@ -1952,13 +2002,13 @@ class PlayerFragment : Fragment() {
             val subItemsId = ArrayList<String>()
 
             for (sub in sortSubs(subs)) {
-                val langId = sub.lang //SubtitleHelper.fromLanguageToTwoLetters(it.lang) ?: it.lang
+                val langId = sub.lang.trimEnd() //SubtitleHelper.fromLanguageToTwoLetters(it.lang) ?: it.lang
                 subItemsId.add(langId)
                 subItems.add(
                     MediaItem.Subtitle(
                         Uri.parse(sub.url),
                         sub.url.toSubtitleMimeType(),
-                        langId,
+                        "_$langId",
                         C.SELECTION_FLAG_DEFAULT
                     )
                 )
@@ -2014,6 +2064,7 @@ class PlayerFragment : Fragment() {
                     databaseProvider
                 )
             }
+
             val cacheFactory = CacheDataSource.Factory().apply {
                 simpleCache?.let { setCache(it) }
                 setUpstreamDataSourceFactory(getDataSourceFactory())
@@ -2084,7 +2135,6 @@ class PlayerFragment : Fragment() {
 
             player_view?.performClick()
 
-            //TODO FIX
             video_title?.text = hName +
                     if (isEpisodeBased)
                         if (epSeason == null)
@@ -2199,7 +2249,7 @@ class PlayerFragment : Fragment() {
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
-                    println("CURRENT URL: " + currentUrl?.url)
+                    println("CURRENT URL ERROR: " + currentUrl?.url)
                     // Lets pray this doesn't spam Toasts :)
                     val msg = error.message ?: ""
                     val errorName = error.errorCodeName

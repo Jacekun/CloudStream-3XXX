@@ -215,8 +215,8 @@ class HomeFragment : Fragment() {
                     ) { callback ->
                         handleSearchClickCallback(activity, callback)
                     }
-                home_main_poster_recyclerview.post {
-                    (home_main_poster_recyclerview.layoutManager as CenterZoomLayoutManager?)?.let { manager ->
+                home_main_poster_recyclerview?.post {
+                    (home_main_poster_recyclerview?.layoutManager as CenterZoomLayoutManager?)?.let { manager ->
                         manager.updateSize(forceUpdate = true)
                         if (randomSize > 2) {
                             manager.scrollToPosition(randomSize / 2)
@@ -403,7 +403,7 @@ class HomeFragment : Fragment() {
         LinearSnapHelper().attachToRecyclerView(home_main_poster_recyclerview) // snap
         val centerLayoutManager = CenterZoomLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         centerLayoutManager.setOnSizeListener { index ->
-            (home_main_poster_recyclerview.adapter as HomeChildItemAdapter?)?.cardList?.get(index)?.let { random ->
+            (home_main_poster_recyclerview?.adapter as HomeChildItemAdapter?)?.cardList?.get(index)?.let { random ->
                 home_main_play.setOnClickListener {
                     activity.loadSearchResult(random, START_ACTION_RESUME_LATEST)
                 }
@@ -417,7 +417,7 @@ class HomeFragment : Fragment() {
                     } else ""
             }
         }
-        home_main_poster_recyclerview.layoutManager = centerLayoutManager  // scale
+        home_main_poster_recyclerview?.layoutManager = centerLayoutManager  // scale
 
         reloadStored()
         val apiName = context?.getKey<String>(HOMEPAGE_API)

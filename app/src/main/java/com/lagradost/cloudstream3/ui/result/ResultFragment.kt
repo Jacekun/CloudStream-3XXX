@@ -126,7 +126,7 @@ fun Context.buildResultEpisode(
     id: Int,
     index: Int,
     rating: Int?,
-    descript: String?,
+    description: String?,
     isFiller: Boolean?,
 ): ResultEpisode {
     val posDur = getViewPos(id)
@@ -142,7 +142,7 @@ fun Context.buildResultEpisode(
         posDur?.position ?: 0,
         posDur?.duration ?: 0,
         rating,
-        descript,
+        description,
         isFiller
     )
 }
@@ -167,8 +167,8 @@ class ResultFragment : Fragment() {
 
     private var currentLoadingCount = 0 // THIS IS USED TO PREVENT LATE EVENTS, AFTER DISMISS WAS CLICKED
     private val viewModel: ResultViewModel by activityViewModels()
-    private var allEpisodes: HashMap<Int, ArrayList<ExtractorLink>> = HashMap()
-    private var allEpisodesSubs: HashMap<Int, ArrayList<SubtitleFile>> = HashMap()
+    private var allEpisodes: HashMap<Int, List<ExtractorLink>> = HashMap()
+    private var allEpisodesSubs: HashMap<Int, HashMap<String, SubtitleFile>> = HashMap()
     private var currentHeaderName: String? = null
     private var currentType: TvType? = null
     private var currentEpisodes: List<ResultEpisode>? = null
@@ -352,8 +352,8 @@ class ResultFragment : Fragment() {
             val index = episodeClick.data.index
             val buildInPlayer = true
             currentLoadingCount++
-            var currentLinks: ArrayList<ExtractorLink>? = null
-            var currentSubs: ArrayList<SubtitleFile>? = null
+            var currentLinks: List<ExtractorLink>? = null
+            var currentSubs: HashMap<String, SubtitleFile>? = null
 
             val showTitle =
                 episodeClick.data.name ?: getString(R.string.episode_name_format).format(
@@ -443,7 +443,7 @@ class ResultFragment : Fragment() {
                     episodeClick.data.index,
                     eps,
                     sortUrls(currentLinks ?: return),
-                    currentSubs ?: ArrayList(),
+                    currentSubs?.values?.toList() ?: emptyList(),
                     startTime = episodeClick.data.getRealPosition(),
                     startIndex = startIndex
                 )
@@ -528,7 +528,7 @@ class ResultFragment : Fragment() {
                     val downloadList = ctx.getDownloadSubsLanguageISO639_1()
                     main {
                         subs?.let { subsList ->
-                            subsList.filter { downloadList.contains(SubtitleHelper.fromLanguageToTwoLetters(it.lang)) }
+                            subsList.filter { downloadList.contains(SubtitleHelper.fromLanguageToTwoLetters(it.lang, true)) }
                                 .map { ExtractorSubtitleLink(it.lang, it.url, "") }
                                 .forEach { link ->
                                     val epName = meta.name ?: "${context?.getString(R.string.episode)} ${meta.episode}"
@@ -673,7 +673,7 @@ class ResultFragment : Fragment() {
                         }
                         var text = "#EXTM3U"
                         if (subs != null) {
-                            for (sub in subs) {
+                            for (sub in subs.values) {
                                 text += "\n#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"subs\",NAME=\"${sub.lang}\",DEFAULT=NO,AUTOSELECT=NO,FORCED=NO,LANGUAGE=\"${sub.lang}\",URI=\"${sub.url}\""
                             }
                         }
@@ -731,7 +731,7 @@ class ResultFragment : Fragment() {
                 }
 
                 ACTION_DOWNLOAD_EPISODE -> {
-                    startDownload(currentLinks ?: return@main, currentSubs)
+                    startDownload(currentLinks ?: return@main, currentSubs?.values?.toList() ?: emptyList())
                 }
 
                 ACTION_DOWNLOAD_MIRROR -> {
@@ -740,7 +740,7 @@ class ResultFragment : Fragment() {
                             links,//(currentLinks ?: return@main).filter { !it.isM3u8 },
                             getString(R.string.episode_action_download_mirror)
                         ) { link ->
-                            startDownload(listOf(link), currentSubs)
+                            startDownload(listOf(link), currentSubs?.values?.toList() ?: emptyList())
                         }
                     }
                 }
@@ -927,6 +927,12 @@ class ResultFragment : Fragment() {
                         }
                         result_vpn?.visibility = if (api.vpnStatus == VPNStatus.None) GONE else VISIBLE
 
+                        result_info?.text = when (api.providerType){
+                            ProviderType.MetaProvider -> getString(R.string.provider_info_meta)
+                            else -> ""
+                        }
+                        result_info?.isVisible = api.providerType == ProviderType.MetaProvider
+
                         //result_bookmark_button.text = getString(R.string.type_watching)
 
                         currentHeaderName = d.name
@@ -1053,6 +1059,12 @@ class ResultFragment : Fragment() {
                             }
 
                             result_play_movie?.setOnLongClickListener {
+                                val card = currentEpisodes?.firstOrNull() ?: return@setOnLongClickListener true
+                                handleAction(EpisodeClickEvent(ACTION_SHOW_OPTIONS, card))
+                                return@setOnLongClickListener true
+                            }
+
+                            result_download_movie?.setOnLongClickListener {
                                 val card = currentEpisodes?.firstOrNull() ?: return@setOnLongClickListener true
                                 handleAction(EpisodeClickEvent(ACTION_SHOW_OPTIONS, card))
                                 return@setOnLongClickListener true

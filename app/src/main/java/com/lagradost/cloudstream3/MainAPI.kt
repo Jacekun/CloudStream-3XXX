@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.lagradost.cloudstream3.animeproviders.*
-import com.lagradost.cloudstream3.metaproviders.TmdbProvider
 import com.lagradost.cloudstream3.movieproviders.*
 import com.lagradost.cloudstream3.providersjav.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -58,7 +57,7 @@ object APIHolder {
 
 //        TmdbProvider(),
 
-//        TrailersTwoProvider(),
+        TrailersTwoProvider(),
 
         // All of JAV sources
         JavFreeSh(),
@@ -199,6 +198,7 @@ abstract class MainAPI {
     )
 
     open val vpnStatus = VPNStatus.None
+    open val providerType = ProviderType.DirectProvider
 
     open fun getMainPage(): HomePageResponse? {
         throw NotImplementedError()
@@ -284,6 +284,13 @@ fun imdbUrlToId(url: String): String? {
 fun imdbUrlToIdNullable(url: String?): String? {
     if (url == null) return null
     return imdbUrlToId(url)
+}
+
+enum class ProviderType {
+    // When data is fetched from a 3rd party site like imdb
+    MetaProvider,
+    // When all data is from the site
+    DirectProvider,
 }
 
 enum class VPNStatus {
