@@ -175,15 +175,25 @@ class Javhdicu : MainAPI() {
                     .replace("]", "")
                     .split(",")
 
+                var count = 0
                 for (vid in vidlinks) {
-                    Log.i(this.name, "Result => (vid) ${vid}")
+                    count += 1
+                    //Log.i(this.name, "Result => (vid) ${vid}")
                     // parse single link
                     if (vid.startsWith("https://javhdfree.icu")) {
                         val extractor = FEmbed()
                         val src = extractor.getUrl(vid)
                         if (src != null) {
-                            sources.addAll(src)
+                            val srcAdd = src.toMutableList()
+                            for (item in srcAdd) {
+                                item.name += " Scene ${count}"
+                            }
+                            sources.addAll(srcAdd)
                         }
+                    }
+
+                    if (vid.startsWith("https://streamlare.com")) {
+                        //
                     }
                 }
             }
