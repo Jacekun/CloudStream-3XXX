@@ -1,9 +1,12 @@
-# CloudStream-3XXX unreleased
+# CloudStream-3XXX r688
 + CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/64ce14e290670c5214ca05d900acb87218700fb0).
++ Fix: After applying preferred media setting, update last saved active api and types.
++ Changed update url to point to this repo, and changed update implementation for release.
++ Change package build apk name.
 + JAV HD: Fetch links and stream.
-+ fix: After applying preferred media setting, update last saved active api and types.
-+ Changed update url to point to this repo.
++ JavSub: Fix load correct image.
 ## dev
++ Bump versionCode on build action.
 + Add ``StreamLare`` extractor.
 + Minor refactor to ``FEmbed`` extractor.
 + Change scope of ``Extractor`` ``name`` property to be changeable.
