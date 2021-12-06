@@ -17,19 +17,23 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+        
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        
     - name: Get commit count
       run:  |
         set -e
         echo "COMMIT_COUNT=$(git rev-list --count javdev)" >> $GITHUB_ENV
-        - name: Bump version
-        uses: chkfung/android-version-actions@v1.1
-        with:
+      
+    - name: Bump version
+      uses: chkfung/android-version-actions@v1.1
+      with:
           gradlePath: app/build.gradle # or app/build.gradle.kts 
           versionCode: ${{ env.COMMIT_COUNT }}
+          
     - name: Commit to the repo
       run: |
         git config user.name "GitHub Actions"
@@ -38,6 +42,7 @@ jobs:
         # "echo" returns true so the build succeeds, even if no changed files
         git commit -m '[actions] bump version' || echo
         git push
+        
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Decode Keystore
