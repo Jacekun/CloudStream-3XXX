@@ -53,7 +53,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        archivesBaseName = "${applicationId}-${versionName}_(${versionCode})"
+        archivesBaseName = "${applicationId}-r(${versionCode})"
 
         kapt {
             includeCompileClasspath = true
