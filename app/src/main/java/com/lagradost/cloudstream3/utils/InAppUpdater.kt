@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
@@ -113,21 +114,23 @@ class InAppUpdater {
                     0
                 )
             }
+            Log.i("d", "Result => (currentVersion) ${currentVersion?.versionCode}")
 
             foundAsset?.name?.let { assetName ->
-                val foundVersion = versionRegex.find(assetName)
-                val shouldUpdate =
-                    if (foundAsset.browser_download_url != "" && foundVersion != null) currentVersion?.versionName?.let { versionName ->
-                        versionRegexLocal.find(versionName)?.groupValues?.let {
-                            it[3].toInt() * 100_000_000 + it[4].toInt() * 10_000 + it[5].toInt()
-                        }
-                    }?.compareTo(
-                        foundVersion.groupValues.let {
-                            it[3].toInt() * 100_000_000 + it[4].toInt() * 10_000 + it[5].toInt()
-                        }
-                    )!! < 0 else false
-                return if (foundVersion != null) {
-                    Update(shouldUpdate, foundAsset.browser_download_url, foundVersion.groupValues[2], found.body)
+                val foundVersion = when (assetName.isNotEmpty()) {
+                    true -> {
+                        var code = assetName.substring(assetName.indexOf("("))
+                        code = code.substring(0, code.indexOf(")"))
+                            .replace("(", "")
+                            .replace(")", "")
+                        code.toIntOrNull()
+                    }
+                    false -> null
+                }
+                Log.i("d", "Result => (foundVersion) ${foundVersion}")
+                if (foundVersion != null && currentVersion != null) {
+                    val shouldUpdate = foundVersion > currentVersion.versionCode
+                    Update(shouldUpdate, foundAsset.browser_download_url, foundVersion.toString(), found.body)
                 } else {
                     Update(false, null, null, null)
                 }
