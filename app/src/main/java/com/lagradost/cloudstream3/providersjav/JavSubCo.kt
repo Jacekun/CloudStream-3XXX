@@ -107,17 +107,15 @@ class JavSubCo : MainAPI() {
         //Log.i(this.name, "Url => ${url}")
         val body = document.getElementsByTag("body")
         //Log.i(this.name, "Result => ${body}")
-        // Video details
-        val poster = body.select("header#header")
-            .select("div").select("figure").select("a")
-            .select("img").attr("src")
 
+        // Video details
         val content = body.select("div#content").select("div")
         val title = content.select("nav > p > span").text()
 
         val descript = content.select("main > article > div > div")
             .lastOrNull()?.select("div")?.text() ?: "<No Synopsis found>"
         //Log.i(this.name, "Result => ${descript}")
+        // Year
         val re = Regex("[^0-9]")
         var yearString = content.select("main > article > div > div").last()
             ?.select("p")?.filter { it.text()?.contains("Release Date") == true }
@@ -126,6 +124,19 @@ class JavSubCo : MainAPI() {
         yearString = re.replace(yearString, "")
         val year = yearString?.takeLast(4)?.toIntOrNull()
         //Log.i(this.name, "Result => (year) ${year} / (string) ${yearString}")
+        // Poster Image
+        var posterElement = body.select("script.yoast-schema-graph")?.toString() ?: ""
+        val posterId = "\"contentUrl\":"
+        val poster = when (posterElement.isNotEmpty()) {
+            true -> {
+                posterElement = posterElement.substring(posterElement.indexOf(url.trimEnd('/') + "/#primaryimage"))
+                posterElement = posterElement.substring(0, posterElement.indexOf("}"))
+                posterElement = posterElement.substring(posterElement.indexOf(posterId) + posterId.length + 1)
+                posterElement.substring(0, posterElement.indexOf("\","))
+            }
+            false -> null
+        }
+        //Log.i(this.name, "Result => (poster) ${poster}")
 
         // Video stream
         val streamUrl: String =  try {
@@ -189,7 +200,7 @@ class JavSubCo : MainAPI() {
                             if (link.contains("watch-jav")) {
                                 val extractor = FEmbed()
                                 val src = extractor.getUrl(link)
-                                if (src != null) {
+                                if (src.isNotEmpty()) {
                                     sources.addAll(src)
                                 }
                             }
