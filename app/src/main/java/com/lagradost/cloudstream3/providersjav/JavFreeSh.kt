@@ -174,7 +174,7 @@ class JavFreeSh : MainAPI() {
                                 Log.i(this.name, "Result => (streamsb link) ${linkUrl}")
                                 val extractor = StreamSB()
                                 val src = extractor.getUrl(linkUrl, this.mainUrl)
-                                if (src != null) {
+                                if (src.isNotEmpty()) {
                                     //Log.i(this.name, "Result => (streamsb) ${src}")
                                     sources + src
                                 }
