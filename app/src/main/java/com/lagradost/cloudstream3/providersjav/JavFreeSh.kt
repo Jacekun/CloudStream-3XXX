@@ -117,7 +117,7 @@ class JavFreeSh : MainAPI() {
         val response = get(url).text
         val doc = Jsoup.parse(response)
         //Log.i(this.name, "Result => (url) ${url}")
-        val poster = doc.select("meta[name=og:image]").firstOrNull()?.attr("content")
+        val poster = doc.select("meta[property=og:image]").firstOrNull()?.attr("content")
         val title = doc.select("meta[name=title]").firstOrNull()?.attr("content").toString()
         val descript = doc.select("meta[name=description]").firstOrNull()?.attr("content")
 

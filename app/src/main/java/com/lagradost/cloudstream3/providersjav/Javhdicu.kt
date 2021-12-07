@@ -29,7 +29,7 @@ class Javhdicu : MainAPI() {
         get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = get("$mainUrl", timeout = 15).text
+        val html = get(mainUrl, timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
         val mainbody = document.getElementsByTag("body")
@@ -47,32 +47,33 @@ class Javhdicu : MainAPI() {
             count++
             // Fetch row title
             val pair = titles.filter { aa -> aa.first == count }
-            val title = if (pair.size > 0) { pair?.get(0)?.second ?: "<Unnamed Row>" } else { "<No Name Row>" }
+            val title = if (pair.isNotEmpty()) { pair[0].second ?: "<Unnamed Row>" } else { "<No Name Row>" }
             // Fetch list of items and map
             val inner = it2.select("div.col-md-3.col-sm-6.col-xs-6.item.responsive-height.post")
-            if (inner != null) {
-                val elements: List<SearchResponse> = inner!!.map {
 
-                    val aa = it.select("div.item-img > a").firstOrNull()
+            val elements: List<SearchResponse> = inner!!.map {
+                // Inner element
+                val aa = it.select("div.item-img > a").firstOrNull()
+                // Video details
+                val link = aa?.attr("href") ?: ""
+                val name = aa?.attr("title") ?: "<No Title>"
+                val image = aa?.select("img")?.attr("src")
+                val year = null
+                //Log.i(this.name, "Result => (link) ${link}")
+                //Log.i(this.name, "Result => (image) ${image}")
 
-                    val link = aa?.attr("href") ?: ""
-                    val name = aa?.attr("title") ?: "<No Title>"
-                    val image = aa?.select("img")?.attr("src")
-                    val year = null
-                    //Log.i(this.name, "Result => (link) ${link}")
-                    //Log.i(this.name, "Result => (image) ${image}")
+                MovieSearchResponse(
+                    name,
+                    link,
+                    this.name,
+                    TvType.JAV,
+                    image,
+                    year,
+                    null,
+                )
+            }.filter { it3 -> it3.url != "" }
 
-                    MovieSearchResponse(
-                        name,
-                        link,
-                        this.name,
-                        TvType.JAV,
-                        image,
-                        year,
-                        null,
-                    )
-                }.filter { it3 -> it3.url != "" }
-
+            if (!elements.isNullOrEmpty()) {
                 all.add(
                     HomePageList(
                         title, elements
@@ -126,13 +127,15 @@ class Javhdicu : MainAPI() {
 
         // Video details
         val poster = innerDiv?.select("img")?.attr("src")
-        val title = innerDiv?.select("p")?.firstOrNull()?.text() ?: "<No Title>"
+        val title = innerDiv?.select("p.wp-caption-text")?.firstOrNull()?.text() ?: "<No Title>"
         val descript = innerBody?.select("p")?.firstOrNull()?.text() ?: "<No Synopsis found>"
-        //Log.i(this.name, "Result => ${descript}")
+        //Log.i(this.name, "Result => (innerDiv) ${innerDiv}")
 
         val re = Regex("[^0-9]")
-        var yearString = body?.select("span")?.firstOrNull()?.text()
+        var yearString = body?.select("div.video-details > span.date")?.firstOrNull()?.text()
+        //Log.i(this.name, "Result => (yearString) ${yearString}")
         yearString = yearString?.let { re.replace(it, "").trim() }
+        //Log.i(this.name, "Result => (yearString) ${yearString}")
         val year = yearString?.takeLast(4)?.toIntOrNull()
 
         // Video link
@@ -187,25 +190,21 @@ class Javhdicu : MainAPI() {
                     if (vid.startsWith("https://javhdfree.icu")) {
                         val extractor = FEmbed()
                         val src = extractor.getUrl(vid)
-                        if (src != null) {
-                            val srcAdd = src.toMutableList()
-                            for (item in srcAdd) {
-                                item.name += " Scene ${count}"
-                            }
-                            sources.addAll(srcAdd)
+                        val srcAdd = src.toMutableList()
+                        for (item in srcAdd) {
+                            item.name += " Scene ${count}"
                         }
+                        sources.addAll(srcAdd)
                         continue
                     }
                     if (vid.contains("streamlare")) {
                         val extractor = StreamLare()
                         val src = extractor.getUrl(vid)
-                        if (src != null) {
-                            val srcAdd = src.toMutableList()
-                            for (item in srcAdd) {
-                                item.name += " Scene ${count}"
-                            }
-                            sources.addAll(srcAdd)
+                        val srcAdd = src.toMutableList()
+                        for (item in srcAdd) {
+                            item.name += " Scene ${count}"
                         }
+                        sources.addAll(srcAdd)
                     }
                 }
             }
