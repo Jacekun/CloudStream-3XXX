@@ -61,8 +61,7 @@ jobs:
       uses: DamianReeves/write-file-action@v1.0
       with:
         path: doc/unreleased.md
-        contents: |
-          echo ""
+        contents: +
         write-mode: overwrite
   
     - name: Commit to the repo
