@@ -45,16 +45,16 @@ jobs:
       uses: juliangruber/read-file-action@v1
       with:
         path: doc/unreleased.md
-    
+      
     - name: Overwrite version history
       uses: DamianReeves/write-file-action@v1.0
       with:
         path: doc/version_log.md
         contents: |
-          echo "# CloudStream-3XXX r${{ env.COMMIT_COUNT }}"
-          echo "${{ steps.unreleasedbody.outputs.content }}"
-          echo ""
-          echo "${{ steps.currentBody.outputs.content }}"
+          # CloudStream-3XXX r${{ env.COMMIT_COUNT }}
+          ${{ steps.unreleasedbody.outputs.content }}
+          
+          ${{ steps.currentBody.outputs.content }}
         write-mode: overwrite
       
     - name: Clear unreleased doc
@@ -98,4 +98,4 @@ jobs:
         files: |
           app/build/outputs/apk/release/*.apk
         body: |
-          [Release notes here](https://github.com/Jacekun/CloudStream-3XXX/blob/javdev/doc/version_log.md)
+          ${{ steps.unreleasedbody.outputs.content }}
