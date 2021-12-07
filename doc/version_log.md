@@ -1,9 +1,4 @@
-echo "# CloudStream-3XXX r697"
-echo "+ Fix: Release update checker.
-+ Javfreesh: Fix missing image on load.
-+ JavHD: Fix incorrect year. Refactored code."
-echo ""
-echo "# CloudStream-3XXX r690
+# CloudStream-3XXX r690
 + CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/64ce14e290670c5214ca05d900acb87218700fb0).
 + Fix: After applying preferred media setting, update last saved active api and types.
 + Changed update url to point to this repo, and changed update implementation for release.
@@ -38,4 +33,3 @@ echo "# CloudStream-3XXX r690
 + '*Preferred Media*' setting applies to '*Search*' filters.
 + Signed with different key from Main app.
 + Crunchyroll site.
-"
