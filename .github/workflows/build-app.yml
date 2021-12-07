@@ -47,7 +47,7 @@ jobs:
         path: doc/unreleased.md
     
     - name: Overwrite version history
-      uses: DamianReeves/write-file-action@v1
+      uses: DamianReeves/write-file-action@v1.0
       with:
         path: doc/version_log.md
         contents: |
@@ -58,7 +58,7 @@ jobs:
         write-mode: overwrite
       
     - name: Clear unreleased doc
-      uses: DamianReeves/write-file-action@v1
+      uses: DamianReeves/write-file-action@v1.0
       with:
         path: doc/unreleased.md
         contents: |
