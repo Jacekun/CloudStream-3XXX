@@ -33,14 +33,45 @@ jobs:
       with:
           gradlePath: app/build.gradle # or app/build.gradle.kts 
           versionCode: ${{ env.COMMIT_COUNT }}
-          
+      
+    - name: Read version history and save it
+      id: currentBody
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: doc/version_log.md
+      
+    - name: Read unreleased version body
+      id: unreleasedbody
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: doc/unreleased.md
+    
+    - name: Overwrite version history
+      uses: DamianReeves/write-file-action@v1
+      with:
+        path: doc/version_log.md
+        contents: |
+          echo "# CloudStream-3XXX r${{ env.COMMIT_COUNT }}"
+          echo "${{ steps.unreleasedbody.outputs.content }}"
+          echo ""
+          echo "${{ steps.currentBody.outputs.content }}"
+        write-mode: overwrite
+      
+    - name: Clear unreleased doc
+      uses: DamianReeves/write-file-action@v1
+      with:
+        path: doc/unreleased.md
+        contents: |
+          echo ""
+        write-mode: overwrite
+  
     - name: Commit to the repo
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
         git add .
         # "echo" returns true so the build succeeds, even if no changed files
-        git commit -m '[actions] bump version' || echo
+        git commit -m '[actions] bump version and update version history' || echo
         git push
         
     - name: Grant execute permission for gradlew
