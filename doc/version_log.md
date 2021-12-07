@@ -1,3 +1,8 @@
+# CloudStream-3XXX r700
++ Fix: Release update checker.
++ Javfreesh: Fix missing image on load.
++ JavHD: Fix incorrect year. Refactored code.
+
 # CloudStream-3XXX r690
 + CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/64ce14e290670c5214ca05d900acb87218700fb0).
 + Fix: After applying preferred media setting, update last saved active api and types.
