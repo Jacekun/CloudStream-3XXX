@@ -87,15 +87,7 @@ class InAppUpdater {
             val response =
                 mapper.readValue<List<GithubRelease>>(get(url, headers = headers).text)
 
-            val versionRegex = Regex("""(.*?((\d+)\.(\d+)\.(\d+))\.apk)""")
-            val versionRegexLocal = Regex("""(.*?((\d+)\.(\d+)\.(\d+)).*)""")
-            /*
-            val releases = response.map { it.assets }.flatten()
-                .filter { it.content_type == "application/vnd.android.package-archive" }
-            val found =
-                releases.sortedWith(compareBy {
-                    versionRegex.find(it.name)?.groupValues?.get(2)
-                }).toList().lastOrNull()*/
+            val versionRegex = Regex("""(?<=r\.)(.*\d+)(?=\.-release)""")
             val found =
                 response.filter { rel ->
                     !rel.prerelease
@@ -104,7 +96,7 @@ class InAppUpdater {
                         .getOrNull(0)?.name?.let { it1 ->
                             versionRegex.find(
                                 it1
-                            )?.groupValues?.get(2)
+                            )?.groupValues?.get(1)
                         }
                 }).toList().lastOrNull()
             val foundAsset = found?.assets?.getOrNull(0)
@@ -119,20 +111,20 @@ class InAppUpdater {
             foundAsset?.name?.let { assetName ->
                 val foundVersion = when (assetName.isNotEmpty()) {
                     true -> {
-                        var code = assetName.substring(assetName.indexOf("("))
-                        code = code.substring(0, code.indexOf(")"))
-                            .replace("(", "")
-                            .replace(")", "")
-                        code.toIntOrNull()
+                        Log.i("d", "Result => (assetName) ${assetName}")
+                        var code = assetName?.let { it1 ->
+                            versionRegex.find(
+                                it1
+                        )?.groupValues?.get(1) }
+                        code?.toIntOrNull()
                     }
                     false -> null
                 }
                 Log.i("d", "Result => (foundVersion) ${foundVersion}")
                 if (foundVersion != null && currentVersion != null) {
                     val shouldUpdate = foundVersion > currentVersion.versionCode
-                    Update(shouldUpdate, foundAsset.browser_download_url, foundVersion.toString(), found.body)
-                } else {
-                    Update(false, null, null, null)
+                    Log.i("d", "Result => (update found shouldUpdate) ${shouldUpdate}")
+                    return Update(shouldUpdate, foundAsset.browser_download_url, foundVersion.toString(), found.body)
                 }
             }
             return Update(false, null, null, null)
@@ -256,7 +248,7 @@ class InAppUpdater {
                             val builder: AlertDialog.Builder = AlertDialog.Builder(this)
                             builder.setTitle(
                                 getString(R.string.new_update_format).format(
-                                    currentVersion?.versionName,
+                                    currentVersion?.versionCode,
                                     update.updateVersion
                                 )
                             )
