@@ -32,7 +32,7 @@ class Vlxx : MainAPI() {
         get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = app.get("$mainUrl", timeout = 15).text
+        val html = app.get(mainUrl, timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
         val title = "Homepage"
@@ -94,12 +94,11 @@ class Vlxx : MainAPI() {
         val pathSplits = data.split("/")
         val id = pathSplits[pathSplits.size - 2]
         Log.d("Blue", "Data -> ${data} id -> ${id}")
-        //val session = HttpSession()
         val res = app.post(
             "${mainUrl}/ajax.php",
             headers = mapOf("X-Requested-With" to "XMLHttpRequest"),
-            referer = null,
-            data = mapOf("id" to id, "server" to "1", "vlxx_server" to "1")
+            data = mapOf("id" to id, "server" to "1", "vlxx_server" to "1"),
+            referer = mainUrl
         ).text
         val json = getParamFromJS(res, "var opts = {\\r\\n\\t\\t\\t\\t\\t\\tsources:", "}]")
         Log.d("Blue", "json ${json}")
@@ -128,10 +127,10 @@ class Vlxx : MainAPI() {
 
     private fun getParamFromJS(str: String, key: String, keyEnd: String): String? {
         try {
-            val firstIndex = str.indexOf(key) + key.length; // 4 to index point to first char.
-            val temp = str.substring(firstIndex);
-            val lastIndex = temp.indexOf(keyEnd) + (keyEnd.length);
-            var jsonConfig = temp.substring(0, lastIndex); //
+            val firstIndex = str.indexOf(key) + key.length // 4 to index point to first char.
+            val temp = str.substring(firstIndex)
+            val lastIndex = temp.indexOf(keyEnd) + (keyEnd.length)
+            val jsonConfig = temp.substring(0, lastIndex) //
             Log.d("Blue", "jsonConfig ${jsonConfig}")
             //console.log("json string ", jsonConfig)
 
@@ -139,7 +138,7 @@ class Vlxx : MainAPI() {
                 .replace("\\t", "")
                 .replace("\\\"", "\"")
                 .replace("\\\\\\/", "/")
-                .replace("\\n", "");
+                .replace("\\n", "")
 
             return re
         } catch (e: Exception) {
