@@ -27,20 +27,18 @@ class Javclcom : MainAPI() {
 
 
     override fun search(query: String): List<SearchResponse> {
-        val url = "$mainUrl/search${query}/"
+        val url = "$mainUrl/search/${query}/"
         val html = get(url).text
         val document = Jsoup.parse(html).getElementsByTag("body")
-            .select("div.container > div > div.post-list")
-            .select("div.col-md-3.col-sm-6.col-xs-6")
+            .select("div.col-xl-3.col-sm-4.col-6.mb-4")
         //Log.i(this.name, "Result => $document")
-        return document.map {
-            val content = it.select("div.video-item > div > a").firstOrNull()
+        return document!!.map {
+            val content = it.select("img.video-thumb").firstOrNull()
             //Log.i(this.name, "Result => $content")
-            val linkCode = content?.attr("href") ?: ""
-            val href = fixUrl(linkCode)
-            val imgContent = content?.select("img")
-            val title = imgContent?.attr("alt") ?: "<No Title Found>"
-            val image = imgContent?.attr("data-original")?.trim('\'')
+
+            val href = it.select("a.video-link")?.firstOrNull()?.attr("href") ?: ""
+            val title = content?.attr("alt") ?: "<No Title Found>"
+            val image = content?.attr("src")
             val year = null
             //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
 
@@ -57,19 +55,25 @@ class Javclcom : MainAPI() {
 
     override fun load(url: String): LoadResponse {
         val response = get(url).text
-        val document = Jsoup.parse(response)
+        val doc = Jsoup.parse(response)
         //Log.i(this.name, "Url => ${url}")
-        val body = document.getElementsByTag("body")
-            .select("div.video-box-ather.container > div.container > div")
-            .select("div > div > img")?.firstOrNull()
 
+        // Video details
         //Log.i(this.name, "Result => ${body}")
-        val poster = body?.attr("src")
-        val title = body?.attr("alt") ?: "<No Title>"
-        val descript = "<No Synopsis found>"
+        val poster = doc?.select("meta[property=og:image]")?.firstOrNull()?.attr("content")
+        val title = doc?.select("meta[property=og:title]")?.firstOrNull()?.attr("content") ?: "<No Title>"
+        val descript = doc?.select("meta[property=og:description]")?.firstOrNull()
+            ?.attr("content") ?:"<No Synopsis found>"
         //Log.i(this.name, "Result => ${descript}")
+        val re = Regex("\\d{4}")
+        val year = when (!poster.isNullOrEmpty()) {
+            true -> re.find(poster)?.groupValues?.firstOrNull()?.toIntOrNull()
+            false -> null
+        }
+
+        // Video links
+        // WIP: POST https://javcl.me/api/source/${id}
         val id = ""
-        val year = null
 
         return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
     }

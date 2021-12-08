@@ -1,6 +1,6 @@
 # CloudStream-3XXX
 <p align="center">
-  <img src="doc/ic_launcher.png" />
+  <img src="doc/ic_launcher.png" width="128" height="128" />
 </p> <br>
 
 A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with additional features and changes. Notably, NSFW sites <br>
@@ -20,23 +20,25 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 + **Crunchyroll** site. *Thanks to* [@ArjixWasTaken](https://github.com/ArjixWasTaken)
 
 ## JAV Sites
-### Watchable
-+ JAVSub / https://javsub.co
+<b>Guide:</b> <br>
+<img src="doc/homepage.png" width="24" height="24"/>= Has Main Page, <img src="doc/search.png" width="24" height="24"/>= Searchable, <img src="doc/play.png" width="24" height="24"/>= Streamable <br>
+<b>Websites:</b> <br>
+
++ [JAV Sub](https://javsub.co) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/> <img src="doc/play.png" width="22" height="22"/>
   + Have issues with ``dood`` server.
-+ JAVHD / https://javhd.icu
++ [JAV HD](https://javhd.icu) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/> <img src="doc/play.png" width="22" height="22"/>
   + All scene parts are loaded as ``'Sources'``.
-+ Vlxx / https://vlxx.sex
++ [Vlxx](https://vlxx.sex) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/> <img src="doc/play.png" width="22" height="22"/>
   + Vietnamese subbed. CloudFare issues on some areas.
-### 'Search-only' sites
-+ Jav Guru / https://jav.guru
-+ JavFree sh / https://javfree.sh/
++ [Jav Guru](https://jav.guru) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
++ [JavFree sh](https://javfree.sh/) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
   + Can extract streamsb links but StreamSB extractor not working for some reasons.
-+ Op Jav / https://opjav.com/
-+ HpJAV.tv / https://hpjav.tv
-+ JAV Most / https://www5.javmost.com
++ [Op Jav](https://opjav.com/) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
++ [HpJAV.tv](https://hpjav.tv) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
++ [JAV Most](https://www5.javmost.com) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
++ [JAV cl](https://javcl.com) <img src="doc/search.png" width="22" height="22"/>
 ### To-Add List
 + vjav / vjav.com
-+ JAV cl / javcl.com
 + JAV Tube / javtube.watch
 + JAV Rave / javrave.club
 + avgle / avgle.com

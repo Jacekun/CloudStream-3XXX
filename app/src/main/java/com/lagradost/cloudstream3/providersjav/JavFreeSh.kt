@@ -173,7 +173,7 @@ class JavFreeSh : MainAPI() {
                                     //.replace("streamsb.net", "sbembed.com")
                                 Log.i(this.name, "Result => (streamsb link) ${linkUrl}")
                                 val extractor = StreamSB()
-                                val src = extractor.getUrl(linkUrl, this.mainUrl)
+                                val src = extractor.getUrl(linkUrl, referer = "https://player.javfree.sh/embed.html")
                                 if (src.isNotEmpty()) {
                                     //Log.i(this.name, "Result => (streamsb) ${src}")
                                     sources + src
