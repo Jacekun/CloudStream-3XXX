@@ -5,8 +5,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.DoodLaExtractor
 import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.extractors.StreamTape
-import com.lagradost.cloudstream3.network.get
-import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.Jsoup
 
@@ -30,7 +29,7 @@ class JavSubCo : MainAPI() {
         get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = get("$mainUrl", timeout = 15).text
+        val html = app.get("$mainUrl", timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
 
@@ -78,7 +77,7 @@ class JavSubCo : MainAPI() {
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
-        val html = get(url).text
+        val html = app.get(url).text
         val document = Jsoup.parse(html).getElementsByTag("body")
             .select("div#content > div > main > section > div")
             .select("article")
@@ -102,7 +101,7 @@ class JavSubCo : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = get(url).text
+        val response = app.get(url).text
         val document = Jsoup.parse(response)
         //Log.i(this.name, "Url => ${url}")
         val body = document.getElementsByTag("body")

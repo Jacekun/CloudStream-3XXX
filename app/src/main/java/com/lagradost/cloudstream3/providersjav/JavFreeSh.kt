@@ -3,8 +3,7 @@ package com.lagradost.cloudstream3.providersjav
 import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.StreamSB
-import com.lagradost.cloudstream3.network.get
-import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -42,7 +41,7 @@ class JavFreeSh : MainAPI() {
     }
 
     override fun getMainPage(): HomePageResponse {
-        val html = get("$mainUrl", timeout = 15).text
+        val html = app.get("$mainUrl", timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
 
@@ -91,7 +90,7 @@ class JavFreeSh : MainAPI() {
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/movie/${query}"
-        val html = get(url).text
+        val html = app.get(url).text
         val document = Jsoup.parse(html).select("div.videos-list").select("article[id^=post]")
 
         return document.map {
@@ -114,7 +113,7 @@ class JavFreeSh : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = get(url).text
+        val response = app.get(url).text
         val doc = Jsoup.parse(response)
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[property=og:image]").firstOrNull()?.attr("content")
@@ -153,7 +152,7 @@ class JavFreeSh : MainAPI() {
         try {
             // get request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
-            val jsonres = get("https://player.javfree.sh/stream/${id}").text
+            val jsonres = app.get("https://player.javfree.sh/stream/${id}").text
             val streamdata = JavFreeSh.Response(jsonres)
             //Log.i(this.name, "Result => (jsonres) ${jsonres}")
             try {

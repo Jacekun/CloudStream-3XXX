@@ -2,8 +2,7 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.get
-import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.app
 import org.jsoup.Jsoup
 
 class JavGuru : MainAPI() {
@@ -26,7 +25,7 @@ class JavGuru : MainAPI() {
         get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = get("$mainUrl", timeout = 15).text
+        val html = app.get("$mainUrl", timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
 
@@ -76,7 +75,7 @@ class JavGuru : MainAPI() {
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
-        val html = get(url).text
+        val html = app.get(url).text
         val document = Jsoup.parse(html).select("main.site-main").select("div.row")
 
         return document.map {
@@ -102,7 +101,7 @@ class JavGuru : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = get(url).text
+        val response = app.get(url).text
         val document = Jsoup.parse(response)
 
         //Log.i(this.name, "Url => ${url}")

@@ -2,8 +2,7 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.network.get
-import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.app
 import org.jsoup.Jsoup
 
 class Javclcom : MainAPI() {
@@ -28,7 +27,7 @@ class Javclcom : MainAPI() {
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/${query}/"
-        val html = get(url).text
+        val html = app.get(url).text
         val document = Jsoup.parse(html).getElementsByTag("body")
             .select("div.col-xl-3.col-sm-4.col-6.mb-4")
         //Log.i(this.name, "Result => $document")
@@ -54,7 +53,7 @@ class Javclcom : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = get(url).text
+        val response = app.get(url).text
         val doc = Jsoup.parse(response)
         //Log.i(this.name, "Url => ${url}")
 

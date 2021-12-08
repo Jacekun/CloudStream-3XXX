@@ -4,8 +4,7 @@ import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.extractors.StreamLare
-import com.lagradost.cloudstream3.network.get
-import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.Jsoup
 
@@ -29,7 +28,7 @@ class Javhdicu : MainAPI() {
         get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = get(mainUrl, timeout = 15).text
+        val html = app.get(mainUrl, timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
         val mainbody = document.getElementsByTag("body")
@@ -86,7 +85,7 @@ class Javhdicu : MainAPI() {
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
-        val html = get(url).text
+        val html = app.get(url).text
         val document = Jsoup.parse(html).getElementsByTag("body")
             ?.select("div.container > div.row")
             ?.select("div.col-md-8.col-sm-12.main-content")
@@ -115,7 +114,7 @@ class Javhdicu : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = get(url).text
+        val response = app.get(url).text
         val document = Jsoup.parse(response)
         val body = document.getElementsByTag("body")
             ?.select("div.container > div.row")
@@ -147,7 +146,7 @@ class Javhdicu : MainAPI() {
                 if (vidlink != null) {
                     if (vidlink.isNotEmpty()) {
                         try {
-                            val doc = Jsoup.parse(get(vidlink).text)
+                            val doc = Jsoup.parse(app.get(vidlink).text)
                             val streamLink =
                                 doc?.select("div.player.player-small.embed-responsive.embed-responsive-16by9")
                                     ?.select("iframe")?.attr("src") ?: ""

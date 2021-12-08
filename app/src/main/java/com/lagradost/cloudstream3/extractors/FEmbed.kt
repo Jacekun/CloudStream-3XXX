@@ -1,8 +1,6 @@
 package com.lagradost.cloudstream3.extractors
 
 import android.util.Log
-import com.lagradost.cloudstream3.network.post
-import com.lagradost.cloudstream3.network.text
 import com.lagradost.cloudstream3.utils.*
 import org.json.JSONObject
 

@@ -1,24 +1,16 @@
 package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
-import com.fasterxml.jackson.core.util.JacksonFeature
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.movieproviders.SflixProvider
-import com.lagradost.cloudstream3.network.cookies
-import com.lagradost.cloudstream3.network.get
-import com.lagradost.cloudstream3.network.post
-import com.lagradost.cloudstream3.network.text
-import com.lagradost.cloudstream3.utils.AppUtils.toJson
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.HttpSession
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import org.jsoup.Jsoup
-import java.io.IOException
 import java.lang.Exception
-import java.net.HttpURLConnection
-import java.net.MalformedURLException
-import java.net.URL
 
 class Vlxx : MainAPI() {
     override val name: String
@@ -40,7 +32,7 @@ class Vlxx : MainAPI() {
         get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = get("$mainUrl", timeout = 15).text
+        val html = app.get("$mainUrl", timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
         val title = "Homepage"
@@ -72,7 +64,7 @@ class Vlxx : MainAPI() {
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/${query}/"
-        val html = get(url).text
+        val html = app.get(url).text
         val document = Jsoup.parse(html)
         val list = document.select("#container .box .video-list")
 
@@ -102,7 +94,8 @@ class Vlxx : MainAPI() {
         val pathSplits = data.split("/")
         val id = pathSplits[pathSplits.size - 2]
         Log.d("Blue", "Data -> ${data} id -> ${id}")
-        val res = post(
+        //val session = HttpSession()
+        val res = app.post(
             "${mainUrl}/ajax.php",
             headers = mapOf("X-Requested-With" to "XMLHttpRequest"),
             referer = null,
@@ -157,7 +150,7 @@ class Vlxx : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = get(url).text
+        val response = app.get(url).text
         val document = Jsoup.parse(response)
         val title = document?.selectFirst(".breadcrumb")?.text() ?: "<No Title>"
         val descript = document?.select(".video-content .content")?.text()

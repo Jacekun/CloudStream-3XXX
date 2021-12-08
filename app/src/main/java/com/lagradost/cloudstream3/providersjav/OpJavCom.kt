@@ -2,10 +2,7 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.DoodLaExtractor
-import com.lagradost.cloudstream3.extractors.StreamTape
-import com.lagradost.cloudstream3.network.get
-import com.lagradost.cloudstream3.network.text
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.Jsoup
 
@@ -29,7 +26,7 @@ class OpJavCom : MainAPI() {
         get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = get("$mainUrl", timeout = 15).text
+        val html = app.get("$mainUrl", timeout = 15).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
 
@@ -78,7 +75,7 @@ class OpJavCom : MainAPI() {
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/${query}/"
-        val html = get(url, timeout=20).text
+        val html = app.get(url).text
         val document = Jsoup.parse(html).select("div.block-body > div.list-film.row")
             .select("div.item.col-lg-3.col-md-3.col-sm-6.col-xs-6")
 
@@ -107,7 +104,7 @@ class OpJavCom : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = get(url).text
+        val response = app.get(url).text
         val doc = Jsoup.parse(response)
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[itemprop=image]")?.get(1)?.attr("content")
@@ -131,7 +128,7 @@ class OpJavCom : MainAPI() {
         if (data == "") return false
         var sources: List<ExtractorLink>? = null
         try {
-            val streamdoc = Jsoup.parse(get(data).text)
+            val streamdoc = Jsoup.parse(app.get(data).text)
             try {
                 // Invoke sources
                 if (sources != null) {
