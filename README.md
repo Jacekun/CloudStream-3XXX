@@ -44,6 +44,23 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 + avgle / avgle.com
 + JAV junkies / javjunkies.com
 
+***The list of supported languages:***
+* 🇱🇧 Arabic
+* 🇬🇧 English
+* 🇳🇱 Dutch
+* 🇫🇷 French
+* 🇬🇷 Greek
+* 🇸🇪 Swedish
+* 🇵🇭 Tagalog
+* 🇵🇱 Polish
+* 🇮🇳 Hindi
+* 🇮🇳 Malayalam
+* 🇪🇸 Spanish
+* 🇳🇴 Norsk
+* 🇩🇪 German
+* 🇹🇷 Turkish
+* 🇲🇰 Macedonian
+
 ## Disclaimer
 
 Any legal issues regarding the content on this application should be taken up with the actual file hosts and providers themselves as we are not affiliated with them.

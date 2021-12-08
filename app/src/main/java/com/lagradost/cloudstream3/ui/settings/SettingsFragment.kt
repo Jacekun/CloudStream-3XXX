@@ -28,8 +28,8 @@ import com.lagradost.cloudstream3.DubStatus
 import com.lagradost.cloudstream3.MainActivity.Companion.setLocale
 import com.lagradost.cloudstream3.MainActivity.Companion.showToast
 import com.lagradost.cloudstream3.R
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mvvm.logError
-import com.lagradost.cloudstream3.network.initRequestClient
 import com.lagradost.cloudstream3.syncproviders.AccountManager
 import com.lagradost.cloudstream3.syncproviders.OAuth2API
 import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.aniListApi
@@ -118,7 +118,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         Triple("\uD83C\uDDF3\uD83C\uDDF4", "Norsk", "no"),
         Triple("\ud83c\udde9\ud83c\uddea", "German", "de"),
         Triple("🇱🇧", "Arabic", "ar"),
-        Triple("🇹🇷", "Turkish", "tr")
+        Triple("🇹🇷", "Turkish", "tr"),
+        Triple("\ud83c\uddf2\ud83c\uddf0", "Macedonian", "mk")
     ).sortedBy { it.second } //ye, we go alphabetical, so ppl don't put their lang on top
 
     private fun showAccountSwitch(context: Context, api: AccountManager) {
@@ -363,7 +364,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     .apply()
 
                 context?.setKey(HOMEPAGE_API, apiRandom)
-                context?.initRequestClient()
+                (context ?: AcraApplication.context)?.let { ctx -> app.initClient(ctx) }
             }
             return@setOnPreferenceClickListener true
         }
@@ -476,7 +477,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 true,
                 {}) {
                 settingsManager.edit().putInt(getString(R.string.dns_pref), prefValues[it]).apply()
-                context?.initRequestClient()
+                (context ?: AcraApplication.context)?.let { ctx -> app.initClient(ctx) }
             }
             return@setOnPreferenceClickListener true
         }
