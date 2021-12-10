@@ -34,13 +34,13 @@ object APIHolder {
         //ShiroProvider(), // v2 fucked me
         //AnimePaheProvider(), //ddos guard
         AnimeFlickProvider(),
-        KawaiifuProvider(),
 
         TenshiProvider(),
         WcoProvider(),
         // MeloMovieProvider(), // Captcha for links
         DubbedAnimeProvider(),
         HDMProvider(),
+        IHaveNoTvProvider(), // Documentaries provider
         //LookMovieProvider(), // RECAPTCHA (Please allow up to 5 seconds...)
         VMoveeProvider(),
         WatchCartoonOnlineProvider(),
@@ -51,13 +51,15 @@ object APIHolder {
         VfSerieProvider(),
         AsianLoadProvider(),
 
-        SflixProvider("https://sflix.to","Sflix"),
-        SflixProvider("https://dopebox.to","Dopebox"),
-        ZoroProvider(),
+        SflixProvider("https://sflix.to", "Sflix"),
+        SflixProvider("https://dopebox.to", "Dopebox"),
 
-//        TmdbProvider(),
+        //TmdbProvider(),
 
         TrailersTwoProvider(),
+
+        ZoroProvider(),
+        PinoyMoviePedia(),
 
         // All of JAV sources
         JavFreeSh(),
@@ -78,16 +80,25 @@ object APIHolder {
         AsiaFlixProvider(),
     )
 
+    private val backwardsCompatibleProviders = arrayListOf(
+        KawaiifuProvider(), // removed due to cloudflare
+    )
+
     fun getApiFromName(apiName: String?): MainAPI {
+        return getApiFromNameNull(apiName) ?: apis[defProvider]
+    }
+
+    fun getApiFromNameNull(apiName: String?): MainAPI? {
+        if (apiName == null) return null
         for (api in apis) {
             if (apiName == api.name)
                 return api
         }
-        return apis[defProvider]
-    }
-
-    fun getApiFromNameNull(apiName: String?): MainAPI? {
-        for (api in apis) {
+        for (api in restrictedApis) {
+            if (apiName == api.name)
+                return api
+        }
+        for (api in backwardsCompatibleProviders) {
             if (apiName == api.name)
                 return api
         }
@@ -276,6 +287,20 @@ fun sortSubs(urls: List<SubtitleFile>): List<SubtitleFile> {
     }
 }
 
+fun capitalizeString(str: String): String {
+    return capitalizeStringNullable(str) ?: str
+}
+
+fun capitalizeStringNullable(str: String?): String? {
+    if (str == null)
+        return null
+    return try {
+        str.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    } catch (e: Exception) {
+        str
+    }
+}
+
 /** https://www.imdb.com/title/tt2861424/ -> tt2861424 */
 fun imdbUrlToId(url: String): String? {
     return Regex("/title/(tt[0-9]*)").find(url)?.groupValues?.get(1)
@@ -290,6 +315,7 @@ fun imdbUrlToIdNullable(url: String?): String? {
 enum class ProviderType {
     // When data is fetched from a 3rd party site like imdb
     MetaProvider,
+
     // When all data is from the site
     DirectProvider,
 }
@@ -318,8 +344,12 @@ enum class TvType {
     Anime,
     ONA,
     Torrent,
+<<<<<<< HEAD
     JAV,
     Hentai
+=======
+    Documentary,
+>>>>>>> ea9ef8d2937ff336324d13621b7bf0763a5ef8a2
 }
 
 // IN CASE OF FUTURE ANIME MOVIE OR SMTH
@@ -474,8 +504,8 @@ data class AnimeLoadResponse(
     override var recommendations: List<SearchResponse>? = null,
 ) : LoadResponse
 
-fun AnimeLoadResponse.addEpisodes(status : DubStatus, episodes : List<AnimeEpisode>?) {
-    if(episodes == null) return
+fun AnimeLoadResponse.addEpisodes(status: DubStatus, episodes: List<AnimeEpisode>?) {
+    if (episodes == null) return
     this.episodes[status] = episodes
 }
 

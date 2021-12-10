@@ -44,6 +44,11 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 + avgle / avgle.com
 + JAV junkies / javjunkies.com
 
+***Screenshots:***
+
+<img src="./.github/home.jpg" height="400"/><img src="./.github/search.jpg" height="400"/><img src="./.github/downloads.jpg" height="400"/><img src="./.github/results.jpg" height="400"/>
+<img src="./.github/player.jpg" height="200"/>
+
 ***The list of supported languages:***
 * 🇱🇧 Arabic
 * 🇬🇧 English
@@ -60,8 +65,10 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 * 🇩🇪 German
 * 🇹🇷 Turkish
 * 🇲🇰 Macedonian
+* 🇧🇷 Portuguese (Brazil)
+* 🇷🇴 Romanian
 
-## Disclaimer
+***Disclaimer:***
 
 Any legal issues regarding the content on this application should be taken up with the actual file hosts and providers themselves as we are not affiliated with them.
 
@@ -73,17 +80,18 @@ CloudStream 3 does not host any content on the app, and has no control over what
 
 It merely scrapes 3rd-party websites that are publicly accessable via any regular web browser. It is the responsibility of user to avoid any actions that might violate the laws governing his/her locality. Use CloudStream 3 at your own risk.
 
+
 ***Sites used:***
 <!-- Do not remove those two comments -->
 <!--SITE LIST START-->
 - [gogoanime.vc](https://gogoanime.vc) 
 - [allanime.site](https://allanime.site) 
 - [animeflick.net](https://animeflick.net) 
-- [kawaiifu.com](https://kawaiifu.com) 
 - [tenshi.moe](https://tenshi.moe) 
 - [wcostream.cc](https://wcostream.cc) 
 - [bestdubbedanime.com](https://bestdubbedanime.com) 
 - [hdm.to](https://hdm.to) 
+- [ihavenotv.com](https://ihavenotv.com) 
 - [vmovee.watch](https://www.vmovee.watch) 
 - [wcostream.com](https://www.wcostream.com) 
 - [allmoviesforyou.net](https://allmoviesforyou.net) 

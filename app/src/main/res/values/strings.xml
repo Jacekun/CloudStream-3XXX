@@ -241,6 +241,7 @@
     <string name="used_storage">Used</string>
     <string name="app_storage">App</string>
 
+    <!--plural-->
     <string name="movies">Movies</string>
     <string name="tv_series">TvSeries</string>
     <string name="cartoons">Cartoons</string>
@@ -248,6 +249,15 @@
     <string name="torrent">Torrent</string>
     <string name="jav">JAV</string>
     <string name="hentai">Hentai</string>
+    <string name="documentaries">Documentaries</string>
+
+    <!--singular-->
+    <string name="movies_singular">@string/movies</string>
+    <string name="tv_series_singular">Series</string>
+    <string name="cartoons_singular">Cartoon</string>
+    <string name="anime_singular">@string/anime</string>
+    <string name="torrent_singular">@string/torrent</string>
+    <string name="documentaries_singular">Documentary</string>
 
     <string name="source_error">Source error</string>
     <string name="remote_error">Remote error</string>
