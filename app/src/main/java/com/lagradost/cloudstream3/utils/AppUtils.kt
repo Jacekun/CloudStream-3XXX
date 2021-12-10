@@ -241,14 +241,14 @@ object AppUtils {
         }
         return if (currentPrefMedia < 1) {
             val mediaTypeList = listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon,
-                TvType.Anime, TvType.AnimeMovie, TvType.ONA, TvType.Torrent)
+                TvType.Anime, TvType.AnimeMovie, TvType.ONA, TvType.Torrent, TvType.Documentary)
             allApis.filter { api -> api.supportedTypes.any { it in mediaTypeList } }
         } else {
             // Filter API depending on preferred media type
             val mediaTypeList = when (currentPrefMedia) {
                 2 -> listOf(TvType.Anime, TvType.AnimeMovie, TvType.ONA)
                 3 -> listOf(TvType.JAV, TvType.Hentai)
-                else -> listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon)
+                else -> listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon, TvType.Documentary)
             }
 
             val filteredAPI =
@@ -262,14 +262,16 @@ object AppUtils {
             1 -> {
                 return listOf(
                     Pair(R.string.movies, listOf(TvType.Movie)),
-                    Pair(R.string.tv_series, listOf(TvType.TvSeries)),
+                    Pair(R.string.tv_series, listOf(TvType.TvSeries, TvType.Documentary)),
                     Pair(R.string.cartoons, listOf(TvType.Cartoon)),
-                    Pair(R.string.torrent, listOf(TvType.Torrent)))
+                    Pair(R.string.torrent, listOf(TvType.Torrent))
+                )
             }
             2 -> {
                 return listOf(
                     Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
-                    Pair(R.string.torrent, listOf(TvType.Torrent)))
+                    Pair(R.string.torrent, listOf(TvType.Torrent))
+                )
             }
             3 -> {
                 return listOf(
@@ -278,7 +280,7 @@ object AppUtils {
             }
             else -> return listOf(
                 Pair(R.string.movies, listOf(TvType.Movie)),
-                Pair(R.string.tv_series, listOf(TvType.TvSeries)),
+                Pair(R.string.tv_series, listOf(TvType.TvSeries, TvType.Documentary)),
                 Pair(R.string.cartoons, listOf(TvType.Cartoon)),
                 Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
                 Pair(R.string.torrent, listOf(TvType.Torrent))

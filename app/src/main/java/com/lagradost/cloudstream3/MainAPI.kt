@@ -344,12 +344,9 @@ enum class TvType {
     Anime,
     ONA,
     Torrent,
-<<<<<<< HEAD
+    Documentary,
     JAV,
     Hentai
-=======
-    Documentary,
->>>>>>> ea9ef8d2937ff336324d13621b7bf0763a5ef8a2
 }
 
 // IN CASE OF FUTURE ANIME MOVIE OR SMTH

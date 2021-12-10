@@ -471,6 +471,7 @@ class ResultFragment : Fragment() {
                     TvType.Torrent -> "Torrent"
                     TvType.Documentary -> "Documentaries"
                     null -> null
+                    else -> null
                 }
 
                 context?.let { ctx ->
