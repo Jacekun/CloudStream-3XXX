@@ -9,23 +9,12 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.Jsoup
 
 class Javhdicu : MainAPI() {
-    override val name: String
-        get() = "JAVHD.icu"
-
-    override val mainUrl: String
-        get() = "https://javhd.icu"
-
-    override val supportedTypes: Set<TvType>
-        get() = setOf(TvType.JAV)
-
-    override val hasDownloadSupport: Boolean
-        get() = false
-
-    override val hasMainPage: Boolean
-        get() = true
-
-    override val hasQuickSearch: Boolean
-        get() = false
+    override val name: String get() = "JAVHD.icu"
+    override val mainUrl: String get() = "https://javhd.icu"
+    override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
+    override val hasDownloadSupport: Boolean get() = false
+    override val hasMainPage: Boolean get() = true
+    override val hasQuickSearch: Boolean get() = false
 
     override fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl, timeout = 15).text
@@ -97,11 +86,14 @@ class Javhdicu : MainAPI() {
             //Log.i(this.name, "Result => $content")
             val href = fixUrl(content?.attr("href") ?: "")
             val imgContent = content?.select("img")
-            val title = imgContent?.attr("alt") ?: "<No Title Found>"
+            var title = imgContent?.attr("alt") ?: "<No Title Found>"
             val image = imgContent?.attr("src")?.trim('\'')
             val year = null
             //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
 
+            if (title.startsWith("JAV HD")) {
+                title = title.substring(7)
+            }
             MovieSearchResponse(
                 title,
                 href,
