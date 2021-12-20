@@ -6,23 +6,12 @@ import com.lagradost.cloudstream3.app
 import org.jsoup.Jsoup
 
 class HpJavTv : MainAPI() {
-    override val name: String
-        get() = "HpJAV.tv"
-
-    override val mainUrl: String
-        get() = "https://hpjav.tv"
-
-    override val supportedTypes: Set<TvType>
-        get() = setOf(TvType.JAV)
-
-    override val hasDownloadSupport: Boolean
-        get() = false
-
-    override val hasMainPage: Boolean
-        get() = true
-
-    override val hasQuickSearch: Boolean
-        get() = false
+    override val name: String get() = "HpJAV.tv"
+    override val mainUrl: String get() = "https://hpjav.tv"
+    override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
+    override val hasDownloadSupport: Boolean get() = false
+    override val hasMainPage: Boolean get() = true
+    override val hasQuickSearch: Boolean get() = false
 
     override fun getMainPage(): HomePageResponse {
         val html = app.get("$mainUrl", timeout = 15).text
@@ -58,7 +47,7 @@ class HpJavTv : MainAPI() {
                         year,
                         null,
                     )
-                }.filter { it3 -> it3.url != "" }
+                }.filter { it3 -> it3.url.isNotEmpty() }
 
                 all.add(
                     HomePageList(

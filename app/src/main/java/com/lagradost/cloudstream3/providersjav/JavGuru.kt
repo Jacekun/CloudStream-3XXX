@@ -6,23 +6,12 @@ import com.lagradost.cloudstream3.app
 import org.jsoup.Jsoup
 
 class JavGuru : MainAPI() {
-    override val name: String
-        get() = "Jav Guru"
-
-    override val mainUrl: String
-        get() = "https://jav.guru"
-
-    override val supportedTypes: Set<TvType>
-        get() = setOf(TvType.JAV)
-
-    override val hasDownloadSupport: Boolean
-        get() = false
-
-    override val hasMainPage: Boolean
-        get() = true
-
-    override val hasQuickSearch: Boolean
-        get() = false
+    override val name: String get() = "Jav Guru"
+    override val mainUrl: String get() = "https://jav.guru"
+    override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
+    override val hasDownloadSupport: Boolean get() = false
+    override val hasMainPage: Boolean get() = true
+    override val hasQuickSearch: Boolean get() = false
 
     override fun getMainPage(): HomePageResponse {
         val html = app.get("$mainUrl", timeout = 15).text

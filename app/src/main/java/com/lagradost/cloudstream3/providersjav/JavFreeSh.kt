@@ -9,23 +9,12 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 
 class JavFreeSh : MainAPI() {
-    override val name: String
-        get() = "JavFree.sh"
-
-    override val mainUrl: String
-        get() = "https://javfree.sh"
-
-    override val supportedTypes: Set<TvType>
-        get() = setOf(TvType.JAV)
-
-    override val hasDownloadSupport: Boolean
-        get() = false
-
-    override val hasMainPage: Boolean
-        get() = true
-
-    override val hasQuickSearch: Boolean
-        get() = false
+    override val name: String get() = "JavFree.sh"
+    override val mainUrl: String get() = "https://javfree.sh"
+    override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
+    override val hasDownloadSupport: Boolean get() = false
+    override val hasMainPage: Boolean get() = true
+    override val hasQuickSearch: Boolean get() = false
 
     class Response(json: String) : JSONObject(json) {
         val id: String? = this.optString("id")

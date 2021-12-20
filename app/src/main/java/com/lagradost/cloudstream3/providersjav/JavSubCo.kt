@@ -10,23 +10,12 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.Jsoup
 
 class JavSubCo : MainAPI() {
-    override val name: String
-        get() = "JAVSub.co"
-
-    override val mainUrl: String
-        get() = "https://javsub.co"
-
-    override val supportedTypes: Set<TvType>
-        get() = setOf(TvType.JAV)
-
-    override val hasDownloadSupport: Boolean
-        get() = false
-
-    override val hasMainPage: Boolean
-        get() = true
-
-    override val hasQuickSearch: Boolean
-        get() = false
+    override val name: String get() = "JAVSub.co"
+    override val mainUrl: String get() = "https://javsub.co"
+    override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
+    override val hasDownloadSupport: Boolean get() = false
+    override val hasMainPage: Boolean get() = true
+    override val hasQuickSearch: Boolean get() = false
 
     override fun getMainPage(): HomePageResponse {
         val html = app.get("$mainUrl", timeout = 15).text
