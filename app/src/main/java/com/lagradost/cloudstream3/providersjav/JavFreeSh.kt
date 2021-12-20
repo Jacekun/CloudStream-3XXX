@@ -30,7 +30,7 @@ class JavFreeSh : MainAPI() {
     }
 
     override fun getMainPage(): HomePageResponse {
-        val html = app.get("$mainUrl", timeout = 15).text
+        val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
 

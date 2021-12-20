@@ -17,7 +17,7 @@ class Javhdicu : MainAPI() {
     override val hasQuickSearch: Boolean get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = app.get(mainUrl, timeout = 15).text
+        val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
         val mainbody = document.getElementsByTag("body")
