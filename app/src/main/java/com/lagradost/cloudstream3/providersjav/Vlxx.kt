@@ -6,7 +6,6 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.movieproviders.SflixProvider
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.HttpSession
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import org.jsoup.Jsoup
@@ -25,12 +24,13 @@ class Vlxx : MainAPI() {
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
         val title = "Homepage"
-        val inner = document.select("#container .box .video-list")
-        if (inner != null) {
+        val inner = document.select("div#container > div.box > li.video-list")
+        if (!inner.isNullOrEmpty()) {
             val elements: List<SearchResponse> = inner.map {
-                val link = fixUrl(it.select("a")?.attr("href") ?: "")
-                val imgArticle = it.select(".video-image").attr("src")
-                val name = it.selectFirst(".video-name").text()
+                val href = it.select("a")?.attr("href") ?: ""
+                val link = if (href.isNotEmpty()) { fixUrl(href) } else { "" }
+                val imgArticle = it.select("img.video-image").attr("src")
+                val name = it.selectFirst("div.video-name").text()
                 val year = null
                 MovieSearchResponse(
                     name,
@@ -41,7 +41,7 @@ class Vlxx : MainAPI() {
                     year,
                     null,
                 )
-            }
+            }.filter { a -> a.url.isNotEmpty() }
             all.add(
                 HomePageList(
                     title, elements
@@ -58,10 +58,10 @@ class Vlxx : MainAPI() {
         val list = document.select("#container .box .video-list")
 
         return list.map {
-
-            val link = fixUrl(it.select("a")?.attr("href") ?: "")
+            val href = it.select("a")?.attr("href") ?: ""
+            val link = if (href.isNotEmpty()) { fixUrl(href) } else { "" }
             val imgArticle = it.select(".video-image").attr("src")
-            val name = it.selectFirst(".video-name").text()
+            val name = it.selectFirst(".video-name")?.text() ?: ""
             val year = null
             MovieSearchResponse(
                 name,
@@ -71,7 +71,9 @@ class Vlxx : MainAPI() {
                 imgArticle,
                 year
             )
-        }
+        }.filter { a -> a.url.isNotEmpty() }
+            .filter { b -> b.name.isNotEmpty() }
+            .distinctBy { c -> c.url }
     }
 
     override fun loadLinks(
