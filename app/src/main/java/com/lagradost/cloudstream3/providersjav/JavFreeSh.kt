@@ -1,11 +1,13 @@
 package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.StreamSB
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.mapper
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import org.json.JSONObject
 import org.jsoup.Jsoup
 
 class JavFreeSh : MainAPI() {
@@ -16,18 +18,14 @@ class JavFreeSh : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    class Response(json: String) : JSONObject(json) {
-        val id: String? = this.optString("id")
-        val poster: String? = this.optString("poster")
-        val list = this.optJSONArray("list")
-            ?.let { 0.until(it.length()).map { i -> it.optJSONObject(i) } } // returns an array of JSONObject
-            ?.map { Links(it.toString()) } // transforms each JSONObject of the array into 'Links'
-    }
-    class Links(json: String) : JSONObject(json) {
-        val url: String? = this.optString("url")
-        val server: String? = this.optString("server")
-        val active: Int? = this.optInt("active")
-    }
+    private data class ResponseJson(
+        @JsonProperty("list") val list: List<ResponseData>?
+    )
+    private data class ResponseData(
+        @JsonProperty("url") val file: String?,
+        @JsonProperty("server") val server: String?,
+        @JsonProperty("active") val active: Int?
+    )
 
     override fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl).text
@@ -136,50 +134,50 @@ class JavFreeSh : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         if (data == "about:blank") return false
-        if (data == "") return false
-        var sources: List<ExtractorLink> = listOf()
+        if (data.isEmpty()) return false
+        val sources = mutableListOf<ExtractorLink>()
         try {
             // get request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
-            val jsonres = app.get("https://player.javfree.sh/stream/${id}").text
-            val streamdata = JavFreeSh.Response(jsonres)
+            val linkToGet = "https://player.javfree.sh/stream/${id}"
+            val jsonres = app.get(linkToGet, referer = mainUrl).text
             //Log.i(this.name, "Result => (jsonres) ${jsonres}")
-            try {
-                // Invoke sources
-                if (streamdata.list != null) {
-                    for (link in streamdata.list) {
-                        var linkUrl = link.url ?: ""
-                        var server = link.server ?: ""
-                        if (linkUrl != "") {
+            // Invoke sources
+            mapper.readValue<ResponseJson?>(jsonres).let { it2 ->
+                if (!it2?.list.isNullOrEmpty()) {
+                    for (link in it2!!.list!!) {
+                        var linkUrl = link.file ?: ""
+                        var server = link.server ?: this.name
+                        if (linkUrl.isNotEmpty()) {
                             Log.i(this.name, "Result => (link url) ${linkUrl}")
                             // identify server
-                            if (server != "") {
-                                server = server.toLowerCase()
+                            if (server.isNotEmpty()) {
+                                server = server.lowercase()
                             }
                             if (server.contains("streamsb")) {
                                 linkUrl = linkUrl.substring(0, linkUrl.indexOf("?poster"))
-                                    //.replace("streamsb.net", "sbembed.com")
+                                    .replace("streamsb.net", "sbplay.org")
                                 Log.i(this.name, "Result => (streamsb link) ${linkUrl}")
                                 val extractor = StreamSB()
-                                val src = extractor.getUrl(linkUrl, referer = "https://player.javfree.sh/embed.html")
+                                val src = extractor.getUrl(
+                                    linkUrl,
+                                    referer = "https://player.javfree.sh/embed.html"
+                                )
                                 if (src.isNotEmpty()) {
                                     //Log.i(this.name, "Result => (streamsb) ${src}")
-                                    sources + src
+                                    sources.addAll(src)
                                 }
                             }
                         }
                     }
                 }
-                if (sources.isNotEmpty()) {
-                    for (source in sources) {
-                        callback.invoke(source)
-                        Log.i(this.name, "Result => (source) ${source.url}")
-                    }
-                    return true
+            }
+            if (sources.isNotEmpty()) {
+                for (source in sources) {
+                    callback.invoke(source)
+                    //Log.i(this.name, "Result => (source) ${source.url}")
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.i(this.name, "Result => (e) ${e}")
+                return true
             }
         } catch (e: Exception) {
             e.printStackTrace()

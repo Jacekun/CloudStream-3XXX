@@ -104,6 +104,12 @@ class OpJavCom : MainAPI() {
 
         val watchlink = doc?.select("div.buttons.row > div > div > a")?.attr("href") ?: ""
         Log.i(this.name, "Result => (watchlink) ${watchlink}")
+        val ajaxHead = mapOf(
+            Pair("Origin", "https://opjav.com"),
+            Pair("Referer", watchlink)
+        )
+        val respAjax = app.post("https://opjav.com/ajax", headers = ajaxHead,  referer = watchlink).text
+        Log.i(this.name, "Result => (respAjax) ${respAjax}")
         return MovieLoadResponse(title, url, this.name, TvType.JAV, watchlink, poster, year, descript, null, null)
     }
 
@@ -114,13 +120,13 @@ class OpJavCom : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         if (data == "about:blank") return false
-        if (data == "") return false
+        if (data.isEmpty()) return false
         var sources: List<ExtractorLink>? = null
         try {
             val streamdoc = Jsoup.parse(app.get(data).text)
             try {
                 // Invoke sources
-                if (sources != null) {
+                if (!sources.isNullOrEmpty()) {
                     for (source in sources) {
                         callback.invoke(source)
                         Log.i(this.name, "Result => (source) ${source.url}")

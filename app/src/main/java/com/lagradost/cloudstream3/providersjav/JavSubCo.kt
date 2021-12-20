@@ -72,21 +72,22 @@ class JavSubCo : MainAPI() {
             .select("article")
 
         return document.map {
-
-            val href = fixUrl(it.select("a")?.attr("href") ?: "")
-            val title = it.select("header > h2")?.text() ?: "<No Title Found>"
+            val href = it.select("a")?.attr("href")
+            val linkUrl = if (href.isNullOrEmpty()) { "" } else fixUrl(href)
+            val title = it.select("header > h2")?.text() ?: ""
             val image = it.select("div > figure").select("img")?.attr("src")?.trim('\'')
             val year = null
 
             MovieSearchResponse(
                 title,
-                href,
+                linkUrl,
                 this.name,
                 TvType.JAV,
                 image,
                 year
             )
-        }
+        }.filter { a -> a.url.isNotEmpty() }
+            .distinctBy { b -> b.url }
     }
 
     override fun load(url: String): LoadResponse {
