@@ -1,6 +1,13 @@
 # CloudStream-3XXX r776
-+ CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/ea9ef8d2937ff336324d13621b7bf0763a5ef8a2).
++ CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/2a1e0d98a31df4b01660c2478a3088faa4d8ca9a).
 + Fix: Issues after merging base.
++ Removed timeouts for all JAV providers.
++ Changed repo link on App settings view.
++ Add: JAV and Hentai to homepage selection choices.
++ javhdicu: trim site name on titles.
++ javsubco: fix showing entries without title or proper link.
++ opjavcom: add ajax request to fetch links.
++ javfreesh: migrate json objects.
 
 # CloudStream-3XXX r713
 + CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/444488849eb766627aa3075140021e479d6749bb).
