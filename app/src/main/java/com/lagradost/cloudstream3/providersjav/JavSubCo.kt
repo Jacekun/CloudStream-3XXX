@@ -4,9 +4,9 @@ import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.DoodLaExtractor
 import com.lagradost.cloudstream3.extractors.FEmbed
-import com.lagradost.cloudstream3.extractors.StreamTape
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavSubCo : MainAPI() {
@@ -41,7 +41,7 @@ class JavSubCo : MainAPI() {
 
                 val imgArticle = aa?.select("img")
                 val name = imgArticle?.attr("alt") ?: "<No Title>"
-                var image = imgArticle?.attr("src") ?: ""
+                val image = imgArticle?.attr("src") ?: ""
                 val year = null
 
                 MovieSearchResponse(
@@ -111,7 +111,7 @@ class JavSubCo : MainAPI() {
             ?.get(0)?.text()
         yearString = yearString?.split(":")?.get(1)?.trim() ?: ""
         yearString = re.replace(yearString, "")
-        val year = yearString?.takeLast(4)?.toIntOrNull()
+        val year = yearString.takeLast(4).toIntOrNull()
         //Log.i(this.name, "Result => (year) ${year} / (string) ${yearString}")
         // Poster Image
         var posterElement = body.select("script.yoast-schema-graph")?.toString() ?: ""
@@ -130,7 +130,7 @@ class JavSubCo : MainAPI() {
         // Video stream
         val streamUrl: String =  try {
             val streamdataStart = body?.toString()?.indexOf("var torotube_Public = {") ?: 0
-            var streamdata = body?.toString()?.substring(streamdataStart) ?: ""
+            val streamdata = body?.toString()?.substring(streamdataStart) ?: ""
             //Log.i(this.name, "Result => (streamdata) ${streamdata}")
             streamdata.substring(0, streamdata.indexOf("};"))
         } catch (e: Exception) {
@@ -163,42 +163,33 @@ class JavSubCo : MainAPI() {
                 Jsoup.parse(streamdata)?.select("iframe")?.filter { s -> s.hasAttr("src") }
                     ?.map { a -> a?.attr("src") ?: "" }
             //Log.i(this.name, "Result => (streambody) ${streambody.toString()}")
-
             if (streambody != null) {
                 for (link in streambody) {
                     //Log.i(this.name, "Result => (link) ${link}")
-                    if (link != null) {
-                        if (link.isNotEmpty()) {
-                            if (link.contains("streamtape")) {
-                                val extractor = StreamTape()
-                                val src = extractor.getUrl(link)
-                                if (src != null) {
-                                    sources.addAll(src)
-                                }
+                    if (link.isNotEmpty()) {
+                        if (link.contains("dood.ws")) {
+                            //Log.i(this.name, "Result => (doodwsUrl) ${doodwsUrl}")
+                            // Probably not gonna work since link is on 'dood.ws' domain
+                            // adding just in case it loads urls ¯\_(ツ)_/
+                            val extractor = DoodLaExtractor()
+                            val src = extractor.getUrl(link, null)
+                            if (!src.isNullOrEmpty()) {
+                                sources.addAll(src)
                             }
-                            if (link.contains("dood.ws")) {
-                                //Log.i(this.name, "Result => (doodwsUrl) ${doodwsUrl}")
-                                // Probably not gonna work since link is on 'dood.ws' domain
-                                // adding just in case it loads urls ¯\_(ツ)_/
-                                val extractor = DoodLaExtractor()
-                                val src = extractor.getUrl(link, null)
-                                if (src != null) {
-                                    sources.addAll(src)
-                                }
+                        } else if (link.contains("watch-jav")) {
+                            val extractor = FEmbed()
+                            val src = extractor.getUrl(link)
+                            if (src.isNotEmpty()) {
+                                sources.addAll(src)
                             }
-                            if (link.contains("watch-jav")) {
-                                val extractor = FEmbed()
-                                val src = extractor.getUrl(link)
-                                if (src.isNotEmpty()) {
-                                    sources.addAll(src)
-                                }
-                            }
+                        } else {
+                            loadExtractor(link, link, callback)
                         }
                     }
                 }
             }
             // Invoke sources
-            if (sources.size > 0) {
+            if (sources.isNotEmpty()) {
                 for (source in sources) {
                     callback.invoke(source)
                     //Log.i(this.name, "Result => (callback) ${source.url}")
@@ -207,7 +198,7 @@ class JavSubCo : MainAPI() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.i(this.name, "Result => (e) ${e}")
+            Log.i(this.name, "Result => (e) $e")
         }
         return false
     }
