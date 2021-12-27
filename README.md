@@ -20,23 +20,18 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 + **Crunchyroll** site. *Thanks to* [@ArjixWasTaken](https://github.com/ArjixWasTaken)
 
 ## JAV Sites
-<b>Guide:</b> <br>
-<img src="doc/homepage.png" width="24" height="24"/>= Has Main Page, <img src="doc/search.png" width="24" height="24"/>= Searchable, <img src="doc/play.png" width="24" height="24"/>= Streamable <br>
-<b>Websites:</b> <br>
+| Site | MainPage           | Search | Stream | Remarks |
+|------|--------------------|--------|--------|---------|
+|[JAV Sub](https://javsub.co) |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:| Have issues with ``dood`` server. |
+|[JAV HD](https://javhd.icu) |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|All scene parts are loaded as ``'Sources'``.|
+|[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Vietnamese subbed. CloudFare issues on some areas.|
+|[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
+|[JavFree sh](https://javfree.sh/)|:heavy_check_mark:|:heavy_check_mark:|:x:|Can extract StreamSB links.|
+|[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
+|[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
+|[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
+|[JAV cl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|-|
 
-+ [JAV Sub](https://javsub.co) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/> <img src="doc/play.png" width="22" height="22"/>
-  + Have issues with ``dood`` server.
-+ [JAV HD](https://javhd.icu) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/> <img src="doc/play.png" width="22" height="22"/>
-  + All scene parts are loaded as ``'Sources'``.
-+ [Vlxx](https://vlxx.sex) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/> <img src="doc/play.png" width="22" height="22"/>
-  + Vietnamese subbed. CloudFare issues on some areas.
-+ [Jav Guru](https://jav.guru) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
-+ [JavFree sh](https://javfree.sh/) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
-  + Can extract streamsb links but StreamSB extractor not working for some reasons.
-+ [Op Jav](https://opjav.com/) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
-+ [HpJAV.tv](https://hpjav.tv) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
-+ [JAV Most](https://www5.javmost.com) <img src="doc/homepage.png" width="22" height="22"/> <img src="doc/search.png" width="22" height="22"/>
-+ [JAV cl](https://javcl.com) <img src="doc/search.png" width="22" height="22"/>
 ### To-Add List
 + vjav / vjav.com
 + JAV Tube / javtube.watch
