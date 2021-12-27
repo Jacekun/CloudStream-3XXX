@@ -2,6 +2,7 @@ package com.lagradost.cloudstream3.ui.search
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -117,7 +118,7 @@ class SearchFragment : Fragment() {
             val apiNamesSetting = activity?.getApiSettings()
             val langs = activity?.getApiProviderLangSettings()
             val currentPrefMedia = PreferenceManager.getDefaultSharedPreferences(context)
-                .getInt(getString(R.string.preferred_media_settings), 0)
+                .getInt(getString(R.string.prefer_media_type_key), 0)
             val apiList = AppUtils.filterProviderByPreferredMedia(apis, currentPrefMedia, false)
             if (apiNamesSetting != null && langs != null) {
                 val apiNames = apiList.filter { langs.contains(it.lang) }.map { it.name }
@@ -139,8 +140,10 @@ class SearchFragment : Fragment() {
 
                 listView.adapter = arrayAdapter
                 listView.choiceMode = AbsListView.CHOICE_MODE_MULTIPLE
-                val typeChoicesFiltered = AppUtils.filterProviderChoicesByPreferredMedia(currentPrefMedia)
-                val typeChoices = typeChoicesFiltered.filter { item -> apiList.any { api -> api.supportedTypes.any { type -> item.second.contains(type) } } }
+
+                val typeChoices = AppUtils.filterProviderChoicesByPreferredMedia(currentPrefMedia).filter {
+                    item -> apiList.any { api -> api.supportedTypes.any { type -> item.second.contains(type) } }
+                }
 
                 val arrayAdapter2 = ArrayAdapter<String>(searchView.context, R.layout.sort_bottom_single_choice)
                 arrayAdapter2.addAll(typeChoices.map { getString(it.first) })
@@ -223,9 +226,10 @@ class SearchFragment : Fragment() {
                     }
 
                     if (activeTypes.size == 0) {
-                        activeTypes.addAll(TvType.values())
+                        for (choice in typeChoices) {
+                            activeTypes.addAll(choice.second)
+                        }
                     }
-
 
                     val activeApis = HashSet<String>()
                     for ((index, name) in apiNames.withIndex()) {
