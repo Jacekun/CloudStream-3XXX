@@ -76,10 +76,17 @@
                     style="@style/RoundedSelectableButton"/>
             <com.google.android.material.button.MaterialButton
                     android:nextFocusLeft="@id/home_select_cartoons"
+                    android:nextFocusRight="@id/home_select_javhentai"
 
                     android:id="@+id/home_select_documentaries"
                     android:text="@string/documentaries"
                     style="@style/RoundedSelectableButton"/>
+            <com.google.android.material.button.MaterialButton
+                android:nextFocusLeft="@id/home_select_documentaries"
+
+                android:id="@+id/home_select_javhentai"
+                android:text="@string/javhentai"
+                style="@style/RoundedSelectableButton"/>
         </LinearLayout>
     </HorizontalScrollView>
     <LinearLayout

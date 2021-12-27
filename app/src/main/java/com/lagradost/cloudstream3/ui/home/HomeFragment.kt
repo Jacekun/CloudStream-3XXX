@@ -136,6 +136,7 @@ class HomeFragment : Fragment() {
                 val movies = dialog.findViewById<MaterialButton>(R.id.home_select_movies)
                 val cancelBtt = dialog.findViewById<MaterialButton>(R.id.cancel_btt)
                 val applyBtt = dialog.findViewById<MaterialButton>(R.id.apply_btt)
+                val javhentai = dialog.findViewById<MaterialButton>(R.id.home_select_javhentai)
 
                 cancelBtt?.setOnClickListener {
                     dialog.dismissSafe()
@@ -167,7 +168,8 @@ class HomeFragment : Fragment() {
                     Pair(cartoons, listOf(TvType.Cartoon)),
                     Pair(tvs, listOf(TvType.TvSeries)),
                     Pair(docs, listOf(TvType.Documentary)),
-                    Pair(movies, listOf(TvType.Movie, TvType.Torrent))
+                    Pair(movies, listOf(TvType.Movie, TvType.Torrent)),
+                    Pair(javhentai, listOf(TvType.JAV, TvType.Hentai))
                 )
 
                 fun updateList() {
@@ -320,6 +322,7 @@ class HomeFragment : Fragment() {
                     Pair(R.string.cartoons, listOf(TvType.Cartoon)),
                     Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
                     Pair(R.string.torrent, listOf(TvType.Torrent)),
+                    Pair(R.string.javhentai, listOf(TvType.JAV, TvType.Hentai)),
                 ).filter { item -> currentApi.supportedTypes.any { type -> item.second.contains(type) } }
                 home_provider_meta_info?.text = typeChoices.joinToString(separator = ", ") { getString(it.first) }
                 home_provider_meta_info?.isVisible = true
