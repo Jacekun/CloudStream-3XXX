@@ -191,17 +191,17 @@
         <Preference
                 android:title="@string/github"
                 android:icon="@drawable/ic_github_logo"
-                app:summary="https://github.com/LagradOst/CloudStream-3">
+                app:summary="https://github.com/Jacekun/CloudStream-3XXX">
             <intent android:action="android.intent.action.VIEW"
-                    android:data="https://github.com/LagradOst/CloudStream-3"/>
+                    android:data="https://github.com/Jacekun/CloudStream-3XXX"/>
         </Preference>
 
         <Preference
-                android:title="@string/lightnovel"
-                android:icon="@drawable/quick_novel_icon"
-                app:summary="https://github.com/LagradOst/QuickNovel">
+                android:title="Original Source"
+                android:icon="@drawable/ic_github_logo"
+                app:summary="https://github.com/LagradOst/CloudStream-3">
             <intent android:action="android.intent.action.VIEW"
-                    android:data="https://github.com/LagradOst/QuickNovel"/>
+                    android:data="https://github.com/LagradOst/CloudStream-3"/>
         </Preference>
         <Preference
                 android:title="@string/discord"
