@@ -12,7 +12,7 @@ class Javhdicu : MainAPI() {
     override val name: String get() = "JAVHD.icu"
     override val mainUrl: String get() = "https://javhd.icu"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
-    override val hasDownloadSupport: Boolean get() = false
+    override val hasDownloadSupport: Boolean get() = true
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
@@ -43,11 +43,14 @@ class Javhdicu : MainAPI() {
                     val aa = it.select("div.item-img > a").firstOrNull()
                     // Video details
                     val link = aa?.attr("href") ?: ""
-                    val name = aa?.attr("title") ?: ""
+                    var name = aa?.attr("title") ?: ""
                     val image = aa?.select("img")?.attr("src")
                     val year = null
                     //Log.i(this.name, "Result => (link) ${link}")
                     //Log.i(this.name, "Result => (image) ${image}")
+                    if (name.startsWith("JAV HD")) {
+                        name = name.substring(7)
+                    }
 
                     MovieSearchResponse(
                         name,
@@ -91,7 +94,7 @@ class Javhdicu : MainAPI() {
                     fixUrl(href)
                 }
                 val imgContent = content?.select("img")
-                var title = imgContent?.attr("alt") ?: "<No Title Found>"
+                var title = imgContent?.attr("alt") ?: ""
                 val image = imgContent?.attr("src")?.trim('\'')
                 val year = null
                 //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
@@ -179,7 +182,7 @@ class Javhdicu : MainAPI() {
             var count = 0
             for (vid in vidlinks) {
                 count += 1
-                //Log.i(this.name, "Result => (vid) ${vid}")
+                Log.i(this.name, "Result => (vid) ${vid}")
                 // parse single link
                 if (vid.startsWith("https://javhdfree.icu")) {
                     val extractor = FEmbed()
@@ -187,7 +190,7 @@ class Javhdicu : MainAPI() {
                     for (item in srcAdd) {
                         item.name += " Scene $count"
                     }
-                    sources + srcAdd
+                    sources.addAll(srcAdd)
                 } else {
                     loadExtractor(vid, vid, callback)
                 }

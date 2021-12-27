@@ -66,14 +66,15 @@ object APIHolder {
         PinoyMoviesEsProvider(),
 
         // All of JAV sources
+        Javhdicu(),
+        JavSubCo(),
+        Vlxx(),
+
         JavFreeSh(),
         JavGuru(),
         OpJavCom(),
-        JavSubCo(),
         HpJavTv(),
         JavMost(),
-        Javhdicu(),
-        Vlxx(),
         Javclcom()
     )
 

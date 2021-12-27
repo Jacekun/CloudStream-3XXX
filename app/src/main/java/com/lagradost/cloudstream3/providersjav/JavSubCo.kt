@@ -13,7 +13,7 @@ class JavSubCo : MainAPI() {
     override val name: String get() = "JAVSub.co"
     override val mainUrl: String get() = "https://javsub.co"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
-    override val hasDownloadSupport: Boolean get() = false
+    override val hasDownloadSupport: Boolean get() = true
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
@@ -165,12 +165,12 @@ class JavSubCo : MainAPI() {
             //Log.i(this.name, "Result => (streambody) ${streambody.toString()}")
             if (streambody != null) {
                 for (link in streambody) {
-                    //Log.i(this.name, "Result => (link) ${link}")
+                    Log.i(this.name, "Result => (link) ${link}")
                     if (link.isNotEmpty()) {
                         if (link.contains("dood.ws")) {
-                            //Log.i(this.name, "Result => (doodwsUrl) ${doodwsUrl}")
+                            //Log.i(this.name, "Result => (doodwsUrl) ${link}")
                             // Probably not gonna work since link is on 'dood.ws' domain
-                            // adding just in case it loads urls ¯\_(ツ)_/
+                            // adding just in case it loads urls ¯\_(ツ)_/¯
                             val extractor = DoodLaExtractor()
                             val src = extractor.getUrl(link, null)
                             if (!src.isNullOrEmpty()) {
