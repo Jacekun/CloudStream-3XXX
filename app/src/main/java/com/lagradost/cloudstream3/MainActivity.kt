@@ -19,6 +19,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
+import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
@@ -87,6 +88,38 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         updateLocale() // android fucks me by chaining lang when rotating the phone
+        findNavController(R.id.nav_host_fragment).currentDestination?.let { updateNavBar(it) }
+    }
+
+    private fun updateNavBar(destination : NavDestination) {
+        this.hideKeyboard()
+
+        // Fucks up anime info layout since that has its own layout
+        cast_mini_controller_holder?.isVisible =
+            !listOf(R.id.navigation_results, R.id.navigation_player).contains(destination.id)
+
+        val isNavVisible = listOf(
+            R.id.navigation_home,
+            R.id.navigation_search,
+            R.id.navigation_downloads,
+            R.id.navigation_settings,
+            R.id.navigation_download_child
+        ).contains(destination.id)
+
+        val landscape = when(resources.configuration.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                true
+            }
+            Configuration.ORIENTATION_PORTRAIT -> {
+                false
+            }
+            else -> {
+                false
+            }
+        }
+
+        nav_view?.isVisible = isNavVisible && !landscape
+        nav_rail_view?.isVisible = isNavVisible && landscape
     }
 
     //private var mCastSession: CastSession? = null
@@ -263,7 +296,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
             KeyEvent.KEYCODE_FORWARD, KeyEvent.KEYCODE_D, KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
                 PlayerEventType.SeekForward
             }
-            KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_A, KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD, KeyEvent.KEYCODE_MEDIA_REWIND -> {
+            KeyEvent.KEYCODE_A, KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD, KeyEvent.KEYCODE_MEDIA_REWIND -> {
                 PlayerEventType.SeekBack
             }
             KeyEvent.KEYCODE_MEDIA_NEXT, KeyEvent.KEYCODE_BUTTON_R1 -> {
@@ -337,8 +370,8 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
             showToast(act, act.getString(message), duration)
         }
 
-        fun showToast(act: Activity?, message: String, duration: Int) {
-            if (act == null) return
+        fun showToast(act: Activity?, message: String?, duration: Int? = null) {
+            if (act == null || message == null) return
             try {
                 currentToast?.cancel()
             } catch (e: Exception) {
@@ -357,7 +390,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
 
                 val toast = Toast(act)
                 toast.setGravity(Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM, 0, 5.toPx)
-                toast.duration = duration
+                toast.duration = duration ?: Toast.LENGTH_SHORT
                 toast.view = layout
                 toast.show()
                 currentToast = toast
@@ -457,7 +490,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
             if (str.contains(appString)) {
                 for (api in OAuth2Apis) {
                     if (str.contains("/${api.redirectUrl}")) {
-                        api.handleRedirect(this, str)
+                        api.handleRedirect(str)
                     }
                 }
             } else {
@@ -478,7 +511,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         // init accounts
         for (api in OAuth2accountApis) {
-            api.init(this)
+            api.init()
         }
 
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
@@ -553,30 +586,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
         val navRail = findViewById<NavigationRailView?>(R.id.nav_rail_view)
         navRail?.setupWithNavController(navController)
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            this.hideKeyboard()
-            // nav_view.hideKeyboard()
-            /*if (destination.id != R.id.navigation_player) {
-                requestedOrientation = if (settingsManager?.getBoolean("force_landscape", false) == true) {
-                    ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-                } else {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                }
-            }*/
-
-            // Fucks up anime info layout since that has its own layout
-            cast_mini_controller_holder?.isVisible =
-                !listOf(R.id.navigation_results, R.id.navigation_player).contains(destination.id)
-
-            val isNavVisible = listOf(
-                R.id.navigation_home,
-                R.id.navigation_search,
-                R.id.navigation_downloads,
-                R.id.navigation_settings,
-                R.id.navigation_download_child
-            ).contains(destination.id)
-
-            nav_view?.isVisible = isNavVisible
-            navRail?.isVisible = isNavVisible
+            updateNavBar(destination)
         }
 
         /*nav_view.setOnNavigationItemSelectedListener { item ->

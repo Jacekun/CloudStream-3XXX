@@ -17,11 +17,75 @@
             android:layout_height="match_parent">
         <ProgressBar
                 android:layout_gravity="center"
-                android:visibility="visible"
-                tools:visibility="visible"
+                android:visibility="gone"
+                tools:visibility="gone"
                 android:layout_width="50dp"
                 android:layout_height="50dp">
         </ProgressBar>
+        <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/home_loading_shimmer"
+                app:shimmer_base_alpha="0.2"
+                app:shimmer_highlight_alpha="0.3"
+                app:shimmer_duration="@integer/loading_time"
+                app:shimmer_auto_start="true"
+                android:paddingTop="40dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginTop="15dp"
+                android:orientation="vertical">
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                <FrameLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                    <androidx.cardview.widget.CardView
+                            android:layout_margin="@dimen/loading_margin"
+                            android:layout_gravity="center"
+                            app:cardCornerRadius="@dimen/loading_radius"
+                            android:background="@color/grayShimmer"
+                            android:translationX="-164dp"
+                            android:layout_width="125dp"
+                            android:layout_height="200dp">
+                    </androidx.cardview.widget.CardView>
+                    <androidx.cardview.widget.CardView
+                            android:layout_margin="@dimen/loading_margin"
+                            android:layout_gravity="center"
+                            app:cardCornerRadius="@dimen/loading_radius"
+                            android:background="@color/grayShimmer"
+                            android:layout_width="148dp"
+                            android:layout_height="234dp">
+                    </androidx.cardview.widget.CardView>
+                    <androidx.cardview.widget.CardView
+                            android:layout_margin="@dimen/loading_margin"
+                            android:layout_gravity="center"
+                            app:cardCornerRadius="@dimen/loading_radius"
+                            android:background="@color/grayShimmer"
+                            android:translationX="164dp"
+                            android:layout_width="125dp"
+                            android:layout_height="200dp">
+                    </androidx.cardview.widget.CardView>
+                </FrameLayout>
+                <include layout="@layout/loading_line_short_center"/>
+
+                <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_marginTop="@dimen/result_padding"
+                        android:layout_marginStart="@dimen/result_padding"
+                        android:layout_marginEnd="@dimen/result_padding"
+
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+
+                    <include layout="@layout/loading_list"/>
+                    <include layout="@layout/loading_list"/>
+                    <include layout="@layout/loading_list"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
         <FrameLayout
                 android:id="@+id/home_loading_statusbar"
                 android:layout_width="match_parent"
@@ -304,6 +368,7 @@
                     </ImageView>
                 </FrameLayout>
 
+
                 <androidx.recyclerview.widget.RecyclerView
                         android:paddingHorizontal="5dp"
                         android:clipToPadding="false"
@@ -315,6 +380,7 @@
                         android:layout_height="wrap_content"
                         tools:listitem="@layout/home_result_grid"
                 />
+
             </LinearLayout>
 
             <LinearLayout
@@ -351,8 +417,6 @@
                             <com.google.android.material.button.MaterialButton
                                     android:nextFocusLeft="@id/nav_rail_view"
                                     android:nextFocusRight="@id/home_plan_to_watch_btt"
-                                    android:nextFocusDown="@id/home_bookmarked_child_recyclerview"
-                                    android:nextFocusUp="@id/home_watch_child_recyclerview"
 
                                     android:id="@+id/home_type_watching_btt"
                                     android:text="@string/type_watching"
@@ -360,8 +424,6 @@
                             <com.google.android.material.button.MaterialButton
                                     android:nextFocusLeft="@id/home_type_watching_btt"
                                     android:nextFocusRight="@id/home_type_on_hold_btt"
-                                    android:nextFocusDown="@id/home_bookmarked_child_recyclerview"
-                                    android:nextFocusUp="@id/home_watch_child_recyclerview"
 
                                     android:id="@+id/home_plan_to_watch_btt"
                                     android:text="@string/type_plan_to_watch"
@@ -369,8 +431,6 @@
                             <com.google.android.material.button.MaterialButton
                                     android:nextFocusLeft="@id/home_plan_to_watch_btt"
                                     android:nextFocusRight="@id/home_type_dropped_btt"
-                                    android:nextFocusDown="@id/home_bookmarked_child_recyclerview"
-                                    android:nextFocusUp="@id/home_watch_child_recyclerview"
 
                                     android:id="@+id/home_type_on_hold_btt"
                                     android:text="@string/type_on_hold"
@@ -378,16 +438,12 @@
                             <com.google.android.material.button.MaterialButton
                                     android:nextFocusLeft="@id/home_type_on_hold_btt"
                                     android:nextFocusRight="@id/home_type_completed_btt"
-                                    android:nextFocusDown="@id/home_bookmarked_child_recyclerview"
-                                    android:nextFocusUp="@id/home_watch_child_recyclerview"
 
                                     android:id="@+id/home_type_dropped_btt"
                                     android:text="@string/type_dropped"
                                     style="@style/RoundedSelectableButton"/>
                             <com.google.android.material.button.MaterialButton
                                     android:nextFocusLeft="@id/home_type_dropped_btt"
-                                    android:nextFocusDown="@id/home_bookmarked_child_recyclerview"
-                                    android:nextFocusUp="@id/home_watch_child_recyclerview"
 
                                     android:id="@+id/home_type_completed_btt"
                                     android:text="@string/type_completed"
@@ -404,7 +460,6 @@
                             android:contentDescription="@string/home_more_info">
                     </ImageView>
                 </FrameLayout>
-
                 <androidx.recyclerview.widget.RecyclerView
                         android:paddingHorizontal="5dp"
                         android:clipToPadding="false"
@@ -429,4 +484,12 @@
             />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:id="@+id/home_api_fab"
+            app:icon="@drawable/ic_baseline_filter_list_24"
+            style="@style/ExtendedFloatingActionButton"
+            tools:ignore="ContentDescription">
+    </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 </FrameLayout>

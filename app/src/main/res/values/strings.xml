@@ -41,7 +41,9 @@
     <string name="rew_text_format" translatable="false" formatted="true">-%d</string>
     <string name="ffw_text_regular_format" translatable="false" formatted="true">%d</string>
     <string name="rew_text_regular_format" translatable="false" formatted="true">%d</string>
-    <string name="app_dub_sub_episode_text_format">%s Ep %d</string>
+    <string name="rating_format" translatable="false" formatted="true">%.1f/10.0</string>
+    <string name="year_format" translatable="false" formatted="true">%d</string>
+    <string name="app_dub_sub_episode_text_format" formatted="true">%s Ep %d</string>
 
     <!-- IS NOT NEEDED TO TRANSLATE AS THEY ARE ONLY USED FOR SCREEN READERS AND WONT SHOW UP TO NORMAL USERS -->
     <string name="result_poster_img_des">Poster</string>
@@ -60,6 +62,7 @@
     <string name="rated_format" formatted="true">Rated: %.1f</string>
     <string name="new_update_format" formatted="true">New update found!\n%s -> %s</string>
     <string name="filler_format" formatted="true">(Filler) %s</string>
+    <string name="duration_format" formatted="true">%d min</string>
 
     <string name="app_name">CloudStream 3X</string>
     <string name="title_home">Home</string>
@@ -124,6 +127,7 @@
     <string name="filter_bookmarks">Filter Bookmarks</string>
     <string name="error_bookmarks_text">Bookmarks</string>
     <string name="action_remove_from_bookmarks">Remove</string>
+    <string name="action_add_to_bookmarks">Set watch status</string>
     <string name="sort_apply">Apply</string>
     <string name="sort_cancel">Cancel</string>
     <string name="player_speed">Player Speed</string>
@@ -144,7 +148,7 @@
     <string name="benene_count_text">%d Benenes given to devs</string>
     <string name="benene_count_text_none">No Benenes given</string>
 
-    <string name="subs_auto_select_language">Auto Select Language</string>
+    <string name="subs_auto_select_language">Auto-Select Language</string>
     <string name="subs_download_languages">Download Languages</string>
     <string name="subs_hold_to_reset_to_default">Hold to reset to default</string>
     <string name="continue_watching">Continue Watching</string>
@@ -155,7 +159,7 @@
     <string name="vpn_might_be_needed">A VPN might be needed for this provider to work correctly</string>
     <string name="vpn_torrent">This provider is a torrent, a VPN is recommended</string>
 
-    <string name="provider_info_meta">Metadata is not provided by site, video loading might fail.</string>
+    <string name="provider_info_meta">Metadata is not provided by site, video loading will fail if it does not exist on site.</string>
 
     <string name="torrent_plot">Description</string>
     <string name="normal_no_plot">No Plot Found</string>
@@ -168,7 +172,7 @@
     <string name="player_subtitles_settings">Subtitles</string>
     <string name="player_subtitles_settings_des">Player subtitles settings</string>
     <string name="eigengraumode_settings">Eigengravy Mode</string>
-    <string name="eigengraumode_settings_des">Adds the speed option in the player</string>
+    <string name="eigengraumode_settings_des">Adds a speed option in the player</string>
     <string name="swipe_to_seek_settings">Swipe to seek</string>
     <string name="swipe_to_seek_settings_des">Swipe left or right to control time in the videoplayer</string>
     <string name="swipe_to_change_settings">Swipe to change settings</string>
@@ -177,7 +181,7 @@
     <string name="double_tap_to_seek_settings_des">Tap twice on the right or left side to seek forwards or backwards
     </string>
     <string name="use_system_brightness_settings">Use system brightness</string>
-    <string name="use_system_brightness_settings_des">Use system brightness in the app player instead of an dark
+    <string name="use_system_brightness_settings_des">Use system brightness in the app player instead of a dark
         overlay
     </string>
 
@@ -201,7 +205,7 @@
 
     <string name="app_language">App Language</string>
 
-    <string name="no_chomecast_support_toast">This provider has no chromecast support</string>
+    <string name="no_chomecast_support_toast">This provider has no Chromecast support</string>
     <string name="no_links_found_toast">No Links Found</string>
     <string name="copy_link_toast">Link copied to clipboard</string>
     <string name="play_episode_toast">Play Episode</string>
@@ -222,7 +226,7 @@
     <string name="cancel" translatable="false">@string/sort_cancel</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
-    <string name="delete_message">This will permanently delete %s\nAre you sure?</string>
+    <string name="delete_message" formatted="true">This will permanently delete %s\nAre you sure?</string>
 
     <string name="status_ongoing">Ongoing</string>
     <string name="status_completed">Completed</string>
@@ -243,20 +247,20 @@
 
     <!--plural-->
     <string name="movies">Movies</string>
-    <string name="tv_series">TvSeries</string>
+    <string name="tv_series">TV Series</string>
     <string name="cartoons">Cartoons</string>
     <string name="anime">Anime</string>
-    <string name="torrent">Torrent</string>
+    <string name="torrent">Torrents</string>
+    <string name="documentaries">Documentaries</string>
     <string name="jav">JAV</string>
     <string name="hentai">Hentai</string>
-    <string name="documentaries">Documentaries</string>
 
     <!--singular-->
-    <string name="movies_singular">@string/movies</string>
+    <string name="movies_singular">Movie</string>
     <string name="tv_series_singular">Series</string>
     <string name="cartoons_singular">Cartoon</string>
     <string name="anime_singular">@string/anime</string>
-    <string name="torrent_singular">@string/torrent</string>
+    <string name="torrent_singular">Torrent</string>
     <string name="documentaries_singular">Documentary</string>
 
     <string name="source_error">Source error</string>
@@ -321,7 +325,7 @@
     <string name="preferred_media_settings">Preferred Media</string>
 
     <string name="automatic">Auto</string>
-    <string name="tv_layout">Tv Layout</string>
+    <string name="tv_layout">TV Layout</string>
     <string name="phone_layout">Phone Layout</string>
 
     <string name="primary_color_settings">Primary Color</string>
@@ -338,12 +342,14 @@
     <string name="kitsu_account_settings" translatable="false">Kitsu</string>
     <string name="trakt_account_settings" translatable="false">Trakt</string>
     -->
-    <string name="login_format">%s %s</string>
+    <string name="login_format" formatted="true">%s %s</string>
     <string name="account">account</string>
     <string name="logout">Logout</string>
     <string name="login">Login</string>
     <string name="switch_account">Switch account</string>
     <string name="add_account">Add account</string>
+    <string name="add_sync">Add tracking</string>
+    <string name="added_sync_format" formatted="true">Added %s</string>
     <!-- ============ -->
     <string name="none">None</string>
     <string name="normal">Normal</string>
@@ -356,8 +362,12 @@
     <string name="subtitles_shadow">Shadow</string>
     <string name="subtitles_raised">Raised</string>
     <!--
-    Example text does not need to be translated and if you do translate include all the letters in the alphabet,
-    see https://en.wikipedia.org/wiki/The_quick_brown_fox_jumps_over_the_lazy_dog
+    Example text (pangram) can optionally be translated; if you do, include all the letters in the alphabet,
+    see: 
+	https://en.wikipedia.org/w/index.php?title=Pangram&oldid=225849300
+	https://en.wikipedia.org/wiki/The_quick_brown_fox_jumps_over_the_lazy_dog
     -->
     <string name="subtitles_example_text">The quick brown fox jumps over the lazy dog</string>
+
+    <string name="tab_recommended">Recommended</string>
 </resources>

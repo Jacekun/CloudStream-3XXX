@@ -4,7 +4,6 @@ import com.lagradost.cloudstream3.USER_AGENT
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.extractors.*
 import com.lagradost.cloudstream3.mvvm.normalSafeApiCall
-import com.lagradost.cloudstream3.network.text
 import org.jsoup.Jsoup
 
 data class ExtractorLink(
@@ -58,13 +57,17 @@ fun getAndUnpack(string: String): String {
     return JsUnpacker(packedText).unpack() ?: string
 }
 
-fun loadExtractor(url: String, referer: String?, callback: (ExtractorLink) -> Unit) {
+/**
+ * Tries to load the appropriate extractor based on link, returns true if any extractor is loaded.
+ * */
+fun loadExtractor(url: String, referer: String?, callback: (ExtractorLink) -> Unit) : Boolean {
     for (extractor in extractorApis) {
         if (url.startsWith(extractor.mainUrl)) {
             extractor.getSafeUrl(url, referer)?.forEach(callback)
-            return
+            return true
         }
     }
+    return false
 }
 
 val extractorApis: Array<ExtractorApi> = arrayOf(
@@ -76,15 +79,21 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     XStreamCdn(),
     StreamSB(),
     Streamhub(),
-    SBPlay(),
+
     FEmbed(),
+    WatchSB(),
+    VoeExtractor(),
+    UpstreamExtractor(),
 
     // dood extractors
     DoodToExtractor(),
     DoodSoExtractor(),
     DoodLaExtractor(),
 
-    AsianLoad()
+    AsianLoad(),
+
+    SBPlay(),
+    SBPlay2(),
 )
 
 fun getExtractorApiFromName(name: String): ExtractorApi {

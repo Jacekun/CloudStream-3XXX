@@ -4,8 +4,10 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AppOpsManager
+import android.app.Dialog
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Color
 import android.os.Build
@@ -65,6 +67,19 @@ object UIHelper {
             ),
             1337
         )
+    }
+
+    fun Activity?.getSpanCount() : Int? {
+        val compactView = this?.getGridIsCompact() ?: return null
+        val spanCountLandscape = if (compactView) 2 else 6
+        val spanCountPortrait = if (compactView) 1 else 3
+        val orientation = this.resources?.configuration?.orientation ?: return null
+
+        return if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            spanCountLandscape
+        } else {
+            spanCountPortrait
+        }
     }
 
     fun Fragment.hideKeyboard() {
@@ -293,8 +308,13 @@ object UIHelper {
     }
 
     fun Context.shouldShowPIPMode(isInPlayer: Boolean): Boolean {
-        val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
-        return settingsManager?.getBoolean("pip_enabled", true) ?: true && isInPlayer
+        return try {
+            val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
+            settingsManager?.getBoolean(getString(R.string.pip_enabled_key), true) ?: true && isInPlayer
+        } catch (e : Exception) {
+            logError(e)
+            false
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -317,6 +337,18 @@ object UIHelper {
         if(view == null) return
         val inputMethodManager = view.context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager?
         inputMethodManager?.showSoftInput(view, 0)
+    }
+
+    fun Dialog?.dismissSafe(activity: Activity?) {
+        if (this?.isShowing == true && activity?.isFinishing == false) {
+            this.dismiss()
+        }
+    }
+
+    fun Dialog?.dismissSafe() {
+        if (this?.isShowing == true) {
+            this.dismiss()
+        }
     }
 
     /**id, stringRes */

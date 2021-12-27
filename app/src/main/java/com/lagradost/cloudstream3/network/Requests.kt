@@ -10,6 +10,8 @@ import com.lagradost.cloudstream3.mapper
 import okhttp3.*
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import java.io.File
 import java.net.URI
 import java.util.*
@@ -58,15 +60,25 @@ val Response.url: String
         return this.request.url.toString()
     }
 
+
+fun Headers.getCookies(cookieKey: String): Map<String, String> {
+    val cookieList =
+        this.filter { it.first.equals(cookieKey, ignoreCase = true) }
+            .getOrNull(0)?.second?.split(";")
+    return cookieList?.associate {
+        val split = it.split("=")
+        (split.getOrNull(0)?.trim() ?: "") to (split.getOrNull(1)?.trim() ?: "")
+    }?.filter { it.key.isNotBlank() && it.value.isNotBlank() } ?: mapOf()
+}
+
 val Response.cookies: Map<String, String>
     get() {
-        val cookieList =
-            this.headers.filter { it.first.lowercase(Locale.ROOT) == "set-cookie" }
-                .getOrNull(0)?.second?.split(";")
-        return cookieList?.associate {
-            val split = it.split("=")
-            (split.getOrNull(0)?.trim() ?: "") to (split.getOrNull(1)?.trim() ?: "")
-        }?.filter { it.key.isNotBlank() && it.value.isNotBlank() } ?: mapOf()
+        return this.headers.getCookies("set-cookie")
+    }
+
+val Request.cookies: Map<String, String>
+    get() {
+        return this.headers.getCookies("Cookie")
     }
 
 class AppResponse(
@@ -79,6 +91,7 @@ class AppResponse(
     val body by lazy { response.body }
     val code = response.code
     val headers = response.headers
+    val document: Document by lazy { Jsoup.parse(text) }
 
     /** Same as using mapper.readValue<T>() */
     inline fun <reified T : Any> mapped(): T {
@@ -126,7 +139,7 @@ private fun getCache(cacheTime: Int, cacheUnit: TimeUnit): CacheControl {
 /**
  * Referer > Set headers > Set cookies > Default headers > Default Cookies
  */
-private fun getHeaders(
+fun getHeaders(
     headers: Map<String, String>,
     referer: String?,
     cookie: Map<String, String>
@@ -135,12 +148,10 @@ private fun getHeaders(
     val cookieHeaders = (DEFAULT_COOKIES + cookie)
     val cookieMap =
         if (cookieHeaders.isNotEmpty()) mapOf(
-            "Cookie" to cookieHeaders.entries.joinToString(
-                separator = "; "
-            ) {
+            "Cookie" to cookieHeaders.entries.joinToString(" ") {
                 "${it.key}=${it.value};"
             }) else mapOf()
-    val tempHeaders = (DEFAULT_HEADERS + cookieMap + headers + refererMap)
+    val tempHeaders = (DEFAULT_HEADERS + headers + cookieMap + refererMap)
     return tempHeaders.toHeaders()
 }
 

@@ -84,7 +84,7 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 ***Sites used:***
 <!-- Do not remove those two comments -->
 <!--SITE LIST START-->
-- [gogoanime.vc](https://gogoanime.vc) 
+- [gogoanime.wiki](https://gogoanime.wiki) 
 - [allanime.site](https://allanime.site) 
 - [animeflick.net](https://animeflick.net) 
 - [tenshi.moe](https://tenshi.moe) 
@@ -99,7 +99,9 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 - [vf-film.me](https://vf-film.me) 
 - [vf-serie.org](https://vf-serie.org) 
 - [asianembed.io](https://asianembed.io) 
-- [trailers.to](https://trailers.to) 
+- [filman.cc](https://filman.cc) 
 - [zoro.to](https://zoro.to) 
+- [pinoymoviepedia.ru](https://pinoymoviepedia.ru) 
+- [pinoy-hd.xyz](https://www.pinoy-hd.xyz) 
 - [asiaflix.app](https://asiaflix.app) 
 <!--SITE LIST END-->

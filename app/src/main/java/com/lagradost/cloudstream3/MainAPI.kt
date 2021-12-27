@@ -56,10 +56,14 @@ object APIHolder {
 
         //TmdbProvider(),
 
-        TrailersTwoProvider(),
+
+
+        FilmanProvider(),
 
         ZoroProvider(),
-        PinoyMoviePedia(),
+        PinoyMoviePediaProvider(),
+        PinoyHDXyzProvider(),
+        PinoyMoviesEsProvider(),
 
         // All of JAV sources
         JavFreeSh(),
@@ -82,6 +86,7 @@ object APIHolder {
 
     private val backwardsCompatibleProviders = arrayListOf(
         KawaiifuProvider(), // removed due to cloudflare
+        TrailersTwoProvider(), // removed due to no videos working
     )
 
     fun getApiFromName(apiName: String?): MainAPI {
@@ -177,6 +182,25 @@ object APIHolder {
 
         return realSet
     }
+
+    fun Context.filterProviderByPreferredMedia(): List<MainAPI> {
+        val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
+        val currentPrefMedia = settingsManager.getInt(this.getString(R.string.prefer_media_type_key), 0)
+        val langs = this.getApiProviderLangSettings()
+        val allApis = apis.filter { langs.contains(it.lang) }.filter { api -> api.hasMainPage }
+        return if (currentPrefMedia < 1) {
+            allApis
+        } else {
+            // Filter API depending on preferred media type
+            val listEnumAnime = listOf(TvType.Anime, TvType.AnimeMovie, TvType.ONA)
+            val listEnumMovieTv = listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon)
+            val mediaTypeList = if (currentPrefMedia == 1) listEnumMovieTv else listEnumAnime
+
+            val filteredAPI =
+                allApis.filter { api -> api.supportedTypes.any { it in mediaTypeList } }
+            filteredAPI
+        }
+    }
 }
 
 /**Every provider will **not** have try catch built in, so handle exceptions when calling these functions*/
@@ -255,6 +279,10 @@ fun parseRating(ratingString: String?): Int? {
     if (ratingString == null) return null
     val floatRating = ratingString.toFloatOrNull() ?: return null
     return (floatRating * 10).toInt()
+}
+
+fun MainAPI.fixUrlNull(url : String?) : String? {
+    return fixUrl(url ?: return null)
 }
 
 fun MainAPI.fixUrl(url: String): String {
@@ -382,7 +410,7 @@ data class AnimeSearchResponse(
 
     override val posterUrl: String?,
     val year: Int? = null,
-    val dubStatus: EnumSet<DubStatus>?,
+    val dubStatus: EnumSet<DubStatus>? = null,
 
     val otherName: String? = null,
     val dubEpisodes: Int? = null,
@@ -433,7 +461,7 @@ interface LoadResponse {
     val plot: String?
     val rating: Int? // 0-100
     val tags: List<String>?
-    val duration: String?
+    var duration: Int? // in minutes
     val trailerUrl: String?
     val recommendations: List<SearchResponse>?
 }
@@ -459,29 +487,29 @@ data class AnimeEpisode(
 )
 
 data class TorrentLoadResponse(
-    override val name: String,
-    override val url: String,
-    override val apiName: String,
-    val magnet: String?,
-    val torrent: String?,
-    override val plot: String?,
-    override val type: TvType = TvType.Torrent,
-    override val posterUrl: String? = null,
-    override val year: Int? = null,
-    override val rating: Int? = null,
-    override val tags: List<String>? = null,
-    override val duration: String? = null,
-    override val trailerUrl: String? = null,
-    override val recommendations: List<SearchResponse>? = null,
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    var magnet: String?,
+    var torrent: String?,
+    override var plot: String?,
+    override var type: TvType = TvType.Torrent,
+    override var posterUrl: String? = null,
+    override var year: Int? = null,
+    override var rating: Int? = null,
+    override var tags: List<String>? = null,
+    override var duration: Int? = null,
+    override var trailerUrl: String? = null,
+    override var recommendations: List<SearchResponse>? = null,
 ) : LoadResponse
 
 data class AnimeLoadResponse(
     var engName: String? = null,
     var japName: String? = null,
-    override val name: String,
-    override val url: String,
-    override val apiName: String,
-    override val type: TvType,
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    override var type: TvType,
 
     override var posterUrl: String? = null,
     override var year: Int? = null,
@@ -496,7 +524,7 @@ data class AnimeLoadResponse(
     var malId: Int? = null,
     var anilistId: Int? = null,
     override var rating: Int? = null,
-    override var duration: String? = null,
+    override var duration: Int? = null,
     override var trailerUrl: String? = null,
     override var recommendations: List<SearchResponse>? = null,
 ) : LoadResponse
@@ -518,23 +546,53 @@ fun MainAPI.newAnimeLoadResponse(
 }
 
 data class MovieLoadResponse(
-    override val name: String,
-    override val url: String,
-    override val apiName: String,
-    override val type: TvType,
-    val dataUrl: String,
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    override var type: TvType,
+    var dataUrl: String,
 
-    override val posterUrl: String? = null,
-    override val year: Int? = null,
-    override val plot: String? = null,
+    override var posterUrl: String? = null,
+    override var year: Int? = null,
+    override var plot: String? = null,
 
-    val imdbId: String? = null,
-    override val rating: Int? = null,
-    override val tags: List<String>? = null,
-    override val duration: String? = null,
-    override val trailerUrl: String? = null,
-    override val recommendations: List<SearchResponse>? = null,
+    var imdbId: String? = null,
+    override var rating: Int? = null,
+    override var tags: List<String>? = null,
+    override var duration: Int? = null,
+    override var trailerUrl: String? = null,
+    override var recommendations: List<SearchResponse>? = null,
 ) : LoadResponse
+
+fun MainAPI.newMovieLoadResponse(
+    name: String,
+    url: String,
+    type: TvType,
+    dataUrl: String,
+    initializer: MovieLoadResponse.() -> Unit = { }
+): MovieLoadResponse {
+    val builder = MovieLoadResponse(name = name, url = url, apiName = this.name, type = type, dataUrl = dataUrl)
+    builder.initializer()
+    return builder
+}
+
+fun LoadResponse.setDuration(input: String?) {
+    if (input == null) return
+    Regex("([0-9]*)h.*?([0-9]*)m").matchEntire(input)?.groupValues?.let { values ->
+        if (values.size == 3) {
+            val hours = values[1].toIntOrNull()
+            val minutes = values[2].toIntOrNull()
+            this.duration = if (minutes != null && hours != null) {
+                hours * 60 + minutes
+            } else null
+        }
+    }
+    Regex("([0-9]*)m").matchEntire(input)?.groupValues?.let { values ->
+        if (values.size == 2) {
+            this.duration = values[1].toIntOrNull()
+        }
+    }
+}
 
 data class TvSeriesEpisode(
     val name: String? = null,
@@ -544,25 +602,37 @@ data class TvSeriesEpisode(
     val posterUrl: String? = null,
     val date: String? = null,
     val rating: Int? = null,
-    val descript: String? = null,
+    val description: String? = null,
 )
 
 data class TvSeriesLoadResponse(
-    override val name: String,
-    override val url: String,
-    override val apiName: String,
-    override val type: TvType,
-    val episodes: List<TvSeriesEpisode>,
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    override var type: TvType,
+    var episodes: List<TvSeriesEpisode>,
 
-    override val posterUrl: String? = null,
-    override val year: Int? = null,
-    override val plot: String? = null,
+    override var posterUrl: String? = null,
+    override var year: Int? = null,
+    override var plot: String? = null,
 
-    val showStatus: ShowStatus? = null,
-    val imdbId: String? = null,
-    override val rating: Int? = null,
-    override val tags: List<String>? = null,
-    override val duration: String? = null,
-    override val trailerUrl: String? = null,
-    override val recommendations: List<SearchResponse>? = null,
+    var showStatus: ShowStatus? = null,
+    var imdbId: String? = null,
+    override var rating: Int? = null,
+    override var tags: List<String>? = null,
+    override var duration: Int? = null,
+    override var trailerUrl: String? = null,
+    override var recommendations: List<SearchResponse>? = null,
 ) : LoadResponse
+
+fun MainAPI.newTvSeriesLoadResponse(
+    name: String,
+    url: String,
+    type: TvType,
+    episodes: List<TvSeriesEpisode>,
+    initializer: TvSeriesLoadResponse.() -> Unit = { }
+): TvSeriesLoadResponse {
+    val builder = TvSeriesLoadResponse(name = name, url = url, apiName = this.name, type = type, episodes = episodes)
+    builder.initializer()
+    return builder
+}

@@ -8,6 +8,7 @@ import com.lagradost.cloudstream3.movieproviders.SflixProvider.Companion.toExtra
 import com.lagradost.cloudstream3.movieproviders.SflixProvider.Companion.toSubtitleFile
 import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import java.net.URI
@@ -152,7 +153,8 @@ class ZoroProvider : MainAPI() {
                 EnumSet.of(DubStatus.Subbed)
             }
 
-            val tvType = getType(it.selectFirst(".film-detail > .fd-infor > .fdi-item")?.text().toString())
+            val tvType =
+                getType(it.selectFirst(".film-detail > .fd-infor > .fdi-item")?.text().toString())
             val href = fixUrl(it.selectFirst(".film-name a").attr("href"))
 
             AnimeSearchResponse(
@@ -187,7 +189,8 @@ class ZoroProvider : MainAPI() {
             when {
                 (year != null && japaneseTitle != null && status != null) -> break
                 text.contains("Premiered") && year == null ->
-                    year = info.selectFirst(".name")?.text().toString().split(" ").last().toIntOrNull()
+                    year =
+                        info.selectFirst(".name")?.text().toString().split(" ").last().toIntOrNull()
 
                 text.contains("Japanese") && japaneseTitle == null ->
                     japaneseTitle = info.selectFirst(".name")?.text().toString()
@@ -219,6 +222,28 @@ class ZoroProvider : MainAPI() {
             )
         }
 
+        val recommendations =
+            document.select("#main-content > section > .tab-content > div > .film_list-wrap > .flw-item")
+                .mapNotNull { head ->
+                    val filmPoster = head?.selectFirst(".film-poster")
+                    val epPoster = filmPoster?.selectFirst("img")?.attr("data-src")
+                    val a = head?.selectFirst(".film-detail > .film-name > a")
+                    val epHref = a?.attr("href")
+                    val epTitle = a?.attr("title")
+                    if (epHref == null || epTitle == null || epPoster == null) {
+                        null
+                    } else {
+                        AnimeSearchResponse(
+                            epTitle,
+                            fixUrl(epHref),
+                            this.name,
+                            TvType.Anime,
+                            epPoster,
+                            dubStatus = null
+                        )
+                    }
+                }
+
         return newAnimeLoadResponse(title, url, TvType.Anime) {
             japName = japaneseTitle
             engName = title
@@ -228,6 +253,7 @@ class ZoroProvider : MainAPI() {
             showStatus = status
             plot = description
             this.tags = tags
+            this.recommendations = recommendations
         }
     }
 
@@ -255,61 +281,59 @@ class ZoroProvider : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
 
-        // Copy pasted from Sflix :)
-
         val servers: List<Pair<DubStatus, String>> = Jsoup.parse(
-            mapper.readValue<Response>(
-                app.get("$mainUrl/ajax/v2/episode/servers?episodeId=" + data.split("=")[1]).text
-            ).html
+            app.get("$mainUrl/ajax/v2/episode/servers?episodeId=" + data.split("=")[1])
+                .mapped<Response>().html
         ).select(".server-item[data-type][data-id]").map {
-            Pair(if (it.attr("data-type") == "sub") DubStatus.Subbed else DubStatus.Dubbed, it.attr("data-id")!!)
-        }
-
-        val res = app.get(
-            data,
-            interceptor = WebViewResolver(
-                Regex("""/getSources""")
-            )
-        )
-//        println("RES TEXT ${res.text}")
-
-        val recaptchaToken = res.response.request.url.queryParameter("_token")
-
-        val responses = servers.map {
-            val link = "$mainUrl/ajax/v2/episode/sources?id=${it.second}&_token=$recaptchaToken"
             Pair(
-                it.first,
-                getM3u8FromRapidCloud(
-                    mapper.readValue<RapidCloudResponse>(
-                        app.get(
-                            link,
-                            res.headers.toMap()
-                        ).text
-                    ).link
-                )
+                if (it.attr("data-type") == "sub") DubStatus.Subbed else DubStatus.Dubbed,
+                it.attr("data-id")!!
             )
         }
 
-        responses.forEach {
-            if (it.second.contains("<html")) return@forEach
-            val mapped = mapper.readValue<SflixProvider.SourceObject>(it.second)
+        // Prevent duplicates
+        servers.distinctBy { it.second }.pmap {
+            val link =
+                "$mainUrl/ajax/v2/episode/sources?id=${it.second}"
+            val extractorLink = app.get(
+                link,
+            ).mapped<RapidCloudResponse>().link
 
-            mapped.tracks?.forEach { track ->
-                track?.toSubtitleFile()?.let { subtitleFile ->
-                    subtitleCallback.invoke(subtitleFile)
+            // Loads the links in the appropriate extractor.
+            val hasLoadedExtractorLink = loadExtractor(extractorLink, mainUrl, callback)
+
+            if (!hasLoadedExtractorLink) {
+
+                // Not an extractor because:
+                // 1. No subtitle callback
+                // 2. Missing dub/sub status in parameter (might be substituted in the referer)
+
+                val response =
+                    getM3u8FromRapidCloud(
+                        extractorLink
+                    )
+
+                if (response.contains("<html")) return@pmap
+                val mapped = mapper.readValue<SflixProvider.SourceObject>(response)
+
+                mapped.tracks?.forEach { track ->
+                    track?.toSubtitleFile()?.let { subtitleFile ->
+                        subtitleCallback.invoke(subtitleFile)
+                    }
                 }
-            }
 
-            val list = listOf(
-                mapped.sources to "source 1",
-                mapped.sources1 to "source 2",
-                mapped.sources2 to "source 3",
-                mapped.sourcesBackup to "source backup"
-            )
+                val list = listOf(
+                    mapped.sources to "source 1",
+                    mapped.sources1 to "source 2",
+                    mapped.sources2 to "source 3",
+                    mapped.sourcesBackup to "source backup"
+                )
 
-            list.forEach { subList ->
-                subList.first?.forEach { a ->
-                    a?.toExtractorLink(this, subList.second + " - ${it.first}")?.forEach(callback)
+                list.forEach { subList ->
+                    subList.first?.forEach { a ->
+                        a?.toExtractorLink(this, subList.second + " - ${it.first}")
+                            ?.forEach(callback)
+                    }
                 }
             }
         }
