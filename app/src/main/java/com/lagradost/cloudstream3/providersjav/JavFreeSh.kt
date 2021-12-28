@@ -8,6 +8,7 @@ import com.lagradost.cloudstream3.extractors.StreamSB
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mapper
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavFreeSh : MainAPI() {
@@ -145,6 +146,7 @@ class JavFreeSh : MainAPI() {
             // Invoke sources
             mapper.readValue<ResponseJson?>(jsonres).let { it2 ->
                 if (!it2?.list.isNullOrEmpty()) {
+                    val referer = "https://player.javfree.sh/embed.html"
                     for (link in it2!!.list!!) {
                         var linkUrl = link.file ?: ""
                         var server = link.server ?: this.name
@@ -159,14 +161,13 @@ class JavFreeSh : MainAPI() {
                                     .replace("streamsb.net", "sbplay.org")
                                 Log.i(this.name, "Result => (streamsb link) ${linkUrl}")
                                 val extractor = StreamSB()
-                                val src = extractor.getUrl(
-                                    linkUrl,
-                                    referer = "https://player.javfree.sh/embed.html"
-                                )
+                                val src = extractor.getUrl(linkUrl, referer = referer)
                                 if (src.isNotEmpty()) {
                                     //Log.i(this.name, "Result => (streamsb) ${src}")
                                     sources.addAll(src)
                                 }
+                            } else {
+                                loadExtractor(linkUrl, referer, callback)
                             }
                         }
                     }
