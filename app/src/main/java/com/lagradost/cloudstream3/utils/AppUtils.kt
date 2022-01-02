@@ -273,13 +273,16 @@ object AppUtils {
             )
             3 -> listOf(
                 Pair(R.string.jav, listOf(TvType.JAV)),
-                Pair(R.string.hentai, listOf(TvType.Hentai)))
+                Pair(R.string.hentai, listOf(TvType.Hentai))
+            )
             else -> listOf(
                 Pair(R.string.movies, listOf(TvType.Movie)),
                 Pair(R.string.tv_series, listOf(TvType.TvSeries, TvType.Documentary)),
                 Pair(R.string.cartoons, listOf(TvType.Cartoon)),
                 Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
-                Pair(R.string.torrent, listOf(TvType.Torrent))
+                Pair(R.string.torrent, listOf(TvType.Torrent)),
+                Pair(R.string.jav, listOf(TvType.JAV)),
+                Pair(R.string.hentai, listOf(TvType.Hentai))
             )
         }
     }
