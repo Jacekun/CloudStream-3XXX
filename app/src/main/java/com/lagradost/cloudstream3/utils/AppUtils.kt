@@ -246,7 +246,8 @@ object AppUtils {
         }
         return if (currentPrefMedia < 1) {
             val mediaTypeList = listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon,
-                TvType.Anime, TvType.AnimeMovie, TvType.ONA, TvType.Torrent, TvType.Documentary)
+                TvType.Anime, TvType.AnimeMovie, TvType.ONA, TvType.Torrent, TvType.Documentary,
+                TvType.JAV, TvType.Hentai)
             allApis.filter { api -> api.supportedTypes.any { it in mediaTypeList } }
         } else {
             // Filter API depending on preferred media type
@@ -261,6 +262,11 @@ object AppUtils {
 
     fun filterProviderChoicesByPreferredMedia(currentPrefMedia: Int): List<Pair<Int, List<TvType>>> {
         return when (currentPrefMedia) {
+            1 -> listOf(
+                Pair(R.string.movies, listOf(TvType.Movie)),
+                Pair(R.string.tv_series, listOf(TvType.TvSeries, TvType.Documentary)),
+                Pair(R.string.cartoons, listOf(TvType.Cartoon))
+            )
             2 -> listOf(
                 Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
                 Pair(R.string.torrent, listOf(TvType.Torrent))
@@ -274,9 +280,9 @@ object AppUtils {
                 Pair(R.string.tv_series, listOf(TvType.TvSeries, TvType.Documentary)),
                 Pair(R.string.cartoons, listOf(TvType.Cartoon)),
                 Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
-                Pair(R.string.torrent, listOf(TvType.Torrent)),
                 Pair(R.string.jav, listOf(TvType.JAV)),
-                Pair(R.string.hentai, listOf(TvType.Hentai))
+                Pair(R.string.hentai, listOf(TvType.Hentai)),
+                Pair(R.string.torrent, listOf(TvType.Torrent))
             )
         }
     }
