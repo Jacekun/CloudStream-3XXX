@@ -261,12 +261,6 @@ object AppUtils {
 
     fun filterProviderChoicesByPreferredMedia(currentPrefMedia: Int): List<Pair<Int, List<TvType>>> {
         return when (currentPrefMedia) {
-            1 -> listOf(
-                Pair(R.string.movies, listOf(TvType.Movie)),
-                Pair(R.string.tv_series, listOf(TvType.TvSeries, TvType.Documentary)),
-                Pair(R.string.cartoons, listOf(TvType.Cartoon)),
-                Pair(R.string.torrent, listOf(TvType.Torrent))
-            )
             2 -> listOf(
                 Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
                 Pair(R.string.torrent, listOf(TvType.Torrent))
