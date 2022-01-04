@@ -33,6 +33,23 @@ jobs:
       with:
           gradlePath: app/build.gradle # or app/build.gradle.kts 
           versionCode: ${{ env.COMMIT_COUNT }}
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Decode Keystore
+      env:
+        ENCODED_STRING: ${{ secrets.KEYSTORE }}
+      run: |
+        TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
+        mkdir -p "${TMP_KEYSTORE_FILE_PATH}"
+        echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/release_keystore.keystore
+        
+    - name: Run Gradle
+      run: ./gradlew app:assembleRelease
+      env:
+        SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
       
     - name: Read version history and save it
       id: currentBody
@@ -73,21 +90,6 @@ jobs:
         git commit -m '[actions] bump version and update version history' || echo
         git push
         
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Decode Keystore
-      env:
-        ENCODED_STRING: ${{ secrets.KEYSTORE }}
-      run: |
-        TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
-        mkdir -p "${TMP_KEYSTORE_FILE_PATH}"
-        echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/release_keystore.keystore
-    - name: Run Gradle
-      run: ./gradlew app:assembleRelease
-      env:
-        SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-        SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
