@@ -3,8 +3,11 @@ package com.lagradost.cloudstream3.providersjav
 import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.HttpSession
 import org.jsoup.Jsoup
+import java.net.URLEncoder
 
 class OpJavCom : MainAPI() {
     override val name: String get() = "OpJAV.com"
@@ -76,7 +79,7 @@ class OpJavCom : MainAPI() {
             val href = fixUrl(innerPost.attr("href") ?: "")
             val title = innerPost.attr("title") ?: "<No Title found>"
             val image = innerPost.select("img").attr("src")
-            Log.i(this.name, "Result image => ${image}")
+            Log.i(this.name, "Result image => $image")
             val year = inner.select("dfn").lastOrNull()?.text()?.toIntOrNull()
 
             //Log.i(this.name, "Result => $")
@@ -96,19 +99,32 @@ class OpJavCom : MainAPI() {
         val doc = Jsoup.parse(response)
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[itemprop=image]")?.get(1)?.attr("content")
-        val title = doc.select("meta[property=og:title]").firstOrNull()?.attr("content").toString()
-        val descript = doc.select("meta[name=keywords]").firstOrNull()?.attr("content")
-        val year = doc.select("meta[itemprop=dateCreated]")
-            .firstOrNull()?.attr("content")?.toIntOrNull()
+        val title = doc.selectFirst("meta[property=og:title]")?.attr("content").toString()
+        val descript = doc.selectFirst("meta[name=keywords]")?.attr("content")
+        val year = doc.selectFirst("meta[itemprop=dateCreated]")?.attr("content")?.toIntOrNull()
 
-        val watchlink = doc?.select("div.buttons.row > div > div > a")?.attr("href") ?: ""
-        Log.i(this.name, "Result => (watchlink) ${watchlink}")
-        val ajaxHead = mapOf(
-            Pair("Origin", "https://opjav.com"),
-            Pair("Referer", watchlink)
-        )
-        val respAjax = app.post("https://opjav.com/ajax", headers = ajaxHead,  referer = watchlink).text
-        Log.i(this.name, "Result => (respAjax) ${respAjax}")
+        var watchlink = ""
+        var mainLink = doc?.select("div.buttons.row > div > div > a")
+            ?.attr("href") ?: ""
+        Log.i(this.name, "Result => (mainLink) $mainLink")
+        //TODO: Move to loadlinks
+        val epsDoc = app.get(url = mainLink, referer = mainUrl).document
+        val epsLink = epsDoc?.select("div.block.servers")
+            ?.select("li")?.mapNotNull {
+                it?.selectFirst("a")?.attr("href") ?: return@mapNotNull null
+            }
+        epsLink?.forEach {
+            val ajaxHead = mapOf(
+                Pair("Origin", mainUrl),
+                Pair("Referer", it)
+            )
+            val sess = HttpSession()
+            val respAjax = sess.post("$mainUrl/ajax", headers = ajaxHead)
+            Log.i(this.name, "Result => (respAjax) ${it}")
+            Log.i(this.name, "Result => (respAjax) ${respAjax.statusCode}")
+            Log.i(this.name, "Result => (respAjax) ${respAjax.text}")
+
+        }
         return MovieLoadResponse(title, url, this.name, TvType.JAV, watchlink, poster, year, descript, null, null)
     }
 
@@ -120,26 +136,7 @@ class OpJavCom : MainAPI() {
     ): Boolean {
         if (data == "about:blank") return false
         if (data.isEmpty()) return false
-        var sources: List<ExtractorLink>? = null
-        try {
-            val streamdoc = Jsoup.parse(app.get(data).text)
-            try {
-                // Invoke sources
-                if (!sources.isNullOrEmpty()) {
-                    for (source in sources) {
-                        callback.invoke(source)
-                        Log.i(this.name, "Result => (source) ${source.url}")
-                    }
-                    return true
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.i(this.name, "Result => (e) ${e}")
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.i(this.name, "Result => (e) ${e}")
-        }
+        //TODO: Load links
         return false
     }
 }

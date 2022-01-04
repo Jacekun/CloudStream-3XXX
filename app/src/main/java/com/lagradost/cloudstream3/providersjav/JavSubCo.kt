@@ -160,10 +160,10 @@ class JavSubCo : MainAPI() {
         // Get all src from iframes
         val streambody = Jsoup.parse(streamdata)?.select("iframe")
             ?.filter { s -> s.hasAttr("src") }
-            ?.map { a -> a?.attr("src") ?: "" }
+            ?.mapNotNull { a -> a?.attr("src") ?: return@mapNotNull null }
         //Log.i(this.name, "Result => (streambody) ${streambody.toString()}")
         if (!streambody.isNullOrEmpty()) {
-            for (link in streambody) {
+            streambody.forEach { link ->
                 Log.i(this.name, "Result => (link) $link")
                 if (link.isNotEmpty()) {
                     when {
