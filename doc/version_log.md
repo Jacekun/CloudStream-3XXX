@@ -1,3 +1,6 @@
+# CloudStream-3XXX r791
++ Fix show all tvtypes on 'All' filter.
+
 # CloudStream-3XXX r789
 + Rename app title to match repo name.
 + Show Jav and Hentai when Preferred Media is set to 'All'.
