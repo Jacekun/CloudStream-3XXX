@@ -89,6 +89,7 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     DoodToExtractor(),
     DoodSoExtractor(),
     DoodLaExtractor(),
+    DoodShExtractor(),
 
     AsianLoad(),
 
