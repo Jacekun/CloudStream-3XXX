@@ -27,7 +27,6 @@ class OpJavCom : MainAPI() {
 
         var count = 0
         mainbody.select("div.list-film.row")?.forEach { it2 ->
-            // TODO: Change row name
             count++
             val title = "Row $count"
             // Fetch items and map

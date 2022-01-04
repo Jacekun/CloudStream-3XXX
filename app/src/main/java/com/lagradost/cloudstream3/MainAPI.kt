@@ -70,6 +70,7 @@ object APIHolder {
         JavSubCo(),
         Vlxx(),
 
+        JavTubeWatch(),
         JavFreeSh(),
         JavGuru(),
         OpJavCom(),
