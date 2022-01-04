@@ -5,6 +5,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.movieproviders.SflixProvider
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.network.AppResponse
+import com.lagradost.cloudstream3.network.DdosGuardKiller
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
@@ -18,10 +20,23 @@ class Vlxx : MainAPI() {
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
+    private val ddosGuardKiller = DdosGuardKiller(true)
+
+    private fun getPage(url: String, referer: String): AppResponse {
+        var count = 0
+        var resp = app.get(url, referer = referer, interceptor = ddosGuardKiller)
+        while (resp.code != 200) {
+            resp = app.get(url, interceptor = ddosGuardKiller)
+            count++
+            if (count > 4) {
+                return resp
+            }
+        }
+        return resp
+    }
 
     override fun getMainPage(): HomePageResponse {
-        val html = app.get(mainUrl).text
-        val document = Jsoup.parse(html)
+        val document = getPage(mainUrl, mainUrl).document
         val all = ArrayList<HomePageList>()
         val title = "Homepage"
         val inner = document.select("div#container > div.box > li.video-list")
@@ -52,9 +67,7 @@ class Vlxx : MainAPI() {
     }
 
     override fun search(query: String): List<SearchResponse> {
-        val url = "$mainUrl/search/${query}/"
-        val html = app.get(url).text
-        val document = Jsoup.parse(html)
+        val document = getPage("$mainUrl/search/${query}/", mainUrl).document
         val list = document.select("#container .box .video-list")
 
         return list.map {
@@ -140,8 +153,7 @@ class Vlxx : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val document = Jsoup.parse(response)
+        val document = getPage(url, url).document
         val title = document?.selectFirst(".breadcrumb")?.text() ?: "<No Title>"
         val descript = document?.select(".video-content .content")?.text()
         val year = null
