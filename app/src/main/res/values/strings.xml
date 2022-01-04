@@ -254,7 +254,7 @@
     <string name="documentaries">Documentaries</string>
     <string name="jav">JAV</string>
     <string name="hentai">Hentai</string>
-    <string name="javhentai">JAV and Hentai</string>
+    <string name="nsfw">NSFW</string>
 
     <!--singular-->
     <string name="movies_singular">Movie</string>

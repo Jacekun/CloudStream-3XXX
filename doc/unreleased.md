@@ -1,5 +1,9 @@
-+ CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/2a1e0d98a31df4b01660c2478a3088faa4d8ca9a).
-+ Fix: Issues after merging base.
++ Rename app title to match repo name.
++ Show Jav and Hentai when Preferred Media is set to 'All'.
++ Fix misleading caption 'JAV and Hentai'. Changed Homepage button to 'NSFW'.
++ Add Jav source: JavTube.
 + Javhdicu, javsubco: Refactor to allow loading links from all extractors.
 + Javhdicu, javsubco: Allow downloading.
 + Javhdicu: Removed site name on HomePage entries' title.
++ Javsubco: Refactor to allow Skip loading of all links.
++ Vlxx: Refactor to add DdosBypass.
