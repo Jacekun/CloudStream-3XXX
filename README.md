@@ -31,13 +31,11 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 |[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
-|[JAV cl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|-|
-
-### To-Add List
-+ vjav / vjav.com
-+ JAV Rave / javrave.club
-+ avgle / avgle.com
-+ JAV junkies / javjunkies.com
+|[Javcl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|-|
+|[VJav](https://vjav.com)|:x:|:x:|:x:|-|
+|[JavRave Club](https://javrave.club)|:x:|:x:|:x:|-|
+|[Avgle](https://avgle.com)|:x:|:x:|:x:|-|
+|[JAV Junkies](http://www.javjunkies.com)|:x:|:x:|:x:|-|
 
 ***Screenshots:***
 
