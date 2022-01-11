@@ -1,10 +1,12 @@
 package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.DoodLaExtractor
 import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
@@ -18,62 +20,55 @@ class JavSubCo : MainAPI() {
     override val hasQuickSearch: Boolean get() = false
 
     override fun getMainPage(): HomePageResponse {
-        val html = app.get(mainUrl).text
-        val document = Jsoup.parse(html)
-        val all = ArrayList<HomePageList>()
+        val document = app.get(mainUrl).document
 
-        val mainbody = document.getElementsByTag("body").select("div#content")
-            .select("div")?.first()?.select("main")
-            ?.select("section")?.select("div")?.firstOrNull()
+        /*
+        return HomePageResponse(document.select("div#content").select("div")?.first()
+            ?.select("main")?.select("section")
+            ?.select("div")
+         */
+        return HomePageResponse(document.select("div#content").select("div")?.first()
+            ?.select("main > section")
+            ?.get(0)?.getElementsByTag("div")?.map { it2 ->
+                val title = "Homepage"
+                val inner = it2?.select("article") ?: return@map null
+                val elements: List<SearchResponse> = inner.mapNotNull {
+                    //Log.i(this.name, "Inner content => $innerArticle")
+                    val aa = it.selectFirst("div")?.selectFirst("figure") ?: return@mapNotNull null
+                    val link = fixUrlNull(it.select("a")?.attr("href")) ?: return@mapNotNull null
 
-        //Log.i(this.name, "Main body => $mainbody")
-        // Fetch row title
-        val title = "Homepage"
-        // Fetch list of items and map
-        val inner = mainbody?.select("article")
-        //Log.i(this.name, "Inner => $inner")
-        if (inner != null) {
-            val elements: List<SearchResponse> = inner.map {
+                    val imgArticle = aa.select("img")
+                    val name = imgArticle?.attr("alt") ?: "<No Title>"
+                    val image = imgArticle?.attr("src")
+                    val year = null
 
-                //Log.i(this.name, "Inner content => $innerArticle")
-                val aa = it.select("div").first()?.select("figure")?.firstOrNull()
-                val link = fixUrl(it.select("a")?.attr("href") ?: "")
-
-                val imgArticle = aa?.select("img")
-                val name = imgArticle?.attr("alt") ?: "<No Title>"
-                val image = imgArticle?.attr("src") ?: ""
-                val year = null
-
-                MovieSearchResponse(
-                    name,
-                    link,
-                    this.name,
-                    TvType.JAV,
-                    image,
-                    year,
-                    null,
-                )
-            }
-
-            all.add(
+                    MovieSearchResponse(
+                        name,
+                        link,
+                        this.name,
+                        TvType.JAV,
+                        image,
+                        year,
+                        null,
+                    )
+                }.distinctBy { a -> a.url }
                 HomePageList(
                     title, elements
                 )
-            )
-        }
-        return HomePageResponse(all)
+            }?.filterNotNull()?.filter { a -> a.list.isNotEmpty() } ?: listOf())
     }
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
-        val html = app.get(url).text
-        val document = Jsoup.parse(html).getElementsByTag("body")
+        val document = app.get(url).document.getElementsByTag("body")
             .select("div#content > div > main > section > div")
             .select("article")
 
-        return document.map {
-            val href = it.select("a")?.attr("href")
-            val linkUrl = if (href.isNullOrEmpty()) { "" } else fixUrl(href)
+        return document?.mapNotNull {
+            if (it == null) {
+                return@mapNotNull null
+            }
+            val linkUrl = fixUrlNull(it.select("a")?.attr("href")) ?: return@mapNotNull null
             val title = it.select("header > h2")?.text() ?: ""
             val image = it.select("div > figure").select("img")?.attr("src")?.trim('\'')
             val year = null
@@ -86,13 +81,11 @@ class JavSubCo : MainAPI() {
                 image,
                 year
             )
-        }.filter { a -> a.url.isNotEmpty() }
-            .distinctBy { b -> b.url }
+        }?.distinctBy { b -> b.url } ?: listOf()
     }
 
     override fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val document = Jsoup.parse(response)
+        val document = app.get(url).document
         //Log.i(this.name, "Url => ${url}")
         val body = document.getElementsByTag("body")
         //Log.i(this.name, "Result => ${body}")
@@ -128,15 +121,27 @@ class JavSubCo : MainAPI() {
         //Log.i(this.name, "Result => (poster) ${poster}")
 
         // Video stream
-        val streamUrl: String =  try {
+        val iframe: String =  try {
             val streamdataStart = body?.toString()?.indexOf("var torotube_Public = {") ?: 0
-            val streamdata = body?.toString()?.substring(streamdataStart) ?: ""
+            var streamdata = body?.toString()?.substring(streamdataStart) ?: ""
             //Log.i(this.name, "Result => (streamdata) ${streamdata}")
-            streamdata.substring(0, streamdata.indexOf("};"))
+            streamdata = streamdata.substring(0, streamdata.indexOf("};"))
+            streamdata = streamdata.substring(streamdata.indexOf("player"))
+            streamdata = streamdata.substring(streamdata.indexOf("["))
+            streamdata.substring(1, streamdata.indexOf("]"))
+                .replace("\\\"", "\"")
+                .replace("\",\"", "")
+                .replace("\\", "")
         } catch (e: Exception) {
             Log.i(this.name, "Result => Exception (load) $e")
             ""
         }
+        val streamUrl = Jsoup.parse(iframe)?.select("iframe")
+            ?.filter { s -> s.hasAttr("src") }
+            ?.mapNotNull {
+                a -> a?.attr("src") ?: return@mapNotNull null
+            }?.toJson() ?: ""
+        //Log.i(this.name, "Result => (streamUrl) $streamUrl")
         return MovieLoadResponse(title, url, this.name, TvType.JAV, streamUrl, poster, year, descript, null, null)
     }
 
@@ -146,51 +151,36 @@ class JavSubCo : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data == "about:blank") return false
         if (data.isEmpty()) return false
+        if (data == "[]") return false
+        if (data == "about:blank") return false
 
-        var streamdata = data.substring(data.indexOf("player"))
-        streamdata = streamdata.substring(streamdata.indexOf("["))
-        streamdata = streamdata.substring(1, streamdata.indexOf("]"))
-            .replace("\\\"", "\"")
-            .replace("\",\"", "")
-            .replace("\\", "")
-        //Log.i(this.name, "Result => (streamdata) ${streamdata}")
-
-        // Get all src from iframes
-        val streambody = Jsoup.parse(streamdata)?.select("iframe")
-            ?.filter { s -> s.hasAttr("src") }
-            ?.mapNotNull { a -> a?.attr("src") ?: return@mapNotNull null }
-        //Log.i(this.name, "Result => (streambody) ${streambody.toString()}")
-        if (!streambody.isNullOrEmpty()) {
-            streambody.forEach { link ->
-                Log.i(this.name, "Result => (link) $link")
-                if (link.isNotEmpty()) {
-                    when {
-                        link.contains("watch-jav") -> {
-                            val extractor = FEmbed()
-                            extractor.domainUrl = "embedsito.com"
-                            extractor.getUrl(link, mainUrl).forEach { it2 ->
-                                callback.invoke(it2)
-                            }
+        mapper.readValue<List<String>>(data).forEach { link->
+            Log.i(this.name, "Result => (link) $link")
+            if (link.isNotEmpty()) {
+                when {
+                    link.contains("watch-jav") -> {
+                        val extractor = FEmbed()
+                        extractor.domainUrl = "embedsito.com"
+                        extractor.getUrl(link, mainUrl).forEach { it2 ->
+                            callback.invoke(it2)
                         }
-                        link.contains("dood.ws") -> {
-                            //Log.i(this.name, "Result => (doodwsUrl) ${link}")
-                            // Probably not gonna work since link is on 'dood.ws' domain
-                            // adding just in case it loads urls ¯\_(ツ)_/¯
-                            val extractor = DoodLaExtractor()
-                            extractor.getUrl(link, mainUrl)?.forEach { it2 ->
-                                callback.invoke(it2)
-                            }
+                    }
+                    link.contains("dood.ws") -> {
+                        //Log.i(this.name, "Result => (doodwsUrl) ${link}")
+                        // Probably not gonna work since link is on 'dood.ws' domain
+                        // adding just in case it loads urls ¯\_(ツ)_/¯
+                        val extractor = DoodLaExtractor()
+                        extractor.getUrl(link, mainUrl)?.forEach { it2 ->
+                            callback.invoke(it2)
                         }
-                        else -> {
-                            loadExtractor(link, mainUrl, callback)
-                        }
+                    }
+                    else -> {
+                        loadExtractor(link, mainUrl, callback)
                     }
                 }
             }
-            return true
         }
-        return false
+        return true
     }
 }
