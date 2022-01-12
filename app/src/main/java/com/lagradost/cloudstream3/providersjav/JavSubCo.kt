@@ -3,9 +3,9 @@ package com.lagradost.cloudstream3.providersjav
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.DoodLaExtractor
 import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.extractors.DoodWsExtractor
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
@@ -22,11 +22,6 @@ class JavSubCo : MainAPI() {
     override fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
 
-        /*
-        return HomePageResponse(document.select("div#content").select("div")?.first()
-            ?.select("main")?.select("section")
-            ?.select("div")
-         */
         return HomePageResponse(document.select("div#content").select("div")?.first()
             ?.select("main > section")
             ?.get(0)?.getElementsByTag("div")?.map { it2 ->
@@ -111,10 +106,15 @@ class JavSubCo : MainAPI() {
         val posterId = "\"contentUrl\":"
         val poster = when (posterElement.isNotEmpty()) {
             true -> {
-                posterElement = posterElement.substring(posterElement.indexOf(url.trimEnd('/') + "/#primaryimage"))
-                posterElement = posterElement.substring(0, posterElement.indexOf("}"))
-                posterElement = posterElement.substring(posterElement.indexOf(posterId) + posterId.length + 1)
-                posterElement.substring(0, posterElement.indexOf("\","))
+                try {
+                    posterElement = posterElement.substring(posterElement.indexOf(url.trimEnd('/') + "/#primaryimage"))
+                    posterElement = posterElement.substring(0, posterElement.indexOf("}"))
+                    posterElement =
+                        posterElement.substring(posterElement.indexOf(posterId) + posterId.length + 1)
+                    posterElement.substring(0, posterElement.indexOf("\","))
+                } catch (e: Exception) {
+                    null
+                }
             }
             false -> null
         }
@@ -170,7 +170,7 @@ class JavSubCo : MainAPI() {
                         //Log.i(this.name, "Result => (doodwsUrl) ${link}")
                         // Probably not gonna work since link is on 'dood.ws' domain
                         // adding just in case it loads urls ¯\_(ツ)_/¯
-                        val extractor = DoodLaExtractor()
+                        val extractor = DoodWsExtractor()
                         extractor.getUrl(link, mainUrl)?.forEach { it2 ->
                             callback.invoke(it2)
                         }
