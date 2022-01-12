@@ -62,7 +62,12 @@ class JavTubeWatch : MainAPI() {
 
         return document?.mapNotNull {
             val innerA = it?.selectFirst("a") ?: return@mapNotNull null
-            val linkUrl = innerA.attr("href") ?: return@mapNotNull null
+            val linkUrl = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
+            if (linkUrl.startsWith("https://javtube.watch/tag/")) {
+                //Log.i(this.name, "Result => (innerA) $innerA")
+                return@mapNotNull null
+            }
+
             val title = innerA.select("header.entry-header")?.text() ?: ""
             val imgLink = innerA.select("img")
             var image = imgLink?.attr("data-src")
@@ -121,7 +126,7 @@ class JavTubeWatch : MainAPI() {
     ): Boolean {
         if (data.isEmpty()) return false
         if (data == "about:blank") return false
-        
+
         return false
     }
 }
