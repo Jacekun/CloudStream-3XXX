@@ -24,10 +24,7 @@ import com.google.android.gms.cast.framework.CastState
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.wrappers.Wrappers
-import com.lagradost.cloudstream3.MainActivity
-import com.lagradost.cloudstream3.R
-import com.lagradost.cloudstream3.SearchResponse
-import com.lagradost.cloudstream3.mapper
+import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.ui.result.ResultFragment
 import com.lagradost.cloudstream3.utils.FillerEpisodeCheck.toClassDir
@@ -358,7 +355,7 @@ object AppUtils {
         return currentAudioFocusRequest
     }
 
-    fun filterProviderByPreferredMedia(apis: ArrayList<MainAPI>, currentPrefMedia: Int, onlyHasMainPage: Boolean): List<MainAPI> {
+    fun filterProviderByPreferredMedia(apis: List<MainAPI>, currentPrefMedia: Int, onlyHasMainPage: Boolean): List<MainAPI> {
         val allApis = when {
             onlyHasMainPage -> apis.filter { api -> api.hasMainPage }
             else -> apis
