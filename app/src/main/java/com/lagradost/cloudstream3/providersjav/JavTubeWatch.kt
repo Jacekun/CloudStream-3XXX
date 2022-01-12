@@ -5,7 +5,6 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
-import org.jsoup.Jsoup
 
 class JavTubeWatch : MainAPI() {
     override val name: String get() = "JavTube"
@@ -22,46 +21,44 @@ class JavTubeWatch : MainAPI() {
         // Fetch row title
         val title = "Latest videos"
         // Fetch list of items and map
-        val inner = document.selectFirst("div.videos-list")?.select("article")
+        val inner = document.selectFirst("div.videos-list")?.select("article") ?: return HomePageResponse(all)
         //Log.i(this.name, "Inner => $inner")
-        if (!inner.isNullOrEmpty()) {
-            val elements: List<SearchResponse> = inner.mapNotNull {
+        val elements: List<SearchResponse> = inner.mapNotNull {
 
-                //Log.i(this.name, "Inner content => $innerArticle")
-                val aa = it.select("a")?.last()
-                val link = fixUrlNull(aa?.attr("href")) ?: return@mapNotNull null
+            //Log.i(this.name, "Inner content => $innerArticle")
+            val aa = it.select("a")?.last() ?: return@mapNotNull null
+            val link = fixUrlNull(aa.attr("href")) ?: return@mapNotNull null
 
-                val imgArticle = aa?.select("img")
-                val name = imgArticle?.attr("alt") ?: ""
-                var image = imgArticle?.attr("data-src")
-                if (image.isNullOrEmpty()) {
-                    image = imgArticle?.attr("src")
-                }
-
-                MovieSearchResponse(
-                    name = name,
-                    url = link,
-                    this.name,
-                    TvType.JAV,
-                    image,
-                    year = null,
-                    id = null,
-                )
+            val imgArticle = aa.select("img")
+            val name = imgArticle?.attr("alt") ?: ""
+            var image = imgArticle?.attr("data-src")
+            if (image.isNullOrEmpty()) {
+                image = imgArticle?.attr("src")
             }
 
-            all.add(
-                HomePageList(
-                    title, elements
-                )
+            MovieSearchResponse(
+                name = name,
+                url = link,
+                this.name,
+                TvType.JAV,
+                image,
+                year = null,
+                id = null,
             )
-        }
-        return HomePageResponse(all)
+        }.distinctBy { a -> a.url }
+
+        all.add(
+            HomePageList(
+                title, elements
+            )
+        )
+
+        return HomePageResponse(all.filter { a -> a.list.isNotEmpty() })
     }
 
     override fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/$query"
-        val document = app.get(url).document
-            .select("article#post")
+        val document = app.get(url).document.select("article#post")
 
         return document?.mapNotNull {
             val innerA = it?.selectFirst("a") ?: return@mapNotNull null
@@ -90,8 +87,7 @@ class JavTubeWatch : MainAPI() {
         //Log.i(this.name, "Result => ${body}")
 
         // Video details
-        val content = document.selectFirst("article#post")
-            ?.select("div.video-player")
+        val content = document.selectFirst("article#post")?.select("div.video-player")
 
         val title = content?.select("[meta itemprop=\"name\"]")?.attr("content") ?: ""
         val descript =content?.select("[meta itemprop=\"description\"]")?.attr("content")
@@ -100,7 +96,7 @@ class JavTubeWatch : MainAPI() {
 
         // Poster Image
         val poster = content?.select("[meta itemprop=\"thumbnailUrl\"]")?.attr("content")
-        Log.i(this.name, "Result => (poster) $poster")
+        //Log.i(this.name, "Result => (poster) $poster")
 
         //TODO: Fetch links
         // Video stream
@@ -123,29 +119,9 @@ class JavTubeWatch : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data == "about:blank") return false
         if (data.isEmpty()) return false
-
-        var streamdata = data.substring(data.indexOf("player"))
-        streamdata = streamdata.substring(streamdata.indexOf("["))
-        streamdata = streamdata.substring(1, streamdata.indexOf("]"))
-            .replace("\\\"", "\"")
-            .replace("\",\"", "")
-            .replace("\\", "")
-        //Log.i(this.name, "Result => (streamdata) ${streamdata}")
-
-        // Get all src from iframes
-        val streambody = Jsoup.parse(streamdata)?.select("iframe")
-            ?.filter { s -> s.hasAttr("src") }
-            ?.map { a -> a?.attr("src") ?: "" }
-        //Log.i(this.name, "Result => (streambody) ${streambody.toString()}")
-        if (!streambody.isNullOrEmpty()) {
-            streambody.forEach { link ->
-                Log.i(this.name, "Result => (link) $link")
-                loadExtractor(link, link, callback)
-            }
-            return true
-        }
+        if (data == "about:blank") return false
+        
         return false
     }
 }

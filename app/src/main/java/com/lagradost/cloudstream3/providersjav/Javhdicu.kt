@@ -22,12 +22,14 @@ class Javhdicu : MainAPI() {
         val all = ArrayList<HomePageList>()
         val mainbody = document.getElementsByTag("body")?.select("div.container")
         //Log.i(this.name, "Result => (mainbody) ${mainbody}")
+
         var count = 0
         val titles = mainbody?.select("div.section-header")?.mapNotNull {
             val text = it?.text() ?: return@mapNotNull null
             count++
             Pair(count, text)
         } ?: return HomePageResponse(all)
+
         //Log.i(this.name, "Result => (titles) ${titles}")
         val entries = mainbody.select("div#video-widget-3016")
         count = 0
@@ -59,7 +61,7 @@ class Javhdicu : MainAPI() {
                     year = year,
                     id = null,
                 )
-            } ?: listOf()
+            }?.distinctBy { a -> a.url } ?: listOf()
             all.add(
                 HomePageList(
                     title, elements
