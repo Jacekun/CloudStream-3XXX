@@ -27,9 +27,9 @@ import com.lagradost.cloudstream3.APIHolder.getApiSettings
 import com.lagradost.cloudstream3.APIHolder.restrictedApis
 import com.lagradost.cloudstream3.AcraApplication
 import com.lagradost.cloudstream3.AcraApplication.Companion.removeKey
+import com.lagradost.cloudstream3.CommonActivity.setLocale
+import com.lagradost.cloudstream3.CommonActivity.showToast
 import com.lagradost.cloudstream3.DubStatus
-import com.lagradost.cloudstream3.MainActivity.Companion.setLocale
-import com.lagradost.cloudstream3.MainActivity.Companion.showToast
 import com.lagradost.cloudstream3.R
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mvvm.logError
@@ -119,7 +119,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         Triple("\uD83C\uDDEE\uD83C\uDDF3", "Malayalam", "ml"),
         Triple("\uD83C\uDDF3\uD83C\uDDF4", "Norsk", "no"),
         Triple("\ud83c\udde9\ud83c\uddea", "German", "de"),
-        Triple("\ud83c\udde6\ud83c\uddf7", "Arabic", "ar"),// originally flag_lb \ud83c\uddf1\ud83c\udde7
+        Triple("\ud83c\uddf1\ud83c\udde7", "Arabic", "ar"),
         Triple("\ud83c\uddf9\ud83c\uddf7", "Turkish", "tr"),
         Triple("\ud83c\uddf2\ud83c\uddf0", "Macedonian", "mk"),
         Triple("\ud83c\udde7\ud83c\uddf7", "Portuguese (Brazil)", "pt"),
@@ -465,7 +465,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
             val currentQuality =
                 settingsManager.getInt(
-                    getString(R.string.watch_quality_pref),
+                    getString(R.string.quality_pref_key),
                     Qualities.values().last().value
                 )
 
@@ -475,7 +475,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 getString(R.string.watch_quality_pref),
                 true,
                 {}) {
-                settingsManager.edit().putInt(getString(R.string.watch_quality_pref), prefValues[it])
+                settingsManager.edit().putInt(getString(R.string.quality_pref_key), prefValues[it])
                     .apply()
             }
             return@setOnPreferenceClickListener true

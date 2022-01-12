@@ -77,6 +77,7 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 ***Sites used:***
 <!-- Do not remove those two comments -->
 <!--SITE LIST START-->
+- [pelisplus.icu](https://pelisplus.icu) 
 - [gogoanime.wiki](https://gogoanime.wiki) 
 - [allanime.site](https://allanime.site) 
 - [animeflick.net](https://animeflick.net) 
@@ -96,5 +97,8 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 - [zoro.to](https://zoro.to) 
 - [pinoymoviepedia.ru](https://pinoymoviepedia.ru) 
 - [pinoy-hd.xyz](https://www.pinoy-hd.xyz) 
+- [trailers.to](https://trailers.to) 
+- [dramasee.net](https://dramasee.net) 
+- [watchasian.sh](https://watchasian.sh) 
 - [asiaflix.app](https://asiaflix.app) 
 <!--SITE LIST END-->
