@@ -111,7 +111,7 @@ class InAppUpdater {
                 val foundVersion = when (assetName.isNotEmpty()) {
                     true -> {
                         Log.i("d", "Result => (assetName) ${assetName}")
-                        var code = assetName?.let { it1 ->
+                        val code = assetName.let { it1 ->
                             versionRegex.find(
                                 it1
                         )?.groupValues?.get(1) }
