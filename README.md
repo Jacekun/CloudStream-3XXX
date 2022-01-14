@@ -13,7 +13,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 [**View release history**](doc/version_log.md)
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/296f58a0b2df75923f9dcdcedcbe89dbc9291f08).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/e00afdfa0d9f5873b12808bd59b5e56823a22271).
 + **'Preferred Media'** setting affects *Search filter* choices.
 + **JAV** sites.
   + Some are watchable. Mostly, search-only.
@@ -32,6 +32,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 |[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[Javcl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|-|
+|[Javgg](https://javgg.net/)|:x:|:x:|:x:|-|
 |[VJav](https://vjav.com)|:x:|:x:|:x:|-|
 |[JavRave Club](https://javrave.club)|:x:|:x:|:x:|-|
 |[Avgle](https://avgle.com)|:x:|:x:|:x:|-|
