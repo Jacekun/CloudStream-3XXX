@@ -145,10 +145,16 @@ class InAppUpdater {
             val tagResponse =
                 mapper.readValue<GithubTag>(app.get(tagUrl, headers = headers).text)
 
-            val shouldUpdate = (getString(R.string.prerelease_commit_hash) != tagResponse.github_object.sha)
+            val shouldUpdate =
+                (getString(R.string.prerelease_commit_hash) != tagResponse.github_object.sha)
 
             return if (foundAsset != null) {
-                Update(shouldUpdate, foundAsset.browser_download_url, tagResponse.github_object.sha, found.body)
+                Update(
+                    shouldUpdate,
+                    foundAsset.browser_download_url,
+                    tagResponse.github_object.sha,
+                    found.body
+                )
             } else {
                 Update(false, null, null, null)
             }
@@ -212,26 +218,33 @@ class InAppUpdater {
         }
 
         fun openApk(context: Context, uri: Uri) {
-            uri.path?.let {
-                val contentUri = FileProvider.getUriForFile(
-                    context,
-                    BuildConfig.APPLICATION_ID + ".provider",
-                    File(it)
-                )
-                val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-                    data = contentUri
+            try {
+                uri.path?.let {
+                    val contentUri = FileProvider.getUriForFile(
+                        context,
+                        BuildConfig.APPLICATION_ID + ".provider",
+                        File(it)
+                    )
+                    val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+                        data = contentUri
+                    }
+                    context.startActivity(installIntent)
                 }
-                context.startActivity(installIntent)
+            } catch (e: Exception) {
+                logError(e)
             }
         }
 
         fun Activity.runAutoUpdate(checkAutoUpdate: Boolean = true): Boolean {
             val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
 
-            if (!checkAutoUpdate || settingsManager.getBoolean(getString(R.string.auto_update_key), true)
+            if (!checkAutoUpdate || settingsManager.getBoolean(
+                    getString(R.string.auto_update_key),
+                    true
+                )
             ) {
                 val update = getAppUpdate()
                 if (update.shouldUpdate && update.updateURL != null) {
@@ -259,7 +272,8 @@ class InAppUpdater {
                                     showToast(context, R.string.download_started, Toast.LENGTH_LONG)
                                     thread {
                                         val downloadStatus =
-                                            normalSafeApiCall { context.downloadUpdate(update.updateURL) } ?: false
+                                            normalSafeApiCall { context.downloadUpdate(update.updateURL) }
+                                                ?: false
                                         if (!downloadStatus) {
                                             runOnUiThread {
                                                 showToast(
@@ -276,7 +290,8 @@ class InAppUpdater {
 
                                 if (checkAutoUpdate) {
                                     setNeutralButton(R.string.dont_show_again) { _, _ ->
-                                        settingsManager.edit().putBoolean("auto_update", false).apply()
+                                        settingsManager.edit().putBoolean("auto_update", false)
+                                            .apply()
                                     }
                                 }
                             }
