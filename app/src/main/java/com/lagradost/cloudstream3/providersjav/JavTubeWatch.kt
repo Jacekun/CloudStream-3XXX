@@ -93,14 +93,14 @@ class JavTubeWatch : MainAPI() {
 
         // Video details
         val content = document.selectFirst("article#post")?.select("div.video-player")
-
-        val title = content?.select("[meta itemprop=\"name\"]")?.attr("content") ?: ""
-        val descript =content?.select("[meta itemprop=\"description\"]")?.attr("content")
-        Log.i(this.name, "Result => (descript) $descript")
+        Log.i(this.name, "Result => (content) $content")
+        val title = content?.select("meta[itemprop=\"name\"]")?.attr("content") ?: ""
+        val descript =content?.select("meta[itemprop=\"description\"]")?.attr("content")
+        //Log.i(this.name, "Result => (descript) $descript")
         val year = null
 
         // Poster Image
-        val poster = content?.select("[meta itemprop=\"thumbnailUrl\"]")?.attr("content")
+        val poster = content?.select("meta[itemprop=\"thumbnailUrl\"]")?.attr("content")
         //Log.i(this.name, "Result => (poster) $poster")
 
         //TODO: Fetch links
