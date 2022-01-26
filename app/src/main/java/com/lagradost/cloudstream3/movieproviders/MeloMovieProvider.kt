@@ -3,6 +3,8 @@ package com.lagradost.cloudstream3.movieproviders
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.utils.AppUtils.parseJson
+import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import org.jsoup.Jsoup
@@ -26,11 +28,11 @@ class MeloMovieProvider : MainAPI() {
 
     data class MeloMovieLink(val name: String, val link: String)
 
-    override fun quickSearch(query: String): List<SearchResponse> {
+    override suspend fun quickSearch(query: String): List<SearchResponse> {
         return search(query)
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/movie/search/?name=$query"
         val returnValue: ArrayList<SearchResponse> = ArrayList()
         val response = app.get(url).text
@@ -93,23 +95,23 @@ class MeloMovieProvider : MainAPI() {
                 MeloMovieLink("", "")
             }
         }.filter { it.link != "" && it.name != "" }
-        return mapper.writeValueAsString(parsed)
+        return parsed.toJson()
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val links = mapper.readValue<List<MeloMovieLink>>(data)
+        val links = parseJson<List<MeloMovieLink>>(data)
         for (link in links) {
             callback.invoke(ExtractorLink(this.name, link.name, link.link, "", getQualityFromName(link.name), false))
         }
         return true
     }
 
-    override fun load(url: String): LoadResponse? {
+    override suspend fun load(url: String): LoadResponse? {
         val response = app.get(url).text
 
         //backdrop = imgurl

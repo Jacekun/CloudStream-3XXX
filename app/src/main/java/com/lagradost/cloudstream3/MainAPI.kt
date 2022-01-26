@@ -30,22 +30,29 @@ object APIHolder {
 
     val apis = arrayListOf(
         PelisplusProvider(),
+        PelisplusHDProvider(),
+        PeliSmartProvider(),
         GogoanimeProvider(),
         AllAnimeProvider(),
         CrunchyrollProvider(),
         //ShiroProvider(), // v2 fucked me
         //AnimePaheProvider(), //ddos guard
         AnimeFlickProvider(),
+        AnimeflvnetProvider(),
 
         TenshiProvider(),
         WcoProvider(),
         // MeloMovieProvider(), // Captcha for links
         DubbedAnimeProvider(),
+        DoramasYTProvider(),
+        CinecalidadProvider(),
         IHaveNoTvProvider(), // Documentaries provider
         //LookMovieProvider(), // RECAPTCHA (Please allow up to 5 seconds...)
         VMoveeProvider(),
         WatchCartoonOnlineProvider(),
         AllMoviesForYouProvider(),
+
+        MonoschinosProvider(),
 
         VidEmbedProvider(),
         VfFilmProvider(),
@@ -69,6 +76,7 @@ object APIHolder {
         DramaSeeProvider(),
         WatchAsianProvider(),
         KdramaHoodProvider(),
+        AkwamProvider(),
 
         // All of JAV sources
         Javhdicu(),
@@ -245,24 +253,24 @@ abstract class MainAPI {
     open val vpnStatus = VPNStatus.None
     open val providerType = ProviderType.DirectProvider
 
-    open fun getMainPage(): HomePageResponse? {
+    suspend open fun getMainPage(): HomePageResponse? {
         throw NotImplementedError()
     }
 
-    open fun search(query: String): List<SearchResponse>? {
+    suspend open fun search(query: String): List<SearchResponse>? {
         throw NotImplementedError()
     }
 
-    open fun quickSearch(query: String): List<SearchResponse>? {
+    suspend open fun quickSearch(query: String): List<SearchResponse>? {
         throw NotImplementedError()
     }
 
-    open fun load(url: String): LoadResponse? {
+    suspend open fun load(url: String): LoadResponse? {
         throw NotImplementedError()
     }
 
     /**Callback is fired once a link is found, will return true if method is executed successfully*/
-    open fun loadLinks(
+    suspend open fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,

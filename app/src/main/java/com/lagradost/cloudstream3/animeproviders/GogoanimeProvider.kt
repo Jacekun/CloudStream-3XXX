@@ -37,7 +37,7 @@ class GogoanimeProvider : MainAPI() {
         TvType.ONA
     )
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val headers = mapOf(
             "authority" to "ajax.gogo-load.com",
             "sec-ch-ua" to "\"Google Chrome\";v=\"89\", \"Chromium\";v=\"89\", \";Not A Brand\";v=\"99\"",
@@ -95,7 +95,7 @@ class GogoanimeProvider : MainAPI() {
         return HomePageResponse(items)
     }
 
-    override fun search(query: String): ArrayList<SearchResponse> {
+    override suspend fun search(query: String): ArrayList<SearchResponse> {
         val link = "$mainUrl/search.html?keyword=$query"
         val html = app.get(link).text
         val doc = Jsoup.parse(html)
@@ -129,7 +129,7 @@ class GogoanimeProvider : MainAPI() {
         return uri
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val link = getProperAnimeLink(url)
         val episodeloadApi = "https://ajax.gogo-load.com/ajax/load-list-episode"
         val html = app.get(link).text
@@ -172,9 +172,8 @@ class GogoanimeProvider : MainAPI() {
 
         val animeId = doc.selectFirst("#movie_id").attr("value")
         val params = mapOf("ep_start" to "0", "ep_end" to "2000", "id" to animeId)
-        val responseHTML = app.get(episodeloadApi, params = params).text
-        val epiDoc = Jsoup.parse(responseHTML)
-        val episodes = epiDoc.select("a").map {
+
+        val episodes = app.get(episodeloadApi, params = params).document.select("a").map {
             AnimeEpisode(
                 fixUrl(it.attr("href").trim()),
                 "Episode " + it.selectFirst(".name").text().replace("EP", "").trim()
@@ -233,7 +232,7 @@ class GogoanimeProvider : MainAPI() {
             }
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,

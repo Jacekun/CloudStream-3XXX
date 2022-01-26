@@ -19,6 +19,7 @@ import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastState
 import com.google.android.gms.common.ConnectionResult
@@ -87,6 +88,18 @@ object AppUtils {
     /** Any object as json string */
     fun Any.toJson(): String {
         return mapper.writeValueAsString(this)
+    }
+
+    inline fun <reified T> parseJson(value : String): T {
+        return mapper.readValue(value)
+    }
+
+    inline fun <reified T> tryParseJson(value : String): T? {
+        return try {
+            parseJson(value)
+        } catch (_ : Exception) {
+            null
+        }
     }
 
     /**| S1:E2 Hello World

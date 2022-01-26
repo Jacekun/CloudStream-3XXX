@@ -1,9 +1,9 @@
 package com.lagradost.cloudstream3.movieproviders
 
-import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.*
+import com.lagradost.cloudstream3.extractors.helper.AsianEmbedHelper
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
@@ -17,7 +17,7 @@ class DramaSeeProvider : MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie)
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val headers = mapOf("X-Requested-By" to "dramasee.net")
         val document = app.get(mainUrl, headers = headers).document
         val mainbody = document.getElementsByTag("body")
@@ -51,7 +51,7 @@ class DramaSeeProvider : MainAPI() {
         )
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search?q=$query"
         val html = app.get(url).document
         val document = html.getElementsByTag("body")
@@ -79,7 +79,7 @@ class DramaSeeProvider : MainAPI() {
         }
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
         val body = doc.getElementsByTag("body")
         val inner = body?.select("div.series-info")
@@ -140,7 +140,7 @@ class DramaSeeProvider : MainAPI() {
             url,
             this.name,
             TvType.TvSeries,
-            episodeList,
+            episodeList.reversed(),
             poster,
             year,
             descript,
@@ -150,55 +150,38 @@ class DramaSeeProvider : MainAPI() {
         )
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data.isEmpty()) return false
-        if (data == "[]") return false
-        if (data == "about:blank") return false
-
+        var count = 0
         mapper.readValue<List<String>>(data).forEach { item ->
             if (item.isNotEmpty()) {
+                count++
                 var url = item.trim()
                 if (url.startsWith("//")) {
                     url = "https:$url"
                 }
                 //Log.i(this.name, "Result => (url) ${url}")
-                if (url.startsWith("https://asianembed.io")) {
-                    // Fetch links
-                    val doc = app.get(url).document
-                    val links = doc.select("div#list-server-more > ul > li.linkserver")
-                    if (!links.isNullOrEmpty()) {
-                        links.forEach {
-                            val datavid = it.attr("data-video") ?: ""
-                            //Log.i(this.name, "Result => (datavid) ${datavid}")
-                            if (datavid.isNotEmpty()) {
-                                if (datavid.startsWith("https://fembed-hd.com")) {
-                                    val extractor = XStreamCdn()
-                                    extractor.domainUrl = "fembed-hd.com"
-                                    extractor.getUrl(datavid, url).forEach { link ->
-                                        callback.invoke(link)
-                                    }
-                                } else {
-                                    loadExtractor(datavid, url, callback)
-                                }
-                            }
+                when {
+                    url.startsWith("https://asianembed.io") -> {
+                        AsianEmbedHelper.getUrls(url, callback)
+                    }
+                    url.startsWith("https://embedsito.com") -> {
+                        val extractor = XStreamCdn()
+                        extractor.domainUrl = "embedsito.com"
+                        extractor.getUrl(url).forEach { link ->
+                            callback.invoke(link)
                         }
                     }
-                } else if (url.startsWith("https://embedsito.com")) {
-                    val extractor = XStreamCdn()
-                    extractor.domainUrl = "embedsito.com"
-                    extractor.getUrl(url).forEach { link ->
-                        callback.invoke(link)
+                    else -> {
+                        loadExtractor(url, mainUrl, callback)
                     }
-                } else {
-                    loadExtractor(url, mainUrl, callback)
-                } // end if
+                }
             }
         }
-        return true
+        return count > 0
     }
 }

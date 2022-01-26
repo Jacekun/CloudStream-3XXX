@@ -46,14 +46,15 @@ class RepoLinkGenerator(private val episodes: List<ResultEpisode>, private var c
     var linkCache = Array<Set<ExtractorLink>>(size = episodes.size, init = { setOf() })
     var subsCache = Array<Set<SubtitleData>>(size = episodes.size, init = { setOf() })
 
-    override fun generateLinks(
+    override suspend fun generateLinks(
         clearCache: Boolean,
         isCasting: Boolean,
         callback: (Pair<ExtractorLink?, ExtractorUri?>) -> Unit,
-        subtitleCallback: (SubtitleData) -> Unit
+        subtitleCallback: (SubtitleData) -> Unit,
+        offset : Int,
     ): Boolean {
         val index = currentIndex
-        val current = episodes[index]
+        val current = episodes[index + offset]
 
         val currentLinkCache = if (clearCache) mutableSetOf() else linkCache[index].toMutableSet()
         val currentSubsCache = if (clearCache) mutableSetOf() else subsCache[index].toMutableSet()

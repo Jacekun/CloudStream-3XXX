@@ -1,12 +1,10 @@
 package com.lagradost.cloudstream3.movieproviders
 
-import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
-import java.lang.Exception
 
 class PinoyHDXyzProvider : MainAPI() {
     override val name = "Pinoy-HD"
@@ -18,7 +16,7 @@ class PinoyHDXyzProvider : MainAPI() {
     override val hasQuickSearch = false
 
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val all = ArrayList<HomePageList>()
         val document = app.get(mainUrl, referer = mainUrl).document
         val mainbody = document.getElementsByTag("body")
@@ -67,7 +65,7 @@ class PinoyHDXyzProvider : MainAPI() {
         return HomePageResponse(all)
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/?q=${query.replace(" ", "+")}"
         val document = app.get(url).document.select("div.portfolio-thumb")
         return document?.mapNotNull {
@@ -90,7 +88,7 @@ class PinoyHDXyzProvider : MainAPI() {
         }?.distinctBy { c -> c.url } ?: listOf()
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
         val body = doc.getElementsByTag("body")
         val inner = body?.select("div.info")
@@ -205,16 +203,12 @@ class PinoyHDXyzProvider : MainAPI() {
         return MovieLoadResponse(title, url, this.name, tvtype, streamLinks, poster, year, descript, null, null)
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data.isEmpty()) return false
-        if (data == "about:blank") return false
-        if (data == "[]") return false
-
         mapper.readValue<List<String>>(data).forEach { item ->
             if (item.isNotEmpty()) {
                 val url = item.trim()

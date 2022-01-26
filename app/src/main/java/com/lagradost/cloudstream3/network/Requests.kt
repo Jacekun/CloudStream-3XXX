@@ -14,7 +14,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
 import java.net.URI
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -157,13 +156,13 @@ fun getHeaders(
 
 fun postRequestCreator(
     url: String,
-    headers: Map<String, String>,
-    referer: String?,
-    params: Map<String, String>,
-    cookies: Map<String, String>,
-    data: Map<String, String>,
-    cacheTime: Int,
-    cacheUnit: TimeUnit
+    headers: Map<String, String> = emptyMap(),
+    referer: String? = null,
+    params: Map<String, String> = emptyMap(),
+    cookies: Map<String, String> = emptyMap(),
+    data: Map<String, String> = emptyMap(),
+    cacheTime: Int = DEFAULT_TIME,
+    cacheUnit: TimeUnit = DEFAULT_TIME_UNIT
 ): Request {
     return Request.Builder()
         .url(addParamsToUrl(url, params))
@@ -175,12 +174,12 @@ fun postRequestCreator(
 
 fun getRequestCreator(
     url: String,
-    headers: Map<String, String>,
-    referer: String?,
-    params: Map<String, String>,
-    cookies: Map<String, String>,
-    cacheTime: Int,
-    cacheUnit: TimeUnit
+    headers: Map<String, String> = emptyMap(),
+    referer: String? = null,
+    params: Map<String, String> = emptyMap(),
+    cookies: Map<String, String> = emptyMap(),
+    cacheTime: Int = DEFAULT_TIME,
+    cacheUnit: TimeUnit = DEFAULT_TIME_UNIT
 ): Request {
     return Request.Builder()
         .url(addParamsToUrl(url, params))
@@ -214,6 +213,8 @@ open class Requests {
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(context)
         val dns = settingsManager.getInt(context.getString(R.string.dns_pref), 0)
         baseClient = OkHttpClient.Builder()
+            .followRedirects(true)
+            .followSslRedirects(true)
             .cache(
                 // Note that you need to add a ResponseInterceptor to make this 100% active.
                 // The server response dictates if and when stuff should be cached.
@@ -236,10 +237,10 @@ open class Requests {
 
     fun get(
         url: String,
-        headers: Map<String, String> = mapOf(),
+        headers: Map<String, String> = emptyMap(),
         referer: String? = null,
-        params: Map<String, String> = mapOf(),
-        cookies: Map<String, String> = mapOf(),
+        params: Map<String, String> = emptyMap(),
+        cookies: Map<String, String> = emptyMap(),
         allowRedirects: Boolean = true,
         cacheTime: Int = DEFAULT_TIME,
         cacheUnit: TimeUnit = DEFAULT_TIME_UNIT,
@@ -257,6 +258,10 @@ open class Requests {
             getRequestCreator(url, headers, referer, params, cookies, cacheTime, cacheUnit)
         val response = client.build().newCall(request).execute()
         return AppResponse(response)
+    }
+
+    fun executeRequest(request : Request): AppResponse {
+        return AppResponse(baseClient.newCall(request).execute())
     }
 
     fun post(

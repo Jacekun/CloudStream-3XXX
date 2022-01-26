@@ -1,9 +1,9 @@
 package com.lagradost.cloudstream3.movieproviders
 
-import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.*
+import com.lagradost.cloudstream3.extractors.helper.AsianEmbedHelper
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
@@ -17,7 +17,7 @@ class WatchAsianProvider : MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie)
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val headers = mapOf("X-Requested-By" to mainUrl)
         val doc = app.get(mainUrl, headers = headers).document
         val rowPair = mutableListOf<Pair<String, String>>()
@@ -65,7 +65,7 @@ class WatchAsianProvider : MainAPI() {
         )
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search?type=movies&keyword=$query"
         val document = app.get(url).document.getElementsByTag("body")
                 .select("div.block.tab-container > div > ul > li") ?: return listOf()
@@ -90,7 +90,7 @@ class WatchAsianProvider : MainAPI() {
         }.distinctBy { a -> a.url }
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val body = app.get(url).document
         // Declare vars
         val isDramaDetail = url.contains("/drama-detail/")
@@ -154,7 +154,7 @@ class WatchAsianProvider : MainAPI() {
             url,
             this.name,
             TvType.TvSeries,
-            episodeList,
+            episodeList.reversed(),
             poster,
             year,
             descript,
@@ -164,28 +164,31 @@ class WatchAsianProvider : MainAPI() {
         )
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data == "about:blank") return false
-        if (data == "[]") return false
-        if (data.isEmpty()) return false
         val links = if (data.startsWith(mainUrl)) {
             getServerLinks(data)
         } else { data }
-        mapper.readValue<List<String>>(links)
-            .forEach { item ->
-                var url = item.trim()
-                if (url.startsWith("//")) {
-                    url = "https:$url"
-                }
-                //Log.i(this.name, "Result => (url) $url")
+        var count = 0
+        mapper.readValue<List<String>>(links).forEach { item ->
+            count++
+            var url = item.trim()
+            if (url.startsWith("//")) {
+                url = "https:$url"
+            }
+            //Log.i(this.name, "Result => (url) $url")
+            if (url.startsWith("https://asianembed.io")) {
+                // Fetch links
+                AsianEmbedHelper.getUrls(url, callback)
+            } else {
                 loadExtractor(url, mainUrl, callback)
             }
-        return true
+        }
+        return count > 0
     }
 
     private fun getServerLinks(url: String) : String {
