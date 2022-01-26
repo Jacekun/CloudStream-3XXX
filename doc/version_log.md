@@ -1,3 +1,10 @@
+# CloudStream-3XXX r881
++ CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/tree/e0925cfded9aa57c2b276c5e159f1e00cb49cb8a).
++ Fix: Issues after merging base.
++ Include torrent on movies and tvseries filter.
++ Javtubewatch: fix loading of image and info.
++ Opjavcom: Now able to watch from app.
+
 # CloudStream-3XXX r846
 + CloudStream-3 base update, [head commit](https://github.com/LagradOst/CloudStream-3/commit/e00afdfa0d9f5873b12808bd59b5e56823a22271).
 + Fix: Issues after merging base.
