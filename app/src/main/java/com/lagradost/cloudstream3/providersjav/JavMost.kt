@@ -13,7 +13,7 @@ class JavMost : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
@@ -63,7 +63,7 @@ class JavMost : MainAPI() {
         return HomePageResponse(all)
     }
 
-    override fun search(query: String): List<SearchResponse>? {
+    override suspend fun search(query: String): List<SearchResponse>? {
         val html = app.get("$mainUrl/search/${query}/").text
         val document = Jsoup.parse(html)
         val mainbody = document.getElementsByTag("body")
@@ -122,7 +122,7 @@ class JavMost : MainAPI() {
         return null
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val response = app.get(url).text
         val document = Jsoup.parse(response)
         //Log.i(this.name, "Url => ${url}")

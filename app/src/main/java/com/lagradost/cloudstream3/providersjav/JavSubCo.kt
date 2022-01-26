@@ -19,7 +19,7 @@ class JavSubCo : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
 
         return HomePageResponse(document.select("div#content").select("div")?.first()
@@ -53,7 +53,7 @@ class JavSubCo : MainAPI() {
             }?.filterNotNull()?.filter { a -> a.list.isNotEmpty() } ?: listOf())
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
         val document = app.get(url).document.getElementsByTag("body")
             .select("div#content > div > main > section > div")
@@ -79,7 +79,7 @@ class JavSubCo : MainAPI() {
         }?.distinctBy { b -> b.url } ?: listOf()
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val document = app.get(url).document
         //Log.i(this.name, "Url => ${url}")
         val body = document.getElementsByTag("body")
@@ -145,7 +145,7 @@ class JavSubCo : MainAPI() {
         return MovieLoadResponse(title, url, this.name, TvType.JAV, streamUrl, poster, year, descript, null, null)
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,

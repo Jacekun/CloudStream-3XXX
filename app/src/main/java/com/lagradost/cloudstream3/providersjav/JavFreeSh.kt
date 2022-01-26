@@ -28,7 +28,7 @@ class JavFreeSh : MainAPI() {
         @JsonProperty("active") val active: Int?
     )
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
@@ -76,7 +76,7 @@ class JavFreeSh : MainAPI() {
         return HomePageResponse(all)
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/movie/${query}"
         val html = app.get(url).text
         val document = Jsoup.parse(html).select("div.videos-list").select("article[id^=post]")
@@ -100,7 +100,7 @@ class JavFreeSh : MainAPI() {
         }
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val response = app.get(url).text
         val doc = Jsoup.parse(response)
         //Log.i(this.name, "Result => (url) ${url}")
@@ -128,7 +128,7 @@ class JavFreeSh : MainAPI() {
         return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,

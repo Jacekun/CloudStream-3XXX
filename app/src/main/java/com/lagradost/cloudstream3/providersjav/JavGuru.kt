@@ -13,7 +13,7 @@ class JavGuru : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
@@ -62,7 +62,7 @@ class JavGuru : MainAPI() {
         return HomePageResponse(all)
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
         val html = app.get(url).text
         val document = Jsoup.parse(html).select("main.site-main").select("div.row")
@@ -89,7 +89,7 @@ class JavGuru : MainAPI() {
         }
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val response = app.get(url).text
         val document = Jsoup.parse(response)
 

@@ -17,7 +17,7 @@ class Javhdicu : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
         val all = ArrayList<HomePageList>()
         val mainbody = document.getElementsByTag("body")?.select("div.container")
@@ -71,7 +71,7 @@ class Javhdicu : MainAPI() {
         return HomePageResponse(all.filter { hp -> hp.list.isNotEmpty() })
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=$query"
         val document = app.get(url).document.getElementsByTag("body")
             ?.select("div.container > div.row")
@@ -111,7 +111,7 @@ class Javhdicu : MainAPI() {
         return listOf()
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val document = app.get(url).document
         val body = document.getElementsByTag("body")
             ?.select("div.container > div.row")
@@ -147,7 +147,7 @@ class Javhdicu : MainAPI() {
         return MovieLoadResponse(title, url, this.name, TvType.JAV, videoLinks, poster, year, descript, null, null)
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,

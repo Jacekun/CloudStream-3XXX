@@ -35,7 +35,7 @@ class Vlxx : MainAPI() {
         return resp
     }
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val document = getPage(mainUrl, mainUrl).document
         val all = ArrayList<HomePageList>()
         val title = "Homepage"
@@ -66,7 +66,7 @@ class Vlxx : MainAPI() {
         return HomePageResponse(all)
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val document = getPage("$mainUrl/search/${query}/", mainUrl).document
         val list = document.select("#container .box .video-list")
 
@@ -89,7 +89,7 @@ class Vlxx : MainAPI() {
             .distinctBy { c -> c.url }
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
@@ -152,7 +152,7 @@ class Vlxx : MainAPI() {
 
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val document = getPage(url, url).document
         val title = document?.selectFirst(".breadcrumb")?.text() ?: "<No Title>"
         val descript = document?.select(".video-content .content")?.text()

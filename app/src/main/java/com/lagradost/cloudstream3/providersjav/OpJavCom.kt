@@ -20,7 +20,7 @@ class OpJavCom : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
@@ -67,7 +67,7 @@ class OpJavCom : MainAPI() {
         return HomePageResponse(all)
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/${query}/"
         val html = app.get(url).text
         val document = Jsoup.parse(html).select("div.block-body > div.list-film.row")
@@ -97,7 +97,7 @@ class OpJavCom : MainAPI() {
         }
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[itemprop=image]")?.get(1)?.attr("content")
@@ -163,7 +163,7 @@ class OpJavCom : MainAPI() {
         return MovieLoadResponse(title, url, this.name, TvType.JAV, watchlink.distinct().toJson(), poster, year, descript, null, null)
     }
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,

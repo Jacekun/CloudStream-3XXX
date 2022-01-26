@@ -14,7 +14,7 @@ class JavTubeWatch : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
         val all = ArrayList<HomePageList>()
 
@@ -56,7 +56,7 @@ class JavTubeWatch : MainAPI() {
         return HomePageResponse(all.filter { a -> a.list.isNotEmpty() })
     }
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/$query"
         val document = app.get(url).document.select("article#post")
 
@@ -87,7 +87,7 @@ class JavTubeWatch : MainAPI() {
         } ?: listOf()
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val document = app.get(url).document
         //Log.i(this.name, "Result => ${body}")
 
@@ -118,7 +118,7 @@ class JavTubeWatch : MainAPI() {
     }
 
     //TODO: LoadLinks
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,

@@ -13,10 +13,9 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 [**View release history**](doc/version_log.md)
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/e00afdfa0d9f5873b12808bd59b5e56823a22271).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/e0925cfded9aa57c2b276c5e159f1e00cb49cb8a).
 + **'Preferred Media'** setting affects *Search filter* choices.
-+ **JAV** sites.
-  + Some are watchable. Mostly, search-only.
++ **JAV** sites. *See below table*.
 + **Crunchyroll** site. *Thanks to* [@ArjixWasTaken](https://github.com/ArjixWasTaken)
 
 ## JAV Sites

@@ -13,7 +13,7 @@ class Javclcom : MainAPI() {
     override val hasMainPage: Boolean get() = false
     override val hasQuickSearch: Boolean get() = false
 
-    override fun search(query: String): List<SearchResponse> {
+    override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/${query}/"
         val html = app.get(url).text
         val document = Jsoup.parse(html).getElementsByTag("body")
@@ -40,7 +40,7 @@ class Javclcom : MainAPI() {
         }
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val response = app.get(url).text
         val doc = Jsoup.parse(response)
         //Log.i(this.name, "Url => ${url}")
