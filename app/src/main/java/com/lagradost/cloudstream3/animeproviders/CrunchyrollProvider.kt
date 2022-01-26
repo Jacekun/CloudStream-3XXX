@@ -74,7 +74,7 @@ class CrunchyrollProvider : MainAPI() {
             TvType.ONA
         )
 
-    override fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(): HomePageResponse {
         val urls = listOf(
             Pair("$mainUrl/videos/anime/popular/ajax_page?pg=1", "Popular 1"),
             Pair("$mainUrl/videos/anime/popular/ajax_page?pg=2", "Popular 2"),
@@ -153,7 +153,7 @@ class CrunchyrollProvider : MainAPI() {
     )
 
 
-    override fun search(query: String): ArrayList<SearchResponse> {
+    override suspend fun search(query: String): ArrayList<SearchResponse> {
         val json = crUnblock.geoBypassRequest("http://www.crunchyroll.com/ajax/?req=RpcApiSearch_GetSearchCandidates").text.split("*/")[0].replace("\\/", "/")
         val data = mapper.readValue<CrunchyJson>(json.split("\n").mapNotNull { if (!it.startsWith("/")) it else null }.joinToString("\n")).data
 
@@ -187,7 +187,7 @@ class CrunchyrollProvider : MainAPI() {
         return searchResutls
     }
 
-    override fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse {
         val soup = Jsoup.parse(crUnblock.geoBypassRequest(url).text)
         val title = soup.selectFirst("#showview-content-header .ellipsis")?.text()?.trim()
         val poster = soup.selectFirst(".poster")?.attr("src")
@@ -270,7 +270,7 @@ class CrunchyrollProvider : MainAPI() {
         @JsonProperty("subtitles") val subtitles : List<Subtitles>,
     )
 
-    override fun loadLinks(
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
