@@ -73,12 +73,12 @@ object APIHolder {
         // All of JAV sources
         Javhdicu(),
         JavSubCo(),
+        OpJavCom(),
         Vlxx(),
 
         JavTubeWatch(),
         JavFreeSh(),
         JavGuru(),
-        OpJavCom(),
         HpJavTv(),
         JavMost(),
         Javclcom()

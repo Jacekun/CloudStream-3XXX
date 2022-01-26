@@ -1,13 +1,16 @@
 package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.extractors.XStreamCdn
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.HttpSession
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
-import java.net.URLEncoder
+import java.lang.Exception
 
 class OpJavCom : MainAPI() {
     override val name: String get() = "OpJAV.com"
@@ -95,37 +98,69 @@ class OpJavCom : MainAPI() {
     }
 
     override fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val doc = Jsoup.parse(response)
+        val doc = app.get(url).document
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[itemprop=image]")?.get(1)?.attr("content")
         val title = doc.selectFirst("meta[property=og:title]")?.attr("content").toString()
         val descript = doc.selectFirst("meta[name=keywords]")?.attr("content")
         val year = doc.selectFirst("meta[itemprop=dateCreated]")?.attr("content")?.toIntOrNull()
 
-        var watchlink = ""
-        var mainLink = doc?.select("div.buttons.row > div > div > a")
+        //Fetch server links
+        val watchlink = ArrayList<String>()
+        val mainLink = doc.select("div.buttons.row > div > div > a")
             ?.attr("href") ?: ""
-        Log.i(this.name, "Result => (mainLink) $mainLink")
-        //TODO: Move to loadlinks
+        //Log.i(this.name, "Result => (mainLink) $mainLink")
+
+        //Fetch episode links from mainlink
         val epsDoc = app.get(url = mainLink, referer = mainUrl).document
-        val epsLink = epsDoc?.select("div.block.servers")
-            ?.select("li")?.mapNotNull {
-                it?.selectFirst("a")?.attr("href") ?: return@mapNotNull null
+        //Fetch filmId
+        /*var filmId = ""
+        val epLinkDoc = epsDoc.getElementsByTag("head").select("script").toString()
+        //Log.i(this.name, "Result => (epLinkDoc) $epLinkDoc")
+        try {
+            val epTextTemp = epLinkDoc.substring(epLinkDoc.indexOf("filmID = parseInt"))
+            val epText = epTextTemp.substring(1, epTextTemp.indexOf("</script>")).trim()
+                .filterNot { a -> a.isWhitespace() }
+            if (epText.isNotEmpty()) {
+                filmId = try {
+                    "(?<=filmID=parseInt\\(')(.*)(?='\\);)".toRegex().find(epText)?.groupValues?.get(0) ?: ""
+                } catch (e: Exception) { "" }
+                Log.i(this.name, "Result => (filmId) $filmId")
             }
-        epsLink?.forEach {
+        } catch (e: Exception) { }*/
+        //Fetch server links
+        epsDoc.select("div.block.servers")?.select("li")?.mapNotNull {
+            val inner = it?.selectFirst("a") ?: return@mapNotNull null
+            val linkUrl = inner.attr("href") ?: return@mapNotNull null
+            val linkId = inner.attr("id") ?: return@mapNotNull null
+            Pair(linkUrl, linkId)
+        }?.forEach {
+            //First = Url, Second = EpisodeID
+            //Log.i(this.name, "Result => (eplink-Id) $it")
             val ajaxHead = mapOf(
                 Pair("Origin", mainUrl),
-                Pair("Referer", it)
+                Pair("Referer", it.first)
+            )
+            //https://opjav.com/movie/War%20of%20the%20Roses-64395/watch-movie.html
+            //EpisodeID, 442671
+            //filmID, 64395
+            val ajaxData = mapOf(
+                Pair("NextEpisode", "1"),
+                Pair("EpisodeID", it.second)
+                //Pair("filmID", filmId)
             )
             val sess = HttpSession()
-            val respAjax = sess.post("$mainUrl/ajax", headers = ajaxHead)
-            Log.i(this.name, "Result => (respAjax) ${it}")
-            Log.i(this.name, "Result => (respAjax) ${respAjax.statusCode}")
-            Log.i(this.name, "Result => (respAjax) ${respAjax.text}")
-
+            val respAjax = sess.post("$mainUrl/ajax", headers = ajaxHead, data = ajaxData).text
+            //Log.i(this.name, "Result => (respAjax text) $respAjax")
+            Jsoup.parse(respAjax).select("iframe")?.forEach { iframe ->
+                val serverLink = iframe?.attr("src")?.trim()
+                if (!serverLink.isNullOrEmpty()) {
+                    watchlink.add(serverLink)
+                    //Log.i(this.name, "Result => (serverLink) $serverLink")
+                }
+            }
         }
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, watchlink, poster, year, descript, null, null)
+        return MovieLoadResponse(title, url, this.name, TvType.JAV, watchlink.distinct().toJson(), poster, year, descript, null, null)
     }
 
     override fun loadLinks(
@@ -136,7 +171,24 @@ class OpJavCom : MainAPI() {
     ): Boolean {
         if (data == "about:blank") return false
         if (data.isEmpty()) return false
-        //TODO: Load links
+
+        mapper.readValue<List<String>>(data).forEach { link ->
+            val url = fixUrl(link.trim())
+            //Log.i(this.name, "Result => (url) $url")
+            when {
+                url.startsWith("https://opmovie.xyz") -> {
+                    val ext = XStreamCdn()
+                    ext.domainUrl = "opmovie.xyz"
+                    ext.getUrl(url, url).forEach {
+                        //Log.i(this.name, "Result => (xtream) ${it.url}")
+                        callback.invoke(it)
+                    }
+                }
+                else -> {
+                    loadExtractor(url, url, callback)
+                }
+            }
+        }
         return false
     }
 }

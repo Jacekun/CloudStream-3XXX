@@ -24,10 +24,10 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 |------|--------------------|--------|--------|---------|
 |[JAV Sub](https://javsub.co) |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:| Have issues with ``dood`` server. |
 |[JAV HD](https://javhd.icu) |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|All scene parts are loaded as ``'Sources'``.|
+|[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some links not loaded.|
 |[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Vietnamese subbed. CloudFare issues on some areas.|
 |[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[JavFree sh](https://javfree.sh/)|:heavy_check_mark:|:heavy_check_mark:|:x:|Can extract StreamSB links.|
-|[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
 |[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
