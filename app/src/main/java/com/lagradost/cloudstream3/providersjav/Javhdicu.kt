@@ -3,11 +3,13 @@ package com.lagradost.cloudstream3.providersjav
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.extractors.FEmbed
+import com.lagradost.cloudstream3.extractors.WatchSB
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
+import org.jsoup.nodes.Element
 
 class Javhdicu : MainAPI() {
     override val name: String get() = "JAVHD.icu"
@@ -134,16 +136,42 @@ class Javhdicu : MainAPI() {
         //Log.i(this.name, "Result => (yearString) ${yearString}")
         val year = yearString?.takeLast(4)?.toIntOrNull()
 
-        // Video link
-        val videoLinks = body?.select("ul.pagination.post-tape > li")?.mapNotNull { section ->
-            val vidlink = section?.select("a")?.attr("href")
-            if (vidlink.isNullOrEmpty()) {
-                return@mapNotNull null
+        // Video links, find if it contains multiple scene links
+        val tapes = body?.select("ul.pagination.post-tape > li")
+        if (!tapes.isNullOrEmpty()) {
+            val sceneList = tapes.mapNotNull { section ->
+                val innerA = section?.select("a") ?: return@mapNotNull null
+                val vidlink = innerA.attr("href")
+                Log.i(this.name, "Result => (vidlink) $vidlink")
+                if (vidlink.isNullOrEmpty()) { return@mapNotNull null }
+
+                val sceneCount = innerA.text().toIntOrNull()
+                val doc = app.get(vidlink).document.getElementsByTag("body")
+                val streamEpLink = doc.get(0)?.getValidLinks()?.removeInvalidLinks() ?: ""
+                TvSeriesEpisode(
+                    name = "Scene $sceneCount",
+                    season = null,
+                    episode = sceneCount,
+                    data = streamEpLink,
+                    posterUrl = poster,
+                    date = null
+                )
             }
-            val doc = app.get(vidlink).document
-            doc.select("div.player.player-small.embed-responsive.embed-responsive-16by9")
-                    ?.select("iframe")?.attr("src") ?: return@mapNotNull null
-        }?.toJson() ?: ""
+            return TvSeriesLoadResponse(
+                title,
+                url,
+                this.name,
+                TvType.JAV,
+                sceneList,
+                poster,
+                year,
+                descript,
+                null,
+                null,
+                null
+            )
+        }
+        val videoLinks = body?.getValidLinks()?.removeInvalidLinks() ?: ""
         return MovieLoadResponse(title, url, this.name, TvType.JAV, videoLinks, poster, year, descript, null, null)
     }
 
@@ -159,20 +187,37 @@ class Javhdicu : MainAPI() {
 
         var count = 0
         mapper.readValue<List<String>>(data.trim()).forEach { vid ->
-            count += 1
             Log.i(this.name, "Result => (vid) $vid")
-            // parse single link
-            if (vid.startsWith("https://javhdfree.icu")) {
-                val extractor = FEmbed()
-                val srcAdd = extractor.getUrl(vid)
-                for (item in srcAdd) {
-                    item.name += " Scene $count"
+            if (vid.startsWith("http")) {
+                count++
+                when {
+                    vid.startsWith("https://javhdfree.icu") -> {
+                        FEmbed().getSafeUrl(vid)?.forEach { item ->
+                            callback.invoke(item)
+                        }
+                    }
+                    vid.startsWith("https://viewsb.com") -> {
+                        val url = vid.replace("viewsb.com", "watchsb.com")
+                        WatchSB().getSafeUrl(url)?.forEach { item ->
+                            callback.invoke(item)
+                        }
+                    }
+                    else -> {
+                        loadExtractor(vid, vid, callback)
+                    }
                 }
-                srcAdd.forEach{ callback.invoke(it) }
-            } else {
-                loadExtractor(vid, vid, callback)
             }
         }
-        return true
+        return count > 0
     }
+
+    private fun Element?.getValidLinks(): List<String>? =
+        this?.select("iframe")?.mapNotNull { iframe ->
+            //Log.i("debug", "Result => (iframe) $iframe")
+            iframe.attr("src") ?: return@mapNotNull null
+        }?.toList()
+
+    private fun List<String>.removeInvalidLinks(): String =
+        this.filter { a -> a.isNotEmpty() && !a.startsWith("//a.realsrv.com") }.toJson()
+
 }
