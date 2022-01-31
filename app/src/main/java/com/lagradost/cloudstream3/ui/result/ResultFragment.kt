@@ -1133,7 +1133,7 @@ class ResultFragment : Fragment() {
                             try {
                                 startActivity(i)
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                logError(e)
                             }
                         }
 
@@ -1395,7 +1395,7 @@ class ResultFragment : Fragment() {
                     try {
                         startActivity(i)
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        logError(e)
                     }
                 }
 

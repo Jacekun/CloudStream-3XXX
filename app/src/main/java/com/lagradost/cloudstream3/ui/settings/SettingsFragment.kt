@@ -23,7 +23,6 @@ import com.hippo.unifile.UniFile
 import com.lagradost.cloudstream3.APIHolder.apis
 import com.lagradost.cloudstream3.APIHolder.getApiDubstatusSettings
 import com.lagradost.cloudstream3.APIHolder.getApiProviderLangSettings
-import com.lagradost.cloudstream3.APIHolder.getApiSettings
 import com.lagradost.cloudstream3.APIHolder.restrictedApis
 import com.lagradost.cloudstream3.AcraApplication
 import com.lagradost.cloudstream3.AcraApplication.Companion.removeKey
@@ -106,6 +105,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     // idk, if you find a way of automating this it would be great
+    // https://www.iemoji.com/view/emoji/1794/flags/antarctica
+    // Emoji Character Encoding Data --> C/C++/Java Src
     private val languages = arrayListOf(
         Triple("\uD83C\uDDEA\uD83C\uDDF8", "Spanish", "es"),
         Triple("\uD83C\uDDEC\uD83C\uDDE7", "English", "en"),
@@ -125,6 +126,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         Triple("\ud83c\uddf2\ud83c\uddf0", "Macedonian", "mk"),
         Triple("\ud83c\udde7\ud83c\uddf7", "Portuguese (Brazil)", "pt"),
         Triple("\ud83c\uddf7\ud83c\uddf4", "Romanian", "ro"),
+        Triple("\uD83C\uDDEE\uD83C\uDDF9", "Italian", "it"),
     ).sortedBy { it.second } //ye, we go alphabetical, so ppl don't put their lang on top
 
     private fun showAccountSwitch(context: Context, api: AccountManager) {
@@ -296,7 +298,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                         this.getString(R.string.provider_lang_key),
                         selectedList.map { names[it].first }.toMutableSet()
                     ).apply()
-                    APIRepository.providersActive = it.context.getApiSettings()
+                    //APIRepository.providersActive = it.context.getApiSettings()
                 }
             }
 

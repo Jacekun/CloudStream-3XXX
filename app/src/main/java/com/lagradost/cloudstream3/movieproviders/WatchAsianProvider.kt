@@ -174,12 +174,9 @@ class WatchAsianProvider : MainAPI() {
             getServerLinks(data)
         } else { data }
         var count = 0
-        mapper.readValue<List<String>>(links).forEach { item ->
+        mapper.readValue<List<String>>(links).apmap { item ->
             count++
-            var url = item.trim()
-            if (url.startsWith("//")) {
-                url = "https:$url"
-            }
+            val url = fixUrl(item.trim())
             //Log.i(this.name, "Result => (url) $url")
             if (url.startsWith("https://asianembed.io")) {
                 // Fetch links
@@ -191,7 +188,7 @@ class WatchAsianProvider : MainAPI() {
         return count > 0
     }
 
-    private fun getServerLinks(url: String) : String {
+    private suspend fun getServerLinks(url: String) : String {
         val moviedoc = app.get(url, referer = mainUrl).document
         return moviedoc.select("div.anime_muti_link > ul > li")
             ?.mapNotNull {

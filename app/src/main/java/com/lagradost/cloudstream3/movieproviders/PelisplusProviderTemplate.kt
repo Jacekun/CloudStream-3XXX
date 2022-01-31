@@ -151,7 +151,7 @@ open class PelisplusProviderTemplate : MainAPI() {
         val urls = homePageUrlList
         val homePageList = ArrayList<HomePageList>()
         // .pmap {} is used to fetch the different pages in parallel
-        urls.pmap { url ->
+        urls.apmap { url ->
             val response = app.get(url, timeout = 20).text
             val document = Jsoup.parse(response)
             document.select("div.main-inner")?.forEach { inner ->
@@ -231,7 +231,7 @@ open class PelisplusProviderTemplate : MainAPI() {
                 null
             }
         }
-        servers.forEach {
+        servers.apmap {
             // When checking strings make sure to make them lowercase and trimmed because edgecases like "beta server " wouldn't work otherwise.
             if (it.first.trim().equals("beta server", ignoreCase = true)) {
                 // Group 1: link, Group 2: Label

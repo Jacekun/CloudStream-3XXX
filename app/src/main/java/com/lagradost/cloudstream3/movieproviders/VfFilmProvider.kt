@@ -45,7 +45,7 @@ class VfFilmProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data == "") return false
+        if (data.length <= 4) return false
         callback.invoke(
             ExtractorLink(
                 this.name,
@@ -59,7 +59,7 @@ class VfFilmProvider : MainAPI() {
         return true
     }
 
-    private fun getDirect(original: String): String {  // original data, https://vf-film.org/?trembed=1&trid=55313&trtype=1 for example
+    private suspend fun getDirect(original: String): String {  // original data, https://vf-film.org/?trembed=1&trid=55313&trtype=1 for example
         val response = app.get(original).text
         val url = "iframe .*src=\"(.*?)\"".toRegex().find(response)?.groupValues?.get(1)
             .toString()  // https://vudeo.net/embed-uweno86lzx8f.html for example
@@ -100,14 +100,13 @@ class VfFilmProvider : MainAPI() {
                 number_player += 1
             }
         }
-        if (found == false) {
+        if (!found) {
             number_player = 0
         }
         val i = number_player.toString()
         val trid = Regex("iframe .*trid=(.*?)&").find(document.html())?.groupValues?.get(1)
 
         val data = getDirect("$mainUrl/?trembed=$i&trid=$trid&trtype=1")
-
 
         return MovieLoadResponse(
             title,

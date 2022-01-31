@@ -1,20 +1,27 @@
 package com.lagradost.cloudstream3.network
 
 import android.content.Context
+import android.util.Log
 import androidx.preference.PreferenceManager
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.R
 import com.lagradost.cloudstream3.USER_AGENT
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mapper
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CompletionHandler
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.*
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
+import java.io.IOException
 import java.net.URI
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resumeWithException
 
 
 class Session(
@@ -235,7 +242,41 @@ open class Requests {
         return baseClient
     }
 
-    fun get(
+    class ContinuationCallback(
+        private val call: Call,
+        private val continuation: CancellableContinuation<Response>
+    ) : Callback, CompletionHandler {
+
+        @ExperimentalCoroutinesApi
+        override fun onResponse(call: Call, response: Response) {
+            continuation.resume(response, null)
+        }
+
+        override fun onFailure(call: Call, e: IOException) {
+            if (!call.isCanceled()) {
+                continuation.resumeWithException(e)
+            }
+        }
+
+        override fun invoke(cause: Throwable?) {
+            try {
+                call.cancel()
+            } catch (_: Throwable) {
+            }
+        }
+    }
+
+    companion object {
+        suspend inline fun Call.await(): Response {
+            return suspendCancellableCoroutine { continuation ->
+                val callback = ContinuationCallback(this, continuation)
+                enqueue(callback)
+                continuation.invokeOnCancellation(callback)
+            }
+        }
+    }
+
+    suspend fun get(
         url: String,
         headers: Map<String, String> = emptyMap(),
         referer: String? = null,
@@ -247,6 +288,7 @@ open class Requests {
         timeout: Long = 0L,
         interceptor: Interceptor? = null,
     ): AppResponse {
+        Log.i("GET", url)
         val client = baseClient
             .newBuilder()
             .followRedirects(allowRedirects)
@@ -256,15 +298,15 @@ open class Requests {
         if (interceptor != null) client.addInterceptor(interceptor)
         val request =
             getRequestCreator(url, headers, referer, params, cookies, cacheTime, cacheUnit)
-        val response = client.build().newCall(request).execute()
+        val response = client.build().newCall(request).await()
         return AppResponse(response)
     }
 
-    fun executeRequest(request : Request): AppResponse {
+    fun executeRequest(request: Request): AppResponse {
         return AppResponse(baseClient.newCall(request).execute())
     }
 
-    fun post(
+    suspend fun post(
         url: String,
         headers: Map<String, String> = mapOf(),
         referer: String? = null,
@@ -276,6 +318,7 @@ open class Requests {
         cacheUnit: TimeUnit = DEFAULT_TIME_UNIT,
         timeout: Long = 0L,
     ): AppResponse {
+        Log.i("POST", url)
         val client = baseClient
             .newBuilder()
             .followRedirects(allowRedirects)
@@ -284,11 +327,11 @@ open class Requests {
             .build()
         val request =
             postRequestCreator(url, headers, referer, params, cookies, data, cacheTime, cacheUnit)
-        val response = client.newCall(request).execute()
+        val response = client.newCall(request).await()
         return AppResponse(response)
     }
 
-    fun put(
+    suspend fun put(
         url: String,
         headers: Map<String, String> = mapOf(),
         referer: String? = null,
@@ -300,6 +343,7 @@ open class Requests {
         cacheUnit: TimeUnit = DEFAULT_TIME_UNIT,
         timeout: Long = 0L
     ): AppResponse {
+        Log.i("PUT", url)
         val client = baseClient
             .newBuilder()
             .followRedirects(allowRedirects)
@@ -308,7 +352,7 @@ open class Requests {
             .build()
         val request =
             putRequestCreator(url, headers, referer, params, cookies, data, cacheTime, cacheUnit)
-        val response = client.newCall(request).execute()
+        val response = client.newCall(request).await()
         return AppResponse(response)
     }
 }

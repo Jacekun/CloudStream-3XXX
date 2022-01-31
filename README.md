@@ -44,22 +44,24 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 
 ***The list of supported languages:***
 * 🇱🇧 Arabic
-* 🇬🇧 English
 * 🇳🇱 Dutch
+* 🇬🇧 English
 * 🇫🇷 French
-* 🇬🇷 Greek
-* 🇸🇪 Swedish
-* 🇵🇭 Tagalog
-* 🇵🇱 Polish
-* 🇮🇳 Hindi
-* 🇮🇳 Malayalam
-* 🇪🇸 Spanish
-* 🇳🇴 Norsk
 * 🇩🇪 German
-* 🇹🇷 Turkish
+* 🇬🇷 Greek
+* 🇮🇳 Hindi
+* 🇮🇹 Italian
 * 🇲🇰 Macedonian
+* 🇮🇳 Malayalam
+* 🇳🇴 Norsk
+* 🇵🇱 Polish
 * 🇧🇷 Portuguese (Brazil)
 * 🇷🇴 Romanian
+* 🇪🇸 Spanish
+* 🇸🇪 Swedish
+* 🇵🇭 Tagalog
+* 🇹🇷 Turkish
+* 🇻🇳 Vietnamese
 
 ***Disclaimer:***
 
@@ -82,13 +84,16 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 - [gogoanime.wiki](https://gogoanime.wiki) 
 - [allanime.site](https://allanime.site) 
 - [animeflick.net](https://animeflick.net) 
+- [m.animeflv.net](https://m.animeflv.net) 
 - [tenshi.moe](https://tenshi.moe) 
 - [wcostream.cc](https://wcostream.cc) 
 - [bestdubbedanime.com](https://bestdubbedanime.com) 
+- [doramasyt.com](https://doramasyt.com) 
 - [ihavenotv.com](https://ihavenotv.com) 
 - [vmovee.watch](https://www.vmovee.watch) 
 - [wcostream.com](https://www.wcostream.com) 
 - [allmoviesforyou.net](https://allmoviesforyou.net) 
+- [monoschinos2.com](https://monoschinos2.com) 
 - [vidembed.cc](https://vidembed.cc) 
 - [vf-film.me](https://vf-film.me) 
 - [vf-serie.org](https://vf-serie.org) 

@@ -130,13 +130,13 @@ object APIHolder {
     }
 
     fun Context.getApiSettings(): HashSet<String> {
-        val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
+        //val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
 
         val hashSet = HashSet<String>()
         val activeLangs = getApiProviderLangSettings()
         hashSet.addAll(apis.filter { activeLangs.contains(it.lang) }.map { it.name })
 
-        val set = settingsManager.getStringSet(
+        /*val set = settingsManager.getStringSet(
             this.getString(R.string.search_providers_list_key),
             hashSet
         )?.toHashSet() ?: hashSet
@@ -147,9 +147,10 @@ object APIHolder {
             if (activeLangs.contains(api.lang)) {
                 list.add(name)
             }
-        }
-        if (list.isEmpty()) return hashSet
-        return list
+        }*/
+        //if (list.isEmpty()) return hashSet
+        //return list
+        return hashSet
     }
 
     fun Context.getApiDubstatusSettings(): HashSet<DubStatus> {
@@ -198,12 +199,12 @@ object APIHolder {
         return realSet
     }
 
-    fun Context.filterProviderByPreferredMedia(): List<MainAPI> {
+    fun Context.filterProviderByPreferredMedia(hasHomePageIsRequired : Boolean = true): List<MainAPI> {
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
         val currentPrefMedia =
             settingsManager.getInt(this.getString(R.string.prefer_media_type_key), 0)
         val langs = this.getApiProviderLangSettings()
-        val allApis = apis.filter { langs.contains(it.lang) }.filter { api -> api.hasMainPage }
+        val allApis = apis.filter { langs.contains(it.lang) }.filter { api -> api.hasMainPage || !hasHomePageIsRequired}
         return if (currentPrefMedia < 1) {
             allApis
         } else {
@@ -283,10 +284,24 @@ abstract class MainAPI {
 /** Might need a different implementation for desktop*/
 @SuppressLint("NewApi")
 fun base64Decode(string: String): String {
+    return String(base64DecodeArray(string), Charsets.ISO_8859_1)
+}
+
+@SuppressLint("NewApi")
+fun base64DecodeArray(string: String): ByteArray {
     return try {
-        String(android.util.Base64.decode(string, android.util.Base64.DEFAULT), Charsets.ISO_8859_1)
+        android.util.Base64.decode(string, android.util.Base64.DEFAULT)
     } catch (e: Exception) {
-        String(Base64.getDecoder().decode(string))
+        Base64.getDecoder().decode(string)
+    }
+}
+
+@SuppressLint("NewApi")
+fun base64Encode(array: ByteArray): String {
+    return try {
+        String(android.util.Base64.encode(array, android.util.Base64.NO_WRAP), Charsets.ISO_8859_1)
+    } catch (e: Exception) {
+        String(Base64.getEncoder().encode(array))
     }
 }
 
@@ -674,4 +689,12 @@ fun MainAPI.newTvSeriesLoadResponse(
     )
     builder.initializer()
     return builder
+}
+
+fun fetchUrls(text: String?): List<String> {
+    if (text.isNullOrEmpty()) {
+        return listOf()
+    }
+    val linkRegex = Regex("""(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*))""")
+    return linkRegex.findAll(text).map { it.value.trim().removeSurrounding("\"") }.toList()
 }

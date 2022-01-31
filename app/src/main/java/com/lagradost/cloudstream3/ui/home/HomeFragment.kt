@@ -138,6 +138,22 @@ class HomeFragment : Fragment() {
             bottomSheetDialogBuilder.show()
         }
 
+        fun getPairList(
+            anime: MaterialButton?,
+            cartoons: MaterialButton?,
+            tvs: MaterialButton?,
+            docs: MaterialButton?,
+            movies: MaterialButton?
+        ): List<Pair<MaterialButton?, List<TvType>>> {
+            return listOf(
+                Pair(anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
+                Pair(cartoons, listOf(TvType.Cartoon)),
+                Pair(tvs, listOf(TvType.TvSeries)),
+                Pair(docs, listOf(TvType.Documentary)),
+                Pair(movies, listOf(TvType.Movie, TvType.Torrent))
+            )
+        }
+
         fun Context.selectHomepage(selectedApiName: String?, callback: (String) -> Unit) {
             val validAPIs = filterProviderByPreferredMedia().toMutableList()
 
@@ -170,6 +186,8 @@ class HomeFragment : Fragment() {
                 val applyBtt = dialog.findViewById<MaterialButton>(R.id.apply_btt)
                 val nsfw = dialog.findViewById<MaterialButton>(R.id.home_select_nsfw)
 
+                val pairList = getPairList(anime, cartoons, tvs, docs, movies)
+
                 cancelBtt?.setOnClickListener {
                     dialog.dismissSafe()
                 }
@@ -195,15 +213,6 @@ class HomeFragment : Fragment() {
                     }
                 }
 
-                val pairList = listOf(
-                    Pair(anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
-                    Pair(cartoons, listOf(TvType.Cartoon)),
-                    Pair(tvs, listOf(TvType.TvSeries)),
-                    Pair(docs, listOf(TvType.Documentary)),
-                    Pair(movies, listOf(TvType.Movie, TvType.Torrent)),
-                    Pair(nsfw, listOf(TvType.JAV, TvType.Hentai))
-                )
-
                 fun updateList() {
                     this.setKey(HOME_PREF_HOMEPAGE, preSelectedTypes)
 
@@ -212,12 +221,11 @@ class HomeFragment : Fragment() {
                         api.hasMainPage && api.supportedTypes.any {
                             preSelectedTypes.contains(it)
                         }
-                    }.toMutableList()
+                    }.sortedBy { it.name }.toMutableList()
                     currentValidApis.addAll(0, validAPIs.subList(0, 2))
 
                     val names = currentValidApis.map { it.name }
                     val index = names.indexOf(currentApiName)
-                    println("INDEX: $index")
                     listView?.setItemChecked(index, true)
                     arrayAdapter.notifyDataSetChanged()
                     arrayAdapter.addAll(names)
@@ -333,13 +341,13 @@ class HomeFragment : Fragment() {
         }
     }*/
 
-    private fun focusCallback(card : SearchResponse) {
+    private fun focusCallback(card: SearchResponse) {
         home_focus_text?.text = card.name
-        home_blur_poster?.setImageBlur(card.posterUrl,50)
+        home_blur_poster?.setImageBlur(card.posterUrl, 50)
     }
 
-    private fun homeHandleSearch(callback : SearchClickCallback) {
-        if(callback.action == SEARCH_ACTION_FOCUSED) {
+    private fun homeHandleSearch(callback: SearchClickCallback) {
+        if (callback.action == SEARCH_ACTION_FOCUSED) {
             focusCallback(callback.card)
         } else {
             handleSearchClickCallback(activity, callback)
@@ -432,7 +440,7 @@ class HomeFragment : Fragment() {
                     val d = data.value
 
                     currentHomePage = d
-                    (home_master_recycler?.adapter as ParentItemAdapter?)?.items =
+                    (home_master_recycler?.adapter as ParentItemAdapter?)?.updateList(
                         d?.items?.mapNotNull {
                             try {
                                 HomePageList(it.name, it.list.filterSearchResponse())
@@ -440,9 +448,7 @@ class HomeFragment : Fragment() {
                                 logError(e)
                                 null
                             }
-                        } ?: listOf()
-
-                    home_master_recycler?.adapter?.notifyDataSetChanged()
+                        } ?: listOf())
 
                     home_loading?.isVisible = false
                     home_loading_error?.isVisible = false
@@ -464,9 +470,13 @@ class HomeFragment : Fragment() {
                                 api.name
                             )
                         }) {
-                            val i = Intent(Intent.ACTION_VIEW)
-                            i.data = Uri.parse(validAPIs[itemId].mainUrl)
-                            startActivity(i)
+                            try {
+                                val i = Intent(Intent.ACTION_VIEW)
+                                i.data = Uri.parse(validAPIs[itemId].mainUrl)
+                                startActivity(i)
+                            } catch (e: Exception) {
+                                logError(e)
+                            }
                         }
                     }
 
@@ -483,9 +493,8 @@ class HomeFragment : Fragment() {
             }
         }
 
-
         val adapter: RecyclerView.Adapter<RecyclerView.ViewHolder> =
-            ParentItemAdapter(listOf(), { callback ->
+            ParentItemAdapter(mutableListOf(), { callback ->
                 homeHandleSearch(callback)
             }, { item ->
                 activity?.loadHomepageList(item)
