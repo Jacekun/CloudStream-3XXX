@@ -122,16 +122,10 @@ class JavSubCo : MainAPI() {
 
         // Video stream
         val iframe: String =  try {
+            //TODO: Parse as JSON and fetch 'player' property
             val streamdataStart = body?.toString()?.indexOf("var torotube_Public = {") ?: 0
-            var streamdata = body?.toString()?.substring(streamdataStart) ?: ""
+            body?.toString()?.substring(streamdataStart) ?: ""
             //Log.i(this.name, "Result => (streamdata) ${streamdata}")
-            streamdata = streamdata.substring(0, streamdata.indexOf("};"))
-            streamdata = streamdata.substring(streamdata.indexOf("player"))
-            streamdata = streamdata.substring(streamdata.indexOf("["))
-            streamdata.substring(1, streamdata.indexOf("]"))
-                .replace("\\\"", "\"")
-                .replace("\",\"", "")
-                .replace("\\", "")
         } catch (e: Exception) {
             Log.i(this.name, "Result => Exception (load) $e")
             ""
