@@ -143,14 +143,16 @@ class HomeFragment : Fragment() {
             cartoons: MaterialButton?,
             tvs: MaterialButton?,
             docs: MaterialButton?,
-            movies: MaterialButton?
+            movies: MaterialButton?,
+            nsfw: MaterialButton?
         ): List<Pair<MaterialButton?, List<TvType>>> {
             return listOf(
                 Pair(anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
                 Pair(cartoons, listOf(TvType.Cartoon)),
                 Pair(tvs, listOf(TvType.TvSeries)),
                 Pair(docs, listOf(TvType.Documentary)),
-                Pair(movies, listOf(TvType.Movie, TvType.Torrent))
+                Pair(movies, listOf(TvType.Movie, TvType.Torrent)),
+                Pair(nsfw, listOf(TvType.JAV, TvType.Hentai))
             )
         }
 
@@ -186,7 +188,7 @@ class HomeFragment : Fragment() {
                 val applyBtt = dialog.findViewById<MaterialButton>(R.id.apply_btt)
                 val nsfw = dialog.findViewById<MaterialButton>(R.id.home_select_nsfw)
 
-                val pairList = getPairList(anime, cartoons, tvs, docs, movies)
+                val pairList = getPairList(anime, cartoons, tvs, docs, movies, nsfw)
 
                 cancelBtt?.setOnClickListener {
                     dialog.dismissSafe()

@@ -162,8 +162,9 @@ class SearchFragment : Fragment() {
                     val movies = dialog.findViewById<MaterialButton>(R.id.home_select_movies)
                     val cancelBtt = dialog.findViewById<MaterialButton>(R.id.cancel_btt)
                     val applyBtt = dialog.findViewById<MaterialButton>(R.id.apply_btt)
+                    val nsfw = dialog.findViewById<MaterialButton>(R.id.home_select_nsfw)
 
-                    val pairList = HomeFragment.getPairList(anime, cartoons, tvs, docs, movies)
+                    val pairList = HomeFragment.getPairList(anime, cartoons, tvs, docs, movies, nsfw)
 
                     cancelBtt?.setOnClickListener {
                         dialog.dismissSafe()
@@ -272,7 +273,8 @@ class SearchFragment : Fragment() {
             search_select_cartoons,
             search_select_tv_series,
             search_select_documentaries,
-            search_select_movies
+            search_select_movies,
+            search_select_nsfw
         )
 
         selectedSearchTypes = context?.getKey<List<String>>(SEARCH_PREF_TAGS)
