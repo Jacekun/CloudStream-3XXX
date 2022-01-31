@@ -81,36 +81,25 @@ class Javhdicu : MainAPI() {
             ?.select("div.row.video-section.meta-maxwidth-230")
             ?.select("div.item.responsive-height.col-md-4.col-sm-6.col-xs-6")
         //Log.i(this.name, "Result => $document")
-        if (!document.isNullOrEmpty()) {
-            return document.map {
-                val content = it.select("div.item-img > a").firstOrNull()
-                //Log.i(this.name, "Result => $content")
-                val href = content?.attr("href")
-                val link = if (href.isNullOrEmpty()) {
-                    ""
-                } else {
-                    fixUrl(href)
-                }
-                val imgContent = content?.select("img")
-                var title = imgContent?.attr("alt") ?: ""
-                val image = imgContent?.attr("src")?.trim('\'')
-                val year = null
-                //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
+        return document?.mapNotNull {
+            val content = it.selectFirst("div.item-img > a") ?: return@mapNotNull null
+            //Log.i(this.name, "Result => $content")
+            val link = fixUrlNull(content.attr("href")) ?: return@mapNotNull null
+            val imgContent = content.select("img")
+            val title = imgContent?.attr("alt")?.removeSuffix("JAV HD") ?: ""
+            val image = imgContent?.attr("src")?.trim('\'')
+            val year = null
+            //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
 
-                if (title.startsWith("JAV HD")) {
-                    title = title.substring(7)
-                }
-                MovieSearchResponse(
-                    title,
-                    link,
-                    this.name,
-                    TvType.JAV,
-                    image,
-                    year
-                )
-            }.filter { item -> item.url.isNotEmpty() }
-        }
-        return listOf()
+            MovieSearchResponse(
+                title,
+                link,
+                this.name,
+                TvType.JAV,
+                image,
+                year
+            )
+        }?.distinctBy { it.url } ?: return listOf()
     }
 
     override suspend fun load(url: String): LoadResponse {
@@ -125,7 +114,7 @@ class Javhdicu : MainAPI() {
 
         // Video details
         val poster = innerDiv?.select("img")?.attr("src")
-        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text() ?: "<No Title>"
+        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.removePrefix("JAV HD") ?: "<No Title>"
         val descript = innerBody?.select("p")?.firstOrNull()?.text()
         //Log.i(this.name, "Result => (innerDiv) ${innerDiv}")
 
@@ -137,26 +126,24 @@ class Javhdicu : MainAPI() {
         val year = yearString?.takeLast(4)?.toIntOrNull()
 
         // Video links, find if it contains multiple scene links
-        val tapes = body?.select("ul.pagination.post-tape > li")
-        if (!tapes.isNullOrEmpty()) {
-            val sceneList = tapes.mapNotNull { section ->
-                val innerA = section?.select("a") ?: return@mapNotNull null
-                val vidlink = innerA.attr("href")
-                Log.i(this.name, "Result => (vidlink) $vidlink")
-                if (vidlink.isNullOrEmpty()) { return@mapNotNull null }
+        val sceneList = body?.select("ul.pagination.post-tape > li")?.mapNotNull { section ->
+            val innerA = section?.select("a") ?: return@mapNotNull null
+            val vidlink = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
+            Log.i(this.name, "Result => (vidlink) $vidlink")
 
-                val sceneCount = innerA.text().toIntOrNull()
-                val doc = app.get(vidlink).document.getElementsByTag("body")
-                val streamEpLink = doc.get(0)?.getValidLinks()?.removeInvalidLinks() ?: ""
-                TvSeriesEpisode(
-                    name = "Scene $sceneCount",
-                    season = null,
-                    episode = sceneCount,
-                    data = streamEpLink,
-                    posterUrl = poster,
-                    date = null
-                )
-            }
+            val sceneCount = innerA.text().toIntOrNull()
+            val doc = app.get(vidlink).document.getElementsByTag("body")?.get(0)
+            val streamEpLink = doc?.getValidLinks()?.removeInvalidLinks() ?: ""
+            TvSeriesEpisode(
+                name = "Scene $sceneCount",
+                season = null,
+                episode = sceneCount,
+                data = streamEpLink,
+                posterUrl = poster,
+                date = null
+            )
+        } ?: listOf()
+        if (sceneList.isNotEmpty()) {
             return TvSeriesLoadResponse(
                 title,
                 url,
@@ -186,19 +173,19 @@ class Javhdicu : MainAPI() {
         if (data == "about:blank") return false
 
         var count = 0
-        mapper.readValue<List<String>>(data.trim()).forEach { vid ->
+        mapper.readValue<List<String>>(data.trim()).apmap { vid ->
             Log.i(this.name, "Result => (vid) $vid")
             if (vid.startsWith("http")) {
                 count++
                 when {
                     vid.startsWith("https://javhdfree.icu") -> {
-                        FEmbed().getSafeUrl(vid)?.forEach { item ->
+                        FEmbed().getSafeUrl(vid)?.apmap { item ->
                             callback.invoke(item)
                         }
                     }
                     vid.startsWith("https://viewsb.com") -> {
                         val url = vid.replace("viewsb.com", "watchsb.com")
-                        WatchSB().getSafeUrl(url)?.forEach { item ->
+                        WatchSB().getSafeUrl(url)?.apmap { item ->
                             callback.invoke(item)
                         }
                     }
@@ -214,10 +201,10 @@ class Javhdicu : MainAPI() {
     private fun Element?.getValidLinks(): List<String>? =
         this?.select("iframe")?.mapNotNull { iframe ->
             //Log.i("debug", "Result => (iframe) $iframe")
-            iframe.attr("src") ?: return@mapNotNull null
+            fixUrlNull(iframe.attr("src")) ?: return@mapNotNull null
         }?.toList()
 
     private fun List<String>.removeInvalidLinks(): String =
-        this.filter { a -> a.isNotEmpty() && !a.startsWith("//a.realsrv.com") }.toJson()
+        this.filter { a -> a.isNotEmpty() && !a.startsWith("https://a.realsrv.com") }.toJson()
 
 }
