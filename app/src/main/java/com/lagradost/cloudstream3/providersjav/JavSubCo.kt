@@ -1,6 +1,7 @@
 package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.FEmbed
@@ -18,6 +19,10 @@ class JavSubCo : MainAPI() {
     override val hasDownloadSupport: Boolean get() = true
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
+
+    data class Response(
+        @JsonProperty("player") val player: List<String>?
+    )
 
     override suspend fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
@@ -121,20 +126,23 @@ class JavSubCo : MainAPI() {
         //Log.i(this.name, "Result => (poster) ${poster}")
 
         // Video stream
-        val iframe: String =  try {
+        val playerIframes: String =  try {
             //TODO: Parse as JSON and fetch 'player' property
-            val streamdataStart = body?.toString()?.indexOf("var torotube_Public = {") ?: 0
-            body?.toString()?.substring(streamdataStart) ?: ""
-            //Log.i(this.name, "Result => (streamdata) ${streamdata}")
+            val startString = "var torotube_Public = {"
+            val streamdataStart = body?.toString()?.indexOf(startString) ?: 0
+            val streamdata = body?.toString()?.substring(streamdataStart) ?: ""
+            streamdata.substring(startString.length-1, streamdata.indexOf("};")+1)
         } catch (e: Exception) {
             Log.i(this.name, "Result => Exception (load) $e")
             ""
         }
-        val streamUrl = Jsoup.parse(iframe)?.select("iframe")
-            ?.filter { s -> s.hasAttr("src") }
-            ?.mapNotNull {
-                a -> a?.attr("src") ?: return@mapNotNull null
+        var streamUrl = ""
+        mapper.readValue<Response>(playerIframes).let {
+            streamUrl = it.player?.mapNotNull { iframe ->
+                Jsoup.parse(iframe)?.selectFirst("iframe")
+                    ?.attr("src") ?: return@mapNotNull null
             }?.toJson() ?: ""
+        }
         //Log.i(this.name, "Result => (streamUrl) $streamUrl")
         return MovieLoadResponse(title, url, this.name, TvType.JAV, streamUrl, poster, year, descript, null, null)
     }
@@ -149,15 +157,17 @@ class JavSubCo : MainAPI() {
         if (data == "[]") return false
         if (data == "about:blank") return false
 
-        mapper.readValue<List<String>>(data).forEach { link->
+        var count = 0
+        mapper.readValue<List<String>>(data).apmap { link->
             Log.i(this.name, "Result => (link) $link")
             if (link.isNotEmpty()) {
                 when {
                     link.contains("watch-jav") -> {
                         val extractor = FEmbed()
                         extractor.domainUrl = "embedsito.com"
-                        extractor.getUrl(link, mainUrl).forEach { it2 ->
+                        extractor.getSafeUrl(link, mainUrl)?.apmap { it2 ->
                             callback.invoke(it2)
+                            count++
                         }
                     }
                     link.contains("dood.ws") -> {
@@ -165,16 +175,20 @@ class JavSubCo : MainAPI() {
                         // Probably not gonna work since link is on 'dood.ws' domain
                         // adding just in case it loads urls ¯\_(ツ)_/¯
                         val extractor = DoodWsExtractor()
-                        extractor.getUrl(link, mainUrl)?.forEach { it2 ->
+                        extractor.getSafeUrl(link, mainUrl)?.apmap { it2 ->
                             callback.invoke(it2)
+                            count++
                         }
                     }
                     else -> {
-                        loadExtractor(link, mainUrl, callback)
+                        if (loadExtractor(link, mainUrl, callback)) {
+                            count++
+                        }
                     }
                 }
             }
+            //Log.i(this.name, "Result => count: $count")
         }
-        return true
+        return count > 0
     }
 }
