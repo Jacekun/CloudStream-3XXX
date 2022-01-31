@@ -22,7 +22,7 @@ class Vlxx : MainAPI() {
     override val hasQuickSearch: Boolean get() = false
     private val ddosGuardKiller = DdosGuardKiller(true)
 
-    private fun getPage(url: String, referer: String): AppResponse {
+    private suspend fun getPage(url: String, referer: String): AppResponse {
         var count = 0
         var resp = app.get(url, referer = referer, interceptor = ddosGuardKiller)
         while (resp.code != 200) {

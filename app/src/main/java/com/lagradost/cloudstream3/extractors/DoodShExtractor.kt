@@ -18,7 +18,7 @@ open class DoodShExtractor : ExtractorApi() {
         return "$mainUrl/e/$id"
     }
 
-    override fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         try {
             val doc = app.get(url, referer = url).text
             var md5 = doc.substring(doc.indexOf("\$.get('/pass_md5"))

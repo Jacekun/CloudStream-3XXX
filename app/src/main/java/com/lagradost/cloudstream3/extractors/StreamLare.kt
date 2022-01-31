@@ -14,7 +14,7 @@ class StreamLare: ExtractorApi() {
         val label: String? = this.optString("label")
     }
 
-    override fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
         val extractedLinksList: MutableList<ExtractorLink> = mutableListOf()
         try {
             val id = url.split("/").last()
@@ -63,7 +63,7 @@ class StreamLare: ExtractorApi() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.i(this.name, "Result => (Exception) ${e}")
+            Log.i(this.name, "Result => (Exception) $e")
         }
         return extractedLinksList
     }

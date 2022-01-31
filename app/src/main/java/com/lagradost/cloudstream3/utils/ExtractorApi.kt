@@ -123,6 +123,8 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     SBPlay1(),
     SBPlay2(),
     SBPlay3(),
+
+    StreamLare()
 )
 
 fun getExtractorApiFromName(name: String): ExtractorApi {
