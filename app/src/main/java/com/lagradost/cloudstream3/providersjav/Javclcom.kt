@@ -14,42 +14,42 @@ class Javclcom : MainAPI() {
     override val hasQuickSearch: Boolean get() = false
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val url = "$mainUrl/search/${query}/"
-        val html = app.get(url).text
-        val document = Jsoup.parse(html).getElementsByTag("body")
+        val url = "$mainUrl/search/$query/"
+        val document = app.get(url).document.getElementsByTag("body")
             .select("div.col-xl-3.col-sm-4.col-6.mb-4")
         //Log.i(this.name, "Result => $document")
-        return document!!.map {
-            val content = it.select("img.video-thumb").firstOrNull()
+        return document?.mapNotNull {
+            if (it == null) { return@mapNotNull null }
+
+            val link = fixUrlNull(it.selectFirst("a.video-link")?.attr("href")) ?: return@mapNotNull null
+            val content = it.selectFirst("img.video-thumb") ?: return@mapNotNull null
             //Log.i(this.name, "Result => $content")
 
-            val href = it.select("a.video-link")?.firstOrNull()?.attr("href") ?: ""
-            val title = content?.attr("alt") ?: "<No Title Found>"
-            val image = content?.attr("src")
+            val title = content.attr("alt") ?: "<No Title Found>"
+            val image = content.attr("src")
             val year = null
             //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
 
             MovieSearchResponse(
                 title,
-                href,
+                link,
                 this.name,
                 TvType.JAV,
                 image,
                 year
             )
-        }
+        } ?: listOf()
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val doc = Jsoup.parse(response)
+        val doc = app.get(url).document
         //Log.i(this.name, "Url => ${url}")
 
         // Video details
         //Log.i(this.name, "Result => ${body}")
-        val poster = doc?.select("meta[property=og:image]")?.firstOrNull()?.attr("content")
-        val title = doc?.select("meta[property=og:title]")?.firstOrNull()?.attr("content") ?: "<No Title>"
-        val descript = doc?.select("meta[property=og:description]")?.firstOrNull()
+        val poster = doc.selectFirst("meta[property=og:image]")?.attr("content")
+        val title = doc.selectFirst("meta[property=og:title]")?.attr("content") ?: "<No Title>"
+        val descript = doc.selectFirst("meta[property=og:description]")
             ?.attr("content") ?:"<No Synopsis found>"
         //Log.i(this.name, "Result => ${descript}")
         val re = Regex("\\d{4}")
