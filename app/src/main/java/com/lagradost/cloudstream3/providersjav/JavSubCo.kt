@@ -127,7 +127,7 @@ class JavSubCo : MainAPI() {
 
         // Video stream
         val playerIframes: String =  try {
-            //TODO: Parse as JSON and fetch 'player' property
+            //Note: Parse as JSON and fetch 'player' property
             val startString = "var torotube_Public = {"
             val streamdataStart = body?.toString()?.indexOf(startString) ?: 0
             val streamdata = body?.toString()?.substring(streamdataStart) ?: ""
@@ -165,17 +165,7 @@ class JavSubCo : MainAPI() {
                     link.contains("watch-jav") -> {
                         val extractor = FEmbed()
                         extractor.domainUrl = "embedsito.com"
-                        extractor.getSafeUrl(link, mainUrl)?.apmap { it2 ->
-                            callback.invoke(it2)
-                            count++
-                        }
-                    }
-                    link.contains("dood.ws") -> {
-                        //Log.i(this.name, "Result => (doodwsUrl) ${link}")
-                        // Probably not gonna work since link is on 'dood.ws' domain
-                        // adding just in case it loads urls ¯\_(ツ)_/¯
-                        val extractor = DoodWsExtractor()
-                        extractor.getSafeUrl(link, mainUrl)?.apmap { it2 ->
+                        extractor.getSafeUrl(link, mainUrl)?.forEach { it2 ->
                             callback.invoke(it2)
                             count++
                         }
