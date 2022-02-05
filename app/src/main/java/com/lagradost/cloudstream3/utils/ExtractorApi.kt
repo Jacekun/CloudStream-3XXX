@@ -124,7 +124,9 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     SBPlay2(),
     SBPlay3(),
 
-    StreamLare()
+    //Jav extractors
+    StreamLare(),
+    PlayLtXyz()
 )
 
 fun getExtractorApiFromName(name: String): ExtractorApi {
