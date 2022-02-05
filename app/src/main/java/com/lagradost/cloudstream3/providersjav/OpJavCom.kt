@@ -10,7 +10,6 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.HttpSession
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
-import java.lang.Exception
 
 class OpJavCom : MainAPI() {
     override val name: String get() = "OpJAV.com"
@@ -151,12 +150,12 @@ class OpJavCom : MainAPI() {
             )
             val sess = HttpSession()
             val respAjax = sess.post("$mainUrl/ajax", headers = ajaxHead, data = ajaxData).text
-            //Log.i(this.name, "Result => (respAjax text) $respAjax")
+            Log.i(this.name, "Result => (respAjax text) $respAjax")
             Jsoup.parse(respAjax).select("iframe")?.forEach { iframe ->
                 val serverLink = iframe?.attr("src")?.trim()
                 if (!serverLink.isNullOrEmpty()) {
                     watchlink.add(serverLink)
-                    //Log.i(this.name, "Result => (serverLink) $serverLink")
+                    Log.i(this.name, "Result => (serverLink) $serverLink")
                 }
             }
         }
@@ -174,18 +173,18 @@ class OpJavCom : MainAPI() {
 
         mapper.readValue<List<String>>(data).forEach { link ->
             val url = fixUrl(link.trim())
-            //Log.i(this.name, "Result => (url) $url")
+            Log.i(this.name, "Result => (url) $url")
             when {
                 url.startsWith("https://opmovie.xyz") -> {
                     val ext = XStreamCdn()
                     ext.domainUrl = "opmovie.xyz"
-                    ext.getUrl(url, url).forEach {
-                        //Log.i(this.name, "Result => (xtream) ${it.url}")
+                    ext.getSafeUrl(url, url)?.forEach {
+                        Log.i(this.name, "Result => (xtream) ${it.url}")
                         callback.invoke(it)
                     }
                 }
                 else -> {
-                    loadExtractor(url, url, callback)
+                    loadExtractor(url, mainUrl, callback)
                 }
             }
         }
