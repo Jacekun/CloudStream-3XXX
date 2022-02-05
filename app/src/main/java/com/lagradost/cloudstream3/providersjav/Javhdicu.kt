@@ -86,7 +86,7 @@ class Javhdicu : MainAPI() {
             //Log.i(this.name, "Result => $content")
             val link = fixUrlNull(content.attr("href")) ?: return@mapNotNull null
             val imgContent = content.select("img")
-            val title = imgContent?.attr("alt")?.removeSuffix("JAV HD") ?: ""
+            val title = imgContent?.attr("alt")?.trim()?.removeSurrounding("JAV HD") ?: ""
             val image = imgContent?.attr("src")?.trim('\'')
             val year = null
             //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
@@ -114,7 +114,7 @@ class Javhdicu : MainAPI() {
 
         // Video details
         val poster = innerDiv?.select("img")?.attr("src")
-        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.removePrefix("JAV HD") ?: "<No Title>"
+        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.removeSurrounding("JAV HD") ?: "<No Title>"
         val descript = innerBody?.select("p")?.firstOrNull()?.text()
         //Log.i(this.name, "Result => (innerDiv) ${innerDiv}")
 
@@ -126,14 +126,15 @@ class Javhdicu : MainAPI() {
         val year = yearString?.takeLast(4)?.toIntOrNull()
 
         // Video links, find if it contains multiple scene links
-        val sceneList = body?.select("ul.pagination.post-tape > li")?.mapNotNull { section ->
-            val innerA = section?.select("a") ?: return@mapNotNull null
-            val vidlink = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
+        //val sceneList = mutableListOf<TvSeriesEpisode>()
+        val sceneList = body?.select("ul.pagination.post-tape > li")?.apmap { section ->
+            val innerA = section?.select("a") ?: return@apmap null
+            val vidlink = fixUrlNull(innerA.attr("href")) ?: return@apmap null
             Log.i(this.name, "Result => (vidlink) $vidlink")
 
             val sceneCount = innerA.text().toIntOrNull()
-            val doc = app.get(vidlink).document.getElementsByTag("body")?.get(0)
-            val streamEpLink = doc?.getValidLinks()?.removeInvalidLinks() ?: ""
+            val viddoc = app.get(vidlink).document.getElementsByTag("body")?.get(0)
+            val streamEpLink = viddoc?.getValidLinks()?.removeInvalidLinks() ?: ""
             TvSeriesEpisode(
                 name = "Scene $sceneCount",
                 season = null,
@@ -142,14 +143,14 @@ class Javhdicu : MainAPI() {
                 posterUrl = poster,
                 date = null
             )
-        } ?: listOf()
+        }?.filterNotNull() ?: listOf()
         if (sceneList.isNotEmpty()) {
             return TvSeriesLoadResponse(
                 title,
                 url,
                 this.name,
                 TvType.JAV,
-                sceneList,
+                sceneList.filter { it.data.isNotEmpty() },
                 poster,
                 year,
                 descript,
