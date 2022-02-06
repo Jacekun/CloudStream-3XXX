@@ -171,6 +171,7 @@ class OpJavCom : MainAPI() {
         if (data == "about:blank") return false
         if (data.isEmpty()) return false
 
+        var count = 0
         mapper.readValue<List<String>>(data).forEach { link ->
             val url = fixUrl(link.trim())
             Log.i(this.name, "Result => (url) $url")
@@ -181,13 +182,16 @@ class OpJavCom : MainAPI() {
                     ext.getSafeUrl(url, url)?.forEach {
                         Log.i(this.name, "Result => (xtream) ${it.url}")
                         callback.invoke(it)
+                        count++
                     }
                 }
                 else -> {
-                    loadExtractor(url, mainUrl, callback)
+                    if (loadExtractor(url, mainUrl, callback)) {
+                        count++
+                    }
                 }
             }
         }
-        return false
+        return count > 0
     }
 }
