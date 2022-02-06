@@ -3,7 +3,6 @@ package com.lagradost.cloudstream3.extractors
 import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.lagradost.cloudstream3.MainAPI
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mapper
 import com.lagradost.cloudstream3.utils.*
@@ -18,7 +17,7 @@ class PlayLtXyz: ExtractorApi() {
     )
 
     override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
-        val extractedLinksList: MutableList<ExtractorLink> = mutableListOf()
+        val extractedLinksList = mutableListOf<ExtractorLink>()
         //Log.i(this.name, "Result => (url) $url")
         var idUser = ""
         var idFile = ""
