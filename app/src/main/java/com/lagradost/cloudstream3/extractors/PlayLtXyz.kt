@@ -3,6 +3,8 @@ package com.lagradost.cloudstream3.extractors
 import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.lagradost.cloudstream3.MainAPI
+import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mapper
 import com.lagradost.cloudstream3.utils.*
 
@@ -17,34 +19,65 @@ class PlayLtXyz: ExtractorApi() {
 
     override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
         val extractedLinksList: MutableList<ExtractorLink> = mutableListOf()
-        val sess = HttpSession()
-        val id = url.trim().split("/").last()
-        val ajaxHead = mapOf(
-            Pair("Origin", "https://play.playlt.xyz"),
-            Pair("Referer", "https://play.playlt.xyz")
-        )
-        val ajaxData = mapOf(
-            Pair("referrer", referer),
-            Pair("typeend", "html")
-        )
-        val data = sess.post("https://api-plhq.playlt.xyz/apiv5/608f7c85cf0743547f1f1b4e/$id", headers = ajaxHead, data = ajaxData)
-        //Log.i(this.name, "Result => (url, id, req) ${url} -> ${id} -> ${req}")
-        if (data.statusCode == 200) {
-            val itemstr = data.text
-            Log.i(this.name, "Result => (data) $itemstr")
-            mapper.readValue<ResponseData>(itemstr).let { item ->
-                val linkUrl = item.data ?: ""
-                if (linkUrl.isNotEmpty()) {
-                    extractedLinksList.add(
-                        ExtractorLink(
-                            source = name,
-                            name = name,
-                            url = linkUrl,
-                            referer = url,
-                            quality = Qualities.Unknown.value,
-                            isM3u8 = true
+        //Log.i(this.name, "Result => (url) $url")
+        var idUser = ""
+        var idFile = ""
+        var bodyText = ""
+        val doc = app.get(url, referer = referer).document
+        //Log.i(this.name, "Result => (url, script) $url / ${doc.select("script")}")
+        doc.select("script")?.forEach {
+            if (it != null) {
+                val text = it.toString()
+                if (text.contains("var idUser")) {
+                    bodyText = text
+                    //Log.i(this.name, "Result => (bodyText) $bodyText")
+                }
+            }
+        }
+
+        if (!bodyText.isNullOrEmpty()) {
+            idUser = "(?<=var idUser = \")(.*)(?=\";)".toRegex().find(bodyText)
+                ?.groupValues?.get(0).toString()
+
+            idFile = "(?<=var idfile = \")(.*)(?=\";)".toRegex().find(bodyText)
+                ?.groupValues?.get(0).toString()
+        }
+
+        if (idUser.isNotEmpty() && idFile.isNotEmpty()) {
+            val sess = HttpSession()
+            val ajaxHead = mapOf(
+                Pair("Origin", "https://play.playlt.xyz"),
+                Pair("Referer", "https://play.playlt.xyz"),
+                Pair("Sec-Fetch-Site", "same-site"),
+                Pair("Sec-Fetch-Mode", "cors"),
+                Pair("Sec-Fetch-Dest", "empty")
+            )
+            val ajaxData = mapOf(
+                Pair("referrer", referer),
+                Pair("typeend", "html")
+            )
+
+            //idUser = 608f7c85cf0743547f1f1b4e
+            val posturl = "https://api-plhq.playlt.xyz/apiv5/$idUser/$idFile"
+            val data = sess.post(posturl, headers = ajaxHead, data = ajaxData)
+            Log.i(this.name, "Result => (posturl) $posturl")
+            if (data.statusCode == 200) {
+                val itemstr = data.text
+                Log.i(this.name, "Result => (data) $itemstr")
+                mapper.readValue<ResponseData>(itemstr).let { item ->
+                    val linkUrl = item.data ?: ""
+                    if (linkUrl.isNotEmpty()) {
+                        extractedLinksList.add(
+                            ExtractorLink(
+                                source = name,
+                                name = name,
+                                url = linkUrl,
+                                referer = url,
+                                quality = Qualities.Unknown.value,
+                                isM3u8 = true
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

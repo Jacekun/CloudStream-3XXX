@@ -150,7 +150,7 @@ class OpJavCom : MainAPI() {
             )
             val sess = HttpSession()
             val respAjax = sess.post("$mainUrl/ajax", headers = ajaxHead, data = ajaxData).text
-            Log.i(this.name, "Result => (respAjax text) $respAjax")
+            //Log.i(this.name, "Result => (respAjax text) $respAjax")
             Jsoup.parse(respAjax).select("iframe")?.forEach { iframe ->
                 val serverLink = iframe?.attr("src")?.trim()
                 if (!serverLink.isNullOrEmpty()) {
