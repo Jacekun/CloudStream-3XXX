@@ -10,7 +10,6 @@ import com.lagradost.cloudstream3.network.DdosGuardKiller
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
-import org.jsoup.Jsoup
 import java.lang.Exception
 
 class Vlxx : MainAPI() {
@@ -39,24 +38,21 @@ class Vlxx : MainAPI() {
         val document = getPage(mainUrl, mainUrl).document
         val all = ArrayList<HomePageList>()
         val title = "Homepage"
-        val inner = document.select("div#container > div.box > li.video-list")
-        if (!inner.isNullOrEmpty()) {
-            val elements: List<SearchResponse> = inner.map {
-                val href = it.select("a")?.attr("href") ?: ""
-                val link = if (href.isNotEmpty()) { fixUrl(href) } else { "" }
-                val imgArticle = it.select("img.video-image").attr("src")
-                val name = it.selectFirst("div.video-name").text()
-                val year = null
-                MovieSearchResponse(
-                    name,
-                    link,
-                    this.name,
-                    TvType.JAV,
-                    imgArticle,
-                    year,
-                    null,
-                )
-            }.filter { a -> a.url.isNotEmpty() }
+        val elements = document.select("div#container > div.box > li.video-list")?.mapNotNull {
+            val link = fixUrlNull(it.select("a")?.attr("href")) ?: return@mapNotNull null
+            val imgArticle = it.select("img.video-image").attr("src")
+            val name = it.selectFirst("div.video-name").text()
+            val year = null
+            MovieSearchResponse(
+                name,
+                link,
+                this.name,
+                TvType.JAV,
+                imgArticle,
+                year
+            )
+        }?.distinctBy { it.url } ?: listOf()
+        if (elements.isNotEmpty()) {
             all.add(
                 HomePageList(
                     title, elements
@@ -70,9 +66,8 @@ class Vlxx : MainAPI() {
         val document = getPage("$mainUrl/search/${query}/", mainUrl).document
         val list = document.select("#container .box .video-list")
 
-        return list.map {
-            val href = it.select("a")?.attr("href") ?: ""
-            val link = if (href.isNotEmpty()) { fixUrl(href) } else { "" }
+        return list?.mapNotNull {
+            val link = fixUrlNull(it.select("a")?.attr("href")) ?: return@mapNotNull null
             val imgArticle = it.select(".video-image").attr("src")
             val name = it.selectFirst(".video-name")?.text() ?: ""
             val year = null
@@ -84,9 +79,7 @@ class Vlxx : MainAPI() {
                 imgArticle,
                 year
             )
-        }.filter { a -> a.url.isNotEmpty() }
-            .filter { b -> b.name.isNotEmpty() }
-            .distinctBy { c -> c.url }
+        }?.distinctBy { it.url } ?: listOf()
     }
 
     override suspend fun loadLinks(
@@ -154,8 +147,8 @@ class Vlxx : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val document = getPage(url, url).document
-        val title = document?.selectFirst(".breadcrumb")?.text() ?: "<No Title>"
-        val descript = document?.select(".video-content .content")?.text()
+        val title = document.selectFirst(".breadcrumb")?.text() ?: "<No Title>"
+        val descript = document.select(".video-content .content")?.text()
         val year = null
         val poster = document.select(".lcol img").attr("src")
         return MovieLoadResponse(
@@ -166,9 +159,7 @@ class Vlxx : MainAPI() {
             url,
             poster,
             year,
-            descript,
-            null,
-            null
+            descript
         )
     }
 }
