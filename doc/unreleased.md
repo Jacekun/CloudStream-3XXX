@@ -6,6 +6,10 @@
 + Javcl: Skip empty links on search result.
 + JavSub: Stop trying to fetch DoodWs links.
 + JavSub: Add recommendations and tags.
-+ JavHD: Remove prefix and suffix from title. Load asynchronously for faster loading of info.
++ JavHD: Remove prefix and suffix from title.
++ JavHD: Load asynchronously for faster loading of info.
 + JavHD: Add recommendations and tags.
 + OpJAV: Add new link source.
++ OpJAV: Add tags.
++ OpJAV: Load asynchronously for faster loading of info.
++ Various sources refactors and cleanups.
