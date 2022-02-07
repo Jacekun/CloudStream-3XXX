@@ -33,15 +33,15 @@ class PlayLtXyz: ExtractorApi() {
                 }
             }
         }
-
-        if (!bodyText.isNotBlank()) {
+        //Log.i(this.name, "Result => (bodyText) $bodyText")
+        if (bodyText.isNotBlank()) {
             idUser = "(?<=var idUser = \")(.*)(?=\";)".toRegex().find(bodyText)
                 ?.groupValues?.get(0).toString()
 
             idFile = "(?<=var idfile = \")(.*)(?=\";)".toRegex().find(bodyText)
                 ?.groupValues?.get(0).toString()
         }
-
+        Log.i(this.name, "Result => (idUser, idFile) $idUser / $idFile")
         if (idUser.isNotBlank() && idFile.isNotBlank()) {
             val sess = HttpSession()
             val ajaxHead = mapOf(
