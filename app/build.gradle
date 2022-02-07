@@ -43,7 +43,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
 
-        versionCode 952
+        versionCode 954
         versionName "2.6.11"
 
         resValue "string", "app_version",

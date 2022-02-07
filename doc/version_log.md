@@ -1,3 +1,6 @@
+# CloudStream-3XXX r954
++ Fix for PlayLt extractor not working properly.
+
 # CloudStream-3XXX r952
 + [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/c191d16b01f70e8cd2a89f48810dc0b00f2ab51f).
 + Fix: Issues after merging base.
