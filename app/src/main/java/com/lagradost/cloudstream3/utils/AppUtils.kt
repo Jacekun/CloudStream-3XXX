@@ -378,7 +378,7 @@ object AppUtils {
         } else {
             // Filter API depending on preferred media type
             val mediaTypeList = when (currentPrefMedia) {
-                2 -> listOf(TvType.Anime, TvType.AnimeMovie, TvType.ONA)
+                2 -> listOf(TvType.Anime, TvType.AnimeMovie, TvType.OVA)
                 3 -> listOf(TvType.JAV, TvType.Hentai)
                 else -> listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon, TvType.Documentary)
             }
@@ -395,7 +395,7 @@ object AppUtils {
                 Pair(R.string.torrent, listOf(TvType.Torrent))
             )
             2 -> listOf(
-                Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
+                Pair(R.string.anime, listOf(TvType.Anime, TvType.OVA, TvType.AnimeMovie)),
                 Pair(R.string.torrent, listOf(TvType.Torrent))
             )
             3 -> listOf(
@@ -406,7 +406,7 @@ object AppUtils {
                 Pair(R.string.movies, listOf(TvType.Movie)),
                 Pair(R.string.tv_series, listOf(TvType.TvSeries, TvType.Documentary)),
                 Pair(R.string.cartoons, listOf(TvType.Cartoon)),
-                Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
+                Pair(R.string.anime, listOf(TvType.Anime, TvType.OVA, TvType.AnimeMovie)),
                 Pair(R.string.jav, listOf(TvType.JAV)),
                 Pair(R.string.hentai, listOf(TvType.Hentai)),
                 Pair(R.string.torrent, listOf(TvType.Torrent))

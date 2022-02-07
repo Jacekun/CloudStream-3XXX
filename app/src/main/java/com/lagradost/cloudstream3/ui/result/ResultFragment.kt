@@ -235,6 +235,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 TvType.Cartoon -> "Cartoons/$titleName"
                 TvType.Torrent -> "Torrent"
                 TvType.Documentary -> "Documentaries"
+                else -> "NSFW"
             }
 
             val src = "$DOWNLOAD_NAVIGATE_TO/$parentId" // url ?: return@let
@@ -1583,6 +1584,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                                 TvType.Documentary -> R.string.documentaries_singular
                                 TvType.Movie -> R.string.movies_singular
                                 TvType.Torrent -> R.string.torrent_singular
+                                TvType.JAV -> R.string.jav
+                                TvType.Hentai -> R.string.hentai
                             }
                         )?.let {
                             result_meta_type?.text = it

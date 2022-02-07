@@ -58,20 +58,16 @@ class CrunchyrollProvider : MainAPI() {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
     }
 
-    override val mainUrl: String
-        get() = "http://www.crunchyroll.com"
-    override val name: String
-        get() = "Crunchyroll"
-    override val hasQuickSearch: Boolean
-        get() = false
-    override val hasMainPage: Boolean
-        get() = true
+    override val mainUrl: String get() = "http://www.crunchyroll.com"
+    override val name: String get() = "Crunchyroll"
+    override val hasQuickSearch: Boolean get() = false
+    override val hasMainPage: Boolean get() = true
 
     override val supportedTypes: Set<TvType>
         get() = setOf(
             TvType.AnimeMovie,
             TvType.Anime,
-            TvType.ONA
+            TvType.OVA
         )
 
     override suspend fun getMainPage(): HomePageResponse {

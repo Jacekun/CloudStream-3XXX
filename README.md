@@ -13,15 +13,15 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 [**View release history**](doc/version_log.md)
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/dcb97a1f63326ce70a428acd0a81cfa2b1c8bd86).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/c191d16b01f70e8cd2a89f48810dc0b00f2ab51f).
 + **JAV** sites. *See below table*.
 + **Crunchyroll** site. *Thanks to* [@ArjixWasTaken](https://github.com/ArjixWasTaken)
 
 ## JAV Sites
 | Site | MainPage           | Search | Stream | Remarks |
 |------|--------------------|--------|--------|---------|
-|[JAV Sub](https://javsub.co) |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some ``dood`` servers not loaded.|
-|[JAV HD](https://javhd.icu) |:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some scenes' links aren't loaded.|
+|[JAV Sub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some ``dood`` servers not loaded.|
+|[JAV HD](https://javhd.icu)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some scenes' links aren't loaded.|
 |[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some links not loaded.|
 |[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Vietnamese subbed. CloudFare issues on some areas.|
 |[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
