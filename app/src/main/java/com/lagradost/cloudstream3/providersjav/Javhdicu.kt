@@ -143,12 +143,12 @@ class Javhdicu : MainAPI() {
 
         val recs = body?.select("div.latest-wrapper div.item.active > div")?.mapNotNull {
             val innerAImg = it?.select("div.item-img") ?: return@mapNotNull null
-            val title = it.select("h3 > a")?.text()?.trim() ?: return@mapNotNull null
+            val aName = it.select("h3 > a")?.text()?.trim() ?: return@mapNotNull null
             val aImg = innerAImg.select("img")?.attr("src")
             val aUrl = innerAImg.select("a")?.get(0)?.attr("href") ?: return@mapNotNull null
             MovieSearchResponse(
                 url = aUrl,
-                name = title,
+                name = aName,
                 type = TvType.JAV,
                 posterUrl = aImg,
                 year = null,

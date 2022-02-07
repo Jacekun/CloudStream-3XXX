@@ -6,14 +6,13 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.extractors.DoodWsExtractor
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavSubCo : MainAPI() {
-    override val name: String get() = "JAVSub.co"
+    override val name: String get() = "JAV Sub"
     override val mainUrl: String get() = "https://javsub.co"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = true
@@ -86,20 +85,19 @@ class JavSubCo : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val document = app.get(url).document
-        //Log.i(this.name, "Url => ${url}")
         val body = document.getElementsByTag("body")
-        //Log.i(this.name, "Result => ${body}")
 
         // Video details
-        val content = body.select("div#content").select("div")
-        val title = content.select("nav > p > span").text()
+        val contentmain = body?.select("div#content")
+        val content = contentmain?.select("div")
+        val title = content?.select("nav > p > span")?.text() ?: ""
 
-        val descript = content.select("main > article > div > div")
-            .lastOrNull()?.select("div")?.text()
+        val descript = content?.select("main > article > div > div")
+            ?.lastOrNull()?.select("div")?.text()
         //Log.i(this.name, "Result => ${descript}")
         // Year
         val re = Regex("[^0-9]")
-        var yearString = content.select("main > article > div > div").last()
+        var yearString = content?.select("main > article > div > div")?.last()
             ?.select("p")?.filter { it.text()?.contains("Release Date") == true }
             ?.get(0)?.text()
         yearString = yearString?.split(":")?.get(1)?.trim() ?: ""
@@ -125,6 +123,26 @@ class JavSubCo : MainAPI() {
         }
         //Log.i(this.name, "Result => (poster) ${poster}")
 
+        val tags = content?.select("article.vdeo-single > header a")?.mapNotNull {
+            //Log.i(this.name, "Result => (tag) $it")
+            it?.text()?.trim() ?: return@mapNotNull null
+        }
+
+        val recs = contentmain?.select("section article")?.mapNotNull {
+            val aUrl = it?.selectFirst("a")?.attr("href") ?: return@mapNotNull null
+            val aName = it?.select("header > h2")?.text()?.trim() ?: return@mapNotNull null
+            val aImgMain = it?.select("img")
+            val aImg = aImgMain?.attr("src") ?: aImgMain?.attr("data-lazy-src")
+            MovieSearchResponse(
+                url = aUrl,
+                name = aName,
+                type = TvType.JAV,
+                posterUrl = aImg,
+                year = null,
+                apiName = this.name
+            )
+        }
+
         // Video stream
         val playerIframes: String =  try {
             //Note: Parse as JSON and fetch 'player' property
@@ -140,11 +158,22 @@ class JavSubCo : MainAPI() {
         mapper.readValue<Response>(playerIframes).let {
             streamUrl = it.player?.mapNotNull { iframe ->
                 Jsoup.parse(iframe)?.selectFirst("iframe")
-                    ?.attr("src") ?: return@mapNotNull null
+                    ?.attr("src")?.trim() ?: return@mapNotNull null
             }?.toJson() ?: ""
         }
         //Log.i(this.name, "Result => (streamUrl) $streamUrl")
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, streamUrl, poster, year, descript, null, null)
+        return MovieLoadResponse(
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.JAV,
+            dataUrl = streamUrl,
+            posterUrl = poster,
+            year = year,
+            plot = descript,
+            tags = tags,
+            recommendations = recs
+        )
     }
 
     override suspend fun loadLinks(
@@ -158,7 +187,7 @@ class JavSubCo : MainAPI() {
         if (data == "about:blank") return false
 
         var count = 0
-        mapper.readValue<List<String>>(data).apmap { link->
+        mapper.readValue<List<String>>(data).forEach { link->
             Log.i(this.name, "Result => (link) $link")
             if (link.isNotBlank()) {
                 when {
