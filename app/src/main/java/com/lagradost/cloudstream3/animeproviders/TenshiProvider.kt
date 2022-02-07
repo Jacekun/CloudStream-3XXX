@@ -12,7 +12,6 @@ import org.jsoup.nodes.Document
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class TenshiProvider : MainAPI() {
     companion object {
@@ -20,7 +19,7 @@ class TenshiProvider : MainAPI() {
         //var cookie: Map<String, String> = mapOf()
 
         fun getType(t: String): TvType {
-            return if (t.contains("OVA") || t.contains("Special")) TvType.ONA
+            return if (t.contains("OVA") || t.contains("Special")) TvType.OVA
             else if (t.contains("Movie")) TvType.AnimeMovie
             else TvType.Anime
         }
@@ -30,7 +29,7 @@ class TenshiProvider : MainAPI() {
     override val name = "Tenshi.moe"
     override val hasQuickSearch = false
     override val hasMainPage = true
-    override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie, TvType.ONA)
+    override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie, TvType.OVA)
     private var ddosGuardKiller = DdosGuardKiller(true)
 
     /*private fun loadToken(): Boolean {
@@ -256,10 +255,18 @@ class TenshiProvider : MainAPI() {
             )
         })
 
+        val similarAnime = document.select("ul.anime-loop > li > a")?.mapNotNull { element ->
+            val href = element.attr("href") ?: return@mapNotNull null
+            val title =
+                element.selectFirst("> .overlay > .thumb-title")?.text() ?: return@mapNotNull null
+            val img = element.selectFirst("> img")?.attr("src")
+            AnimeSearchResponse(title, href, this.name, TvType.Anime, img)
+        }
 
         val type = document.selectFirst("a[href*=\"$mainUrl/type/\"]")?.text()?.trim()
 
         return newAnimeLoadResponse(canonicalTitle, url, getType(type ?: "")) {
+            recommendations = similarAnime
             posterUrl = document.selectFirst("img.cover-image")?.attr("src")
             plot = document.selectFirst(".entry-description > .card-body")?.text()?.trim()
             tags =

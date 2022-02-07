@@ -7,7 +7,6 @@ import android.util.Log
 import android.widget.FrameLayout
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
-import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
 import com.google.android.exoplayer2.extractor.ExtractorsFactory
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MergingMediaSource
@@ -19,12 +18,12 @@ import com.google.android.exoplayer2.trackselection.TrackSelector
 import com.google.android.exoplayer2.ui.SubtitleView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.google.android.exoplayer2.util.MimeTypes
 import com.lagradost.cloudstream3.USER_AGENT
-import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.ui.subtitles.SaveCaptionStyle
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -37,11 +36,11 @@ import javax.net.ssl.SSLSession
 const val TAG = "CS3ExoPlayer"
 
 /** Cache */
-private const val cacheSize = 300L * 1024L * 1024L // 300 mb TODO MAKE SETTING
 
 class CS3IPlayer : IPlayer {
     private var isPlaying = false
     private var exoPlayer: ExoPlayer? = null
+    var cacheSize = 300L * 1024L * 1024L // 300 mb
 
     private val seekActionTime = 30000L
 
@@ -221,10 +220,11 @@ class CS3IPlayer : IPlayer {
         }
     }
 
-    private fun releasePlayer() {
+    private fun releasePlayer(saveTime: Boolean = true) {
         Log.i(TAG, "releasePlayer")
 
-        updatedTime()
+        if (saveTime)
+            updatedTime()
 
         exoPlayer?.release()
         simpleCache?.release()
@@ -265,7 +265,7 @@ class CS3IPlayer : IPlayer {
     companion object {
         private fun createOnlineSource(link: ExtractorLink): DataSource.Factory {
             // Because Trailers.to seems to fail with http/1.1 the normal one uses.
-            return OkHttpDataSource.Factory(app.baseClient).apply {
+            return DefaultHttpDataSource.Factory().apply {
                 setUserAgent(USER_AGENT)
                 val headers = mapOf(
                     "referer" to link.referer,
@@ -279,7 +279,7 @@ class CS3IPlayer : IPlayer {
                 setDefaultRequestProperties(headers)
 
                 //https://stackoverflow.com/questions/69040127/error-code-io-bad-http-status-exoplayer-android
-//                setAllowCrossProtocolRedirects(true)
+                setAllowCrossProtocolRedirects(true)
             }
         }
 
@@ -554,6 +554,16 @@ class CS3IPlayer : IPlayer {
                     updatedTime()
                     if (!hasUsedFirstRender) { // this insures that we only call this once per player load
                         Log.i(TAG, "Rendered first frame")
+
+                        val invalid = exoPlayer?.duration?.let { duration ->
+                            duration < 20000L
+                        } ?: false
+                        if (invalid) {
+                            releasePlayer(saveTime = false)
+                            playerError?.invoke(InvalidFileException("Too short playback"))
+                            return
+                        }
+
                         setPreferredSubtitles(currentSubtitles)
                         hasUsedFirstRender = true
                         val format = exoPlayer?.videoFormat

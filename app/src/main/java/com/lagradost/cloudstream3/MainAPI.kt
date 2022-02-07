@@ -46,6 +46,10 @@ object APIHolder {
         DubbedAnimeProvider(),
         DoramasYTProvider(),
         CinecalidadProvider(),
+        CuevanaProvider(),
+        EntrepeliculasyseriesProvider(),
+        PelisflixProvider(),
+        SeriesflixProvider(),
         IHaveNoTvProvider(), // Documentaries provider
         //LookMovieProvider(), // RECAPTCHA (Please allow up to 5 seconds...)
         VMoveeProvider(),
@@ -77,6 +81,7 @@ object APIHolder {
         WatchAsianProvider(),
         KdramaHoodProvider(),
         AkwamProvider(),
+        AnimePaheProvider(),
 
         // All of JAV sources
         Javhdicu(),
@@ -199,18 +204,19 @@ object APIHolder {
         return realSet
     }
 
-    fun Context.filterProviderByPreferredMedia(hasHomePageIsRequired : Boolean = true): List<MainAPI> {
+    fun Context.filterProviderByPreferredMedia(hasHomePageIsRequired: Boolean = true): List<MainAPI> {
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
         val currentPrefMedia =
             settingsManager.getInt(this.getString(R.string.prefer_media_type_key), 0)
         val langs = this.getApiProviderLangSettings()
-        val allApis = apis.filter { langs.contains(it.lang) }.filter { api -> api.hasMainPage || !hasHomePageIsRequired}
+        val allApis = apis.filter { langs.contains(it.lang) }
+            .filter { api -> api.hasMainPage || !hasHomePageIsRequired }
         return if (currentPrefMedia < 1) {
             allApis
         } else {
             // Filter API depending on preferred media type
             val mediaTypeList = when (currentPrefMedia) {
-                2 -> listOf(TvType.Anime, TvType.AnimeMovie, TvType.ONA)
+                2 -> listOf(TvType.Anime, TvType.AnimeMovie, TvType.OVA)
                 3 -> listOf(TvType.JAV, TvType.Hentai)
                 else -> listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon, TvType.Documentary)
             }
@@ -248,7 +254,7 @@ abstract class MainAPI {
         TvType.TvSeries,
         TvType.Cartoon,
         TvType.Anime,
-        TvType.ONA,
+        TvType.OVA,
     )
 
     open val vpnStatus = VPNStatus.None
@@ -402,7 +408,7 @@ enum class TvType {
     TvSeries,
     Cartoon,
     Anime,
-    ONA,
+    OVA,
     Torrent,
     Documentary,
     JAV,
@@ -416,7 +422,7 @@ fun TvType.isMovieType(): Boolean {
 
 // returns if the type has an anime opening
 fun TvType.isAnimeOp(): Boolean {
-    return this == TvType.Anime || this == TvType.ONA
+    return this == TvType.Anime || this == TvType.OVA
 }
 
 data class SubtitleFile(val lang: String, val url: String)
@@ -438,6 +444,24 @@ interface SearchResponse {
     val posterUrl: String?
     val id: Int?
 }
+
+enum class ActorRole {
+    Main,
+    Supporting,
+    Background,
+}
+
+data class Actor(
+    val name: String,
+    val image: String? = null,
+)
+
+data class ActorData(
+    val actor: Actor,
+    val role: ActorRole? = null,
+    val roleString : String? = null,
+    val voiceActor: Actor? = null,
+)
 
 data class AnimeSearchResponse(
     override val name: String,
@@ -472,7 +496,7 @@ data class MovieSearchResponse(
     override val type: TvType,
 
     override val posterUrl: String?,
-    val year: Int?,
+    val year: Int? = null,
     override val id: Int? = null,
 ) : SearchResponse
 
@@ -496,11 +520,54 @@ interface LoadResponse {
     val posterUrl: String?
     val year: Int?
     val plot: String?
-    val rating: Int? // 0-100
+    val rating: Int? // 1-1000
     val tags: List<String>?
     var duration: Int? // in minutes
     val trailerUrl: String?
     val recommendations: List<SearchResponse>?
+    var actors: List<ActorData>?
+
+    companion object {
+        @JvmName("addActorNames")
+        fun LoadResponse.addActors(actors: List<String>?) {
+            this.actors = actors?.map { ActorData(Actor(it)) }
+        }
+
+        @JvmName("addActors")
+        fun LoadResponse.addActors(actors: List<Pair<Actor, String?>>?) {
+            this.actors = actors?.map { (actor, role) -> ActorData(actor, roleString = role) }
+        }
+
+        @JvmName("addActorsRole")
+        fun LoadResponse.addActors(actors: List<Pair<Actor, ActorRole?>>?) {
+            this.actors = actors?.map { (actor, role) -> ActorData(actor, role = role) }
+        }
+
+        @JvmName("addActorsOnly")
+        fun LoadResponse.addActors(actors: List<Actor>?) {
+            this.actors = actors?.map { actor -> ActorData(actor) }
+        }
+
+        fun LoadResponse.setDuration(input: String?) {
+            val cleanInput = input?.trim()?.replace(" ","") ?: return
+            Regex("([0-9]*)h.*?([0-9]*)m").find(cleanInput)?.groupValues?.let { values ->
+                if (values.size == 3) {
+                    val hours = values[1].toIntOrNull()
+                    val minutes = values[2].toIntOrNull()
+                    this.duration = if (minutes != null && hours != null) {
+                        hours * 60 + minutes
+                    } else null
+                    if (this.duration != null) return
+                }
+            }
+            Regex("([0-9]*)m").find(cleanInput)?.groupValues?.let { values ->
+                if (values.size == 2) {
+                    this.duration = values[1].toIntOrNull()
+                    if (this.duration != null) return
+                }
+            }
+        }
+    }
 }
 
 fun LoadResponse?.isEpisodeBased(): Boolean {
@@ -510,7 +577,7 @@ fun LoadResponse?.isEpisodeBased(): Boolean {
 
 fun LoadResponse?.isAnimeBased(): Boolean {
     if (this == null) return false
-    return (this.type == TvType.Anime || this.type == TvType.ONA) // && (this is AnimeLoadResponse)
+    return (this.type == TvType.Anime || this.type == TvType.OVA) // && (this is AnimeLoadResponse)
 }
 
 fun TvType?.isEpisodeBased(): Boolean {
@@ -543,6 +610,7 @@ data class TorrentLoadResponse(
     override var duration: Int? = null,
     override var trailerUrl: String? = null,
     override var recommendations: List<SearchResponse>? = null,
+    override var actors: List<ActorData>? = null,
 ) : LoadResponse
 
 data class AnimeLoadResponse(
@@ -569,6 +637,7 @@ data class AnimeLoadResponse(
     override var duration: Int? = null,
     override var trailerUrl: String? = null,
     override var recommendations: List<SearchResponse>? = null,
+    override var actors: List<ActorData>? = null,
 ) : LoadResponse
 
 fun AnimeLoadResponse.addEpisodes(status: DubStatus, episodes: List<AnimeEpisode>?) {
@@ -604,6 +673,7 @@ data class MovieLoadResponse(
     override var duration: Int? = null,
     override var trailerUrl: String? = null,
     override var recommendations: List<SearchResponse>? = null,
+    override var actors: List<ActorData>? = null,
 ) : LoadResponse
 
 fun MainAPI.newMovieLoadResponse(
@@ -622,24 +692,6 @@ fun MainAPI.newMovieLoadResponse(
     )
     builder.initializer()
     return builder
-}
-
-fun LoadResponse.setDuration(input: String?) {
-    if (input == null) return
-    Regex("([0-9]*)h.*?([0-9]*)m").matchEntire(input)?.groupValues?.let { values ->
-        if (values.size == 3) {
-            val hours = values[1].toIntOrNull()
-            val minutes = values[2].toIntOrNull()
-            this.duration = if (minutes != null && hours != null) {
-                hours * 60 + minutes
-            } else null
-        }
-    }
-    Regex("([0-9]*)m").matchEntire(input)?.groupValues?.let { values ->
-        if (values.size == 2) {
-            this.duration = values[1].toIntOrNull()
-        }
-    }
 }
 
 data class TvSeriesEpisode(
@@ -671,6 +723,7 @@ data class TvSeriesLoadResponse(
     override var duration: Int? = null,
     override var trailerUrl: String? = null,
     override var recommendations: List<SearchResponse>? = null,
+    override var actors: List<ActorData>? = null,
 ) : LoadResponse
 
 fun MainAPI.newTvSeriesLoadResponse(
@@ -695,6 +748,7 @@ fun fetchUrls(text: String?): List<String> {
     if (text.isNullOrEmpty()) {
         return listOf()
     }
-    val linkRegex = Regex("""(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*))""")
+    val linkRegex =
+        Regex("""(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*))""")
     return linkRegex.findAll(text).map { it.value.trim().removeSurrounding("\"") }.toList()
 }

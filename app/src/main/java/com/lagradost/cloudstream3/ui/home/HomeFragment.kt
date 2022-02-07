@@ -48,11 +48,11 @@ import com.lagradost.cloudstream3.utils.DataStoreHelper.removeLastWatched
 import com.lagradost.cloudstream3.utils.DataStoreHelper.setResultWatchState
 import com.lagradost.cloudstream3.utils.Event
 import com.lagradost.cloudstream3.utils.HOMEPAGE_API
+import com.lagradost.cloudstream3.utils.SingleSelectionHelper.showOptionSelectStringRes
 import com.lagradost.cloudstream3.utils.UIHelper.dismissSafe
 import com.lagradost.cloudstream3.utils.UIHelper.fixPaddingStatusbar
 import com.lagradost.cloudstream3.utils.UIHelper.fixPaddingStatusbarView
 import com.lagradost.cloudstream3.utils.UIHelper.getSpanCount
-import com.lagradost.cloudstream3.utils.UIHelper.popupMenuNoIcons
 import com.lagradost.cloudstream3.utils.UIHelper.popupMenuNoIconsAndNoStringRes
 import com.lagradost.cloudstream3.utils.UIHelper.setImage
 import com.lagradost.cloudstream3.utils.UIHelper.setImageBlur
@@ -115,7 +115,7 @@ class HomeFragment : Fragment() {
             // Span settings
             recycle.spanCount = currentSpan
 
-            recycle.adapter = SearchAdapter(item.list, recycle) { callback ->
+            recycle.adapter = SearchAdapter(item.list.toMutableList(), recycle) { callback ->
                 handleSearchClickCallback(this, callback)
                 if (callback.action == SEARCH_ACTION_LOAD || callback.action == SEARCH_ACTION_PLAY_FILE) {
                     bottomSheetDialogBuilder.dismissSafe(this)
@@ -147,7 +147,7 @@ class HomeFragment : Fragment() {
             nsfw: MaterialButton?
         ): List<Pair<MaterialButton?, List<TvType>>> {
             return listOf(
-                Pair(anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
+                Pair(anime, listOf(TvType.Anime, TvType.OVA, TvType.AnimeMovie)),
                 Pair(cartoons, listOf(TvType.Cartoon)),
                 Pair(tvs, listOf(TvType.TvSeries)),
                 Pair(docs, listOf(TvType.Documentary)),
@@ -378,7 +378,7 @@ class HomeFragment : Fragment() {
                     Pair(R.string.tv_series, listOf(TvType.TvSeries)),
                     Pair(R.string.documentaries, listOf(TvType.Documentary)),
                     Pair(R.string.cartoons, listOf(TvType.Cartoon)),
-                    Pair(R.string.anime, listOf(TvType.Anime, TvType.ONA, TvType.AnimeMovie)),
+                    Pair(R.string.anime, listOf(TvType.Anime, TvType.OVA, TvType.AnimeMovie)),
                     Pair(R.string.torrent, listOf(TvType.Torrent)),
                     Pair(R.string.jav, listOf(TvType.JAV)),
                     Pair(R.string.hentai, listOf(TvType.Hentai))
@@ -601,19 +601,62 @@ class HomeFragment : Fragment() {
             nextFocusDown = home_bookmarked_child_recyclerview?.nextFocusDownId
         ) { callback ->
             if (callback.action == SEARCH_ACTION_SHOW_METADATA) {
-                val id = callback.card.id
-                if (id != null) {
-                    callback.view.popupMenuNoIcons(
-                        listOf(
-                            Pair(
-                                0,
-                                R.string.action_remove_from_bookmarks
+                activity?.showOptionSelectStringRes(
+                    callback.view,
+                    callback.card.posterUrl,
+                    listOf(
+                        R.string.action_open_watching,
+                        R.string.action_remove_from_bookmarks,
+                    ),
+                    listOf(
+                        R.string.action_open_play,
+                        R.string.action_open_watching,
+                        R.string.action_remove_from_bookmarks
+                    )
+                ) { (isTv, actionId) ->
+                    fun play() {
+                        activity.loadSearchResult(callback.card, START_ACTION_RESUME_LATEST)
+                        reloadStored()
+                    }
+
+                    fun remove() {
+                        setResultWatchState(callback.card.id, WatchType.NONE.internalId)
+                        reloadStored()
+                    }
+
+                    fun info() {
+                        handleSearchClickCallback(
+                            activity,
+                            SearchClickCallback(
+                                SEARCH_ACTION_LOAD,
+                                callback.view,
+                                -1,
+                                callback.card
                             )
                         )
-                    ) {
-                        if (itemId == 0) {
-                            setResultWatchState(id, WatchType.NONE.internalId)
-                            reloadStored()
+                        reloadStored()
+                    }
+
+                    if (isTv) {
+                        when (actionId) {
+                            0 -> {
+                                play()
+                            }
+                            1 -> {
+                                info()
+                            }
+                            2 -> {
+                                remove()
+                            }
+                        }
+                    } else {
+                        when (actionId) {
+                            0 -> {
+                                info()
+                            }
+                            1 -> {
+                                remove()
+                            }
                         }
                     }
                 }
@@ -628,34 +671,68 @@ class HomeFragment : Fragment() {
             nextFocusDown = home_watch_child_recyclerview?.nextFocusDownId
         ) { callback ->
             if (callback.action == SEARCH_ACTION_SHOW_METADATA) {
-                val id = callback.card.id
-                if (id != null) {
-                    callback.view.popupMenuNoIcons(
-                        listOf(
-                            Pair(1, R.string.action_open_watching),
-                            Pair(0, R.string.action_remove_watching)
-                        )
-                    ) {
-                        if (itemId == 1) {
-                            handleSearchClickCallback(
-                                activity,
-                                SearchClickCallback(
-                                    SEARCH_ACTION_LOAD,
-                                    callback.view,
-                                    -1,
-                                    callback.card
-                                )
-                            )
+                activity?.showOptionSelectStringRes(
+                    callback.view,
+                    callback.card.posterUrl,
+                    listOf(
+                        R.string.action_open_watching,
+                        R.string.action_remove_watching
+                    ),
+                    listOf(
+                        R.string.action_open_play,
+                        R.string.action_open_watching,
+                        R.string.action_remove_watching
+                    )
+                ) { (isTv, actionId) ->
+                    fun play() {
+                        activity.loadSearchResult(callback.card, START_ACTION_RESUME_LATEST)
+                        reloadStored()
+                    }
+
+                    fun remove() {
+                        val card = callback.card
+                        if (card is DataStoreHelper.ResumeWatchingResult) {
+                            removeLastWatched(card.parentId)
                             reloadStored()
                         }
-                        if (itemId == 0) {
-                            val card = callback.card
-                            if (card is DataStoreHelper.ResumeWatchingResult) {
-                                removeLastWatched(card.parentId)
-                                reloadStored()
+                    }
+
+                    fun info() {
+                        handleSearchClickCallback(
+                            activity,
+                            SearchClickCallback(
+                                SEARCH_ACTION_LOAD,
+                                callback.view,
+                                -1,
+                                callback.card
+                            )
+                        )
+                        reloadStored()
+                    }
+
+                    if (isTv) {
+                        when (actionId) {
+                            0 -> {
+                                play()
+                            }
+                            1 -> {
+                                info()
+                            }
+                            2 -> {
+                                remove()
+                            }
+                        }
+                    } else {
+                        when (actionId) {
+                            0 -> {
+                                info()
+                            }
+                            1 -> {
+                                remove()
                             }
                         }
                     }
+
                 }
             } else {
                 homeHandleSearch(callback)
@@ -706,10 +783,10 @@ class HomeFragment : Fragment() {
         home_loaded.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { view, _, scrollY, _, oldScrollY ->
             val dy = scrollY - oldScrollY
             if (dy > 0) { //check for scroll down
-                home_api_fab?.hide()
+                home_api_fab?.shrink() // hide
             } else if (dy < -5) {
                 if (view?.context?.isTvSettings() == false) {
-                    home_api_fab?.show()
+                    home_api_fab?.extend() // show
                 }
             }
         })

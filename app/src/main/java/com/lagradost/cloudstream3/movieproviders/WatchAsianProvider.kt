@@ -2,7 +2,7 @@ package com.lagradost.cloudstream3.movieproviders
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.*
+import com.lagradost.cloudstream3.extractors.XStreamCdn
 import com.lagradost.cloudstream3.extractors.helper.AsianEmbedHelper
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -98,6 +98,7 @@ class WatchAsianProvider : MainAPI() {
         var title = ""
         var descript : String? = null
         var year : Int? = null
+        var tags : List<String>? = null
         if (isDramaDetail) {
             val main = body.select("div.details")
             val inner = main?.select("div.info")
@@ -105,20 +106,33 @@ class WatchAsianProvider : MainAPI() {
             poster = fixUrlNull(main?.select("div.img > img")?.attr("src")) ?: ""
             //Log.i(this.name, "Result => (imgLinkCode) ${imgLinkCode}")
             title = inner?.select("h1")?.firstOrNull()?.text() ?: ""
-            year = if (title.length > 5) {
-                title.replace(")", "").replace("(", "").substring(title.length - 5)
-                    .trim().trimEnd(')').toIntOrNull()
-            } else {
-                null
-            }
             //Log.i(this.name, "Result => (year) ${title.substring(title.length - 5)}")
             descript = inner?.text()
+
+            inner?.select("p")?.forEach { p ->
+                val caption = p?.selectFirst("span")?.text()?.trim()?.lowercase()?.removeSuffix(":")?.trim() ?: return@forEach
+                when (caption) {
+                    "genre" -> {
+                        tags = p.select("a")?.mapNotNull { it?.text()?.trim() }
+                    }
+                    "released" -> {
+                        year = p.select("a")?.text()?.trim()?.toIntOrNull()
+                    }
+                }
+            }
         } else {
             poster = body.select("meta[itemprop=\"image\"]")?.attr("content") ?: ""
             title = body.selectFirst("div.block.watch-drama")?.selectFirst("h1")
                 ?.text() ?: ""
             year = null
             descript = body.select("meta[name=\"description\"]")?.attr("content")
+        }
+        //Fallback year from title
+        if (year == null) {
+            year = if (title.length > 5) {
+                title.replace(")", "").replace("(", "").substring(title.length - 5)
+                    .trim().trimEnd(')').toIntOrNull()
+            } else { null }
         }
 
         // Episodes Links
@@ -144,23 +158,31 @@ class WatchAsianProvider : MainAPI() {
         //If there's only 1 episode, consider it a movie.
         if (episodeList.size == 1) {
             //Clean title
-            title = title.removeSuffix("Episode 1")
+            title = title.trim().removeSuffix("Episode 1")
             val streamlink = getServerLinks(episodeList[0].data)
             //Log.i(this.name, "Result => (streamlink) $streamlink")
-            return MovieLoadResponse(title, url, this.name, TvType.Movie, streamlink, poster, year, descript, null, null)
+            return MovieLoadResponse(
+                name = title,
+                url = url,
+                apiName = this.name,
+                type = TvType.Movie,
+                dataUrl = streamlink,
+                posterUrl = poster,
+                year = year,
+                plot = descript,
+                tags = tags
+            )
         }
         return TvSeriesLoadResponse(
-            title,
-            url,
-            this.name,
-            TvType.TvSeries,
-            episodeList.reversed(),
-            poster,
-            year,
-            descript,
-            null,
-            null,
-            null
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.TvSeries,
+            episodes = episodeList.reversed(),
+            posterUrl = poster,
+            year = year,
+            plot = descript,
+            tags = tags
         )
     }
 
@@ -178,11 +200,20 @@ class WatchAsianProvider : MainAPI() {
             count++
             val url = fixUrl(item.trim())
             //Log.i(this.name, "Result => (url) $url")
-            if (url.startsWith("https://asianembed.io")) {
-                // Fetch links
-                AsianEmbedHelper.getUrls(url, callback)
-            } else {
-                loadExtractor(url, mainUrl, callback)
+            when {
+                url.startsWith("https://asianembed.io") || url.startsWith("https://asianload.io") -> {
+                    AsianEmbedHelper.getUrls(url, callback)
+                }
+                url.startsWith("https://embedsito.com") -> {
+                    val extractor = XStreamCdn()
+                    extractor.domainUrl = "embedsito.com"
+                    extractor.getSafeUrl(url)?.apmap { link ->
+                        callback.invoke(link)
+                    }
+                }
+                else -> {
+                    loadExtractor(url, mainUrl, callback)
+                }
             }
         }
         return count > 0

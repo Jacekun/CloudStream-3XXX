@@ -1,13 +1,11 @@
 package com.lagradost.cloudstream3.network
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.lagradost.cloudstream3.R
-import com.lagradost.cloudstream3.USER_AGENT
-import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.mapper
+import com.lagradost.cloudstream3.*
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,7 +18,12 @@ import org.jsoup.nodes.Document
 import java.io.File
 import java.io.IOException
 import java.net.URI
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import kotlin.coroutines.resumeWithException
 
 
@@ -213,6 +216,27 @@ fun putRequestCreator(
         .build()
 }
 
+// https://stackoverflow.com/a/59322754
+// Issues with Akwam otherwise
+fun OkHttpClient.Builder.ignoreAllSSLErrors(): OkHttpClient.Builder {
+    val naiveTrustManager = @SuppressLint("CustomX509TrustManager")
+    object : X509TrustManager {
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) = Unit
+        override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) = Unit
+    }
+
+    val insecureSocketFactory = SSLContext.getInstance("TLSv1.2").apply {
+        val trustAllCerts = arrayOf<TrustManager>(naiveTrustManager)
+        init(null, trustAllCerts, SecureRandom())
+    }.socketFactory
+
+    sslSocketFactory(insecureSocketFactory, naiveTrustManager)
+    hostnameVerifier { _, _ -> true }
+    return this
+}
+
+
 open class Requests {
     var baseClient = OkHttpClient()
 
@@ -222,6 +246,7 @@ open class Requests {
         baseClient = OkHttpClient.Builder()
             .followRedirects(true)
             .followSslRedirects(true)
+            .ignoreAllSSLErrors()
             .cache(
                 // Note that you need to add a ResponseInterceptor to make this 100% active.
                 // The server response dictates if and when stuff should be cached.
@@ -294,6 +319,10 @@ open class Requests {
             .followRedirects(allowRedirects)
             .followSslRedirects(allowRedirects)
             .callTimeout(timeout, TimeUnit.SECONDS)
+        if (timeout > 0)
+            client
+                .connectTimeout(timeout, TimeUnit.SECONDS)
+                .readTimeout(timeout, TimeUnit.SECONDS)
 
         if (interceptor != null) client.addInterceptor(interceptor)
         val request =
