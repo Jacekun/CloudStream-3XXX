@@ -150,7 +150,7 @@ class Javhdicu : MainAPI() {
                 url,
                 this.name,
                 TvType.JAV,
-                sceneList.filter { it.data.isNotEmpty() },
+                sceneList.filter { it.data.isNotBlank() },
                 poster,
                 year,
                 descript,
@@ -206,6 +206,6 @@ class Javhdicu : MainAPI() {
         }?.toList()
 
     private fun List<String>.removeInvalidLinks(): String =
-        this.filter { a -> a.isNotEmpty() && !a.startsWith("https://a.realsrv.com") }.toJson()
+        this.filter { a -> a.isNotBlank() && !a.startsWith("https://a.realsrv.com") }.toJson()
 
 }

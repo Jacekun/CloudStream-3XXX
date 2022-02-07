@@ -48,7 +48,7 @@ class StreamLare: ExtractorApi() {
                         //Log.i(this.name, "Result => (item.src) ${item.src}")
                         //Log.i(this.name, "Result => (item.label) ${item.label}")
 
-                        if (linkUrl.isNotEmpty()) {
+                        if (linkUrl.isNotBlank()) {
                             extractedLinksList.add(
                                 ExtractorLink(
                                     source = name,

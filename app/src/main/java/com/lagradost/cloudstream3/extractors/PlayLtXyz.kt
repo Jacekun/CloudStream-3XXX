@@ -34,7 +34,7 @@ class PlayLtXyz: ExtractorApi() {
             }
         }
 
-        if (!bodyText.isNullOrEmpty()) {
+        if (!bodyText.isNotBlank()) {
             idUser = "(?<=var idUser = \")(.*)(?=\";)".toRegex().find(bodyText)
                 ?.groupValues?.get(0).toString()
 
@@ -42,7 +42,7 @@ class PlayLtXyz: ExtractorApi() {
                 ?.groupValues?.get(0).toString()
         }
 
-        if (idUser.isNotEmpty() && idFile.isNotEmpty()) {
+        if (idUser.isNotBlank() && idFile.isNotBlank()) {
             val sess = HttpSession()
             val ajaxHead = mapOf(
                 Pair("Origin", "https://play.playlt.xyz"),
@@ -65,7 +65,7 @@ class PlayLtXyz: ExtractorApi() {
                 Log.i(this.name, "Result => (data) $itemstr")
                 mapper.readValue<ResponseData>(itemstr).let { item ->
                     val linkUrl = item.data ?: ""
-                    if (linkUrl.isNotEmpty()) {
+                    if (linkUrl.isNotBlank()) {
                         extractedLinksList.add(
                             ExtractorLink(
                                 source = name,

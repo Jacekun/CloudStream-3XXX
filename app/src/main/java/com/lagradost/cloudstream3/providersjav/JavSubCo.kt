@@ -109,7 +109,7 @@ class JavSubCo : MainAPI() {
         // Poster Image
         var posterElement = body.select("script.yoast-schema-graph")?.toString() ?: ""
         val posterId = "\"contentUrl\":"
-        val poster = when (posterElement.isNotEmpty()) {
+        val poster = when (posterElement.isNotBlank()) {
             true -> {
                 try {
                     posterElement = posterElement.substring(posterElement.indexOf(url.trimEnd('/') + "/#primaryimage"))
@@ -160,7 +160,7 @@ class JavSubCo : MainAPI() {
         var count = 0
         mapper.readValue<List<String>>(data).apmap { link->
             Log.i(this.name, "Result => (link) $link")
-            if (link.isNotEmpty()) {
+            if (link.isNotBlank()) {
                 when {
                     link.contains("watch-jav") -> {
                         val extractor = FEmbed()
