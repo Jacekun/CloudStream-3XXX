@@ -12,7 +12,7 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
 class Javhdicu : MainAPI() {
-    override val name: String get() = "JAVHD.icu"
+    override val name: String get() = "JAV HD"
     override val mainUrl: String get() = "https://javhd.icu"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = true
@@ -92,12 +92,12 @@ class Javhdicu : MainAPI() {
             //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
 
             MovieSearchResponse(
-                title,
-                link,
-                this.name,
-                TvType.JAV,
-                image,
-                year
+                name = title,
+                url = link,
+                apiName = this.name,
+                type = TvType.JAV,
+                posterUrl = image,
+                year = year
             )
         }?.distinctBy { it.url } ?: return listOf()
     }
@@ -109,21 +109,52 @@ class Javhdicu : MainAPI() {
             ?.select("div.col-md-8.col-sm-12.main-content")
             ?.firstOrNull()
         //Log.i(this.name, "Result => ${body}")
-        val innerBody = body?.select("div.video-details > div.post-entry")
+        val videoDetailsEl = body?.select("div.video-details")
+        val innerBody = videoDetailsEl?.select("div.post-entry")
         val innerDiv = innerBody?.select("div")?.firstOrNull()
 
         // Video details
         val poster = innerDiv?.select("img")?.attr("src")
-        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.removeSurrounding("JAV HD") ?: "<No Title>"
-        val descript = innerBody?.select("p")?.firstOrNull()?.text()
+        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.trim()?.removePrefix("JAV HD") ?: "<No Title>"
+        val descript = innerBody?.select("p")?.get(0)?.text()
         //Log.i(this.name, "Result => (innerDiv) ${innerDiv}")
 
         val re = Regex("[^0-9]")
-        var yearString = body?.select("div.video-details > span.date")?.firstOrNull()?.text()
+        var yearString = videoDetailsEl?.select("span.date")?.firstOrNull()?.text()
         //Log.i(this.name, "Result => (yearString) ${yearString}")
         yearString = yearString?.let { re.replace(it, "").trim() }
         //Log.i(this.name, "Result => (yearString) ${yearString}")
         val year = yearString?.takeLast(4)?.toIntOrNull()
+        val tags = mutableListOf<String>()
+        videoDetailsEl?.select("span.meta")?.forEach {
+            //Log.i(this.name, "Result => (span meta) $it")
+            val caption = it?.selectFirst("span.meta-info")?.text()?.trim()?.lowercase() ?: ""
+            when (caption) {
+                "category", "tag" -> {
+                    val tagtexts = it.select("a")?.mapNotNull { tag ->
+                        tag?.text()?.trim() ?: return@mapNotNull null
+                    } ?: listOf()
+                    if (tagtexts.isNotEmpty()) {
+                        tags.addAll(tagtexts.filter { a -> a.isNotBlank() }.distinct())
+                    }
+                }
+            }
+        }
+
+        val recs = body?.select("div.latest-wrapper div.item.active > div")?.mapNotNull {
+            val innerAImg = it?.select("div.item-img") ?: return@mapNotNull null
+            val title = it.select("h3 > a")?.text()?.trim() ?: return@mapNotNull null
+            val aImg = innerAImg.select("img")?.attr("src")
+            val aUrl = innerAImg.select("a")?.get(0)?.attr("href") ?: return@mapNotNull null
+            MovieSearchResponse(
+                url = aUrl,
+                name = title,
+                type = TvType.JAV,
+                posterUrl = aImg,
+                year = null,
+                apiName = this.name
+            )
+        }
 
         // Video links, find if it contains multiple scene links
         //val sceneList = mutableListOf<TvSeriesEpisode>()
@@ -146,21 +177,31 @@ class Javhdicu : MainAPI() {
         }?.filterNotNull() ?: listOf()
         if (sceneList.isNotEmpty()) {
             return TvSeriesLoadResponse(
-                title,
-                url,
-                this.name,
-                TvType.JAV,
-                sceneList.filter { it.data.isNotBlank() },
-                poster,
-                year,
-                descript,
-                null,
-                null,
-                null
+                name = title,
+                url = url,
+                apiName = this.name,
+                type = TvType.JAV,
+                episodes = sceneList.filter { it.data.isNotBlank() },
+                posterUrl = poster,
+                year = year,
+                plot = descript,
+                tags = tags,
+                recommendations = recs
             )
         }
         val videoLinks = body?.getValidLinks()?.removeInvalidLinks() ?: ""
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, videoLinks, poster, year, descript, null, null)
+        return MovieLoadResponse(
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.JAV,
+            dataUrl = videoLinks ,
+            posterUrl = poster,
+            year = year,
+            plot = descript,
+            tags = tags,
+            recommendations = recs
+        )
     }
 
     override suspend fun loadLinks(
