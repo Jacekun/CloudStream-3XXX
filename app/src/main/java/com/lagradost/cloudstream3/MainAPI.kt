@@ -97,6 +97,7 @@ object APIHolder {
         Javclcom(),
 
         Xvideos(),
+        Pornhub(),
     )
 
     val restrictedApis = arrayListOf(
