@@ -29,14 +29,30 @@ class Pornhub:MainAPI() {
                 val home = soup.select("div.sectionWrapper div.wrap").map {
                     val title = it.selectFirst("span.title a").text()
                     val link = it.selectFirst("a").attr("href")
-                    TvSeriesSearchResponse(
+                    val img = try {
+                        it.selectFirst("img").attr("data-src")
+                    } catch (e:Exception) {
+                        it.selectFirst("img").attr("data-mediabook")
+                    }
+                    catch (e:Exception) {
+                        it.selectFirst("img").attr("alt")
+                    }
+                    catch (e:Exception) {
+                        it.selectFirst("img").attr("data-mediumthumb")
+                    }
+                    catch (e:Exception) {
+                        it.selectFirst("img").attr("data-thumb_url")
+                    }
+                    catch (e:Exception) {
+                        it.selectFirst("img").attr("src")
+                    }
+                    MovieSearchResponse(
                         title,
                         fixUrl(link),
                         this.name,
                         TvType.Movie,
-                        it.selectFirst("img").attr("data-src"),
-                        null,
-                        null,
+                        img,
+                        null
                     )
                 }
 
@@ -56,7 +72,23 @@ class Pornhub:MainAPI() {
         return document.select("div.sectionWrapper div.wrap").map {
             val title = it.selectFirst("span.title a").text()
             val href = it.selectFirst("a").attr("href")
-            val image = it.selectFirst("img").attr("data-src")
+            val image = try {
+                it.selectFirst("img").attr("data-src")
+            } catch (e:Exception) {
+                it.selectFirst("img").attr("data-mediabook")
+            }
+            catch (e:Exception) {
+                it.selectFirst("img").attr("alt")
+            }
+            catch (e:Exception) {
+                it.selectFirst("img").attr("data-mediumthumb")
+            }
+            catch (e:Exception) {
+                it.selectFirst("img").attr("data-thumb_url")
+            }
+            catch (e:Exception) {
+                it.selectFirst("img").attr("src")
+            }
             MovieSearchResponse(
                 title,
                 fixUrl(href),
