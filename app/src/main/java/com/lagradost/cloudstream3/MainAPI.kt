@@ -94,7 +94,9 @@ object APIHolder {
         JavGuru(),
         HpJavTv(),
         JavMost(),
-        Javclcom()
+        Javclcom(),
+
+        Xvideos(),
     )
 
     val restrictedApis = arrayListOf(
