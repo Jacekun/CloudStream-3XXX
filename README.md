@@ -14,27 +14,28 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 
 ## Features
 + All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/c191d16b01f70e8cd2a89f48810dc0b00f2ab51f).
-+ **JAV** sites. *See below table*.
++ **NSFW** sites. *See below table*.
 + **Crunchyroll** site. *Thanks to* [@ArjixWasTaken](https://github.com/ArjixWasTaken)
 
-## JAV Sites
-| Site | MainPage           | Search | Stream | Remarks |
-|------|--------------------|--------|--------|---------|
-|[JAV Sub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some ``dood`` servers not loaded.|
-|[JAV HD](https://javhd.icu)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some scenes' links aren't loaded.|
-|[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Some links not loaded.|
-|[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Vietnamese subbed. CloudFare issues on some areas.|
-|[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
-|[JavFree sh](https://javfree.sh/)|:heavy_check_mark:|:heavy_check_mark:|:x:|Can extract StreamSB links.|
-|[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
-|[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
-|[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|:x:|-|
-|[Javcl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|-|
-|[Javgg](https://javgg.net/)|:x:|:x:|:x:|-|
-|[VJav](https://vjav.com)|:x:|:x:|:x:|-|
-|[JavRave Club](https://javrave.club)|:x:|:x:|:x:|-|
-|[Avgle](https://avgle.com)|:x:|:x:|:x:|-|
-|[JAV Junkies](http://www.javjunkies.com)|:x:|:x:|:x:|-|
+## NSFW Sites
+| Site | MainPage           | Search | Stream | Types | Remarks |
+|------|--------------------|--------|--------|---------|---------|
+|[JAV Sub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some ``dood`` servers not loaded.|
+|[JAV HD](https://javhd.icu)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some scenes' links aren't loaded.|
+|[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some links not loaded.|
+|[Xvideos](https://www.xvideos.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|-|
+|[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Vietnamese subbed. CloudFare issues on some areas.|
+|[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
+|[JavFree sh](https://javfree.sh/)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|Can extract StreamSB links.|
+|[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
+|[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
+|[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
+|[Javcl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|JAV|-|
+|[Javgg](https://javgg.net/)|:x:|:x:|:x:|JAV|-|
+|[VJav](https://vjav.com)|:x:|:x:|:x:|JAV|-|
+|[JavRave Club](https://javrave.club)|:x:|:x:|:x:|JAV|-|
+|[Avgle](https://avgle.com)|:x:|:x:|:x:|JAV|-|
+|[JAV Junkies](http://www.javjunkies.com)|:x:|:x:|:x:|JAV|-|
 
 ***Screenshots:***
 
