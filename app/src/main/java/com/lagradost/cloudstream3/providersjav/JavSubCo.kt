@@ -129,9 +129,10 @@ class JavSubCo : MainAPI() {
         }
 
         val recs = contentmain?.select("section article")?.mapNotNull {
-            val aUrl = it?.selectFirst("a")?.attr("href") ?: return@mapNotNull null
-            val aName = it?.select("header > h2")?.text()?.trim() ?: return@mapNotNull null
-            val aImgMain = it?.select("img")
+            if (it == null) { return@mapNotNull null }
+            val aUrl = it.selectFirst("a")?.attr("href") ?: return@mapNotNull null
+            val aName = it.select("header > h2")?.text()?.trim() ?: return@mapNotNull null
+            val aImgMain = it.select("img")
             val aImg = aImgMain?.attr("src") ?: aImgMain?.attr("data-lazy-src")
             MovieSearchResponse(
                 url = aUrl,
