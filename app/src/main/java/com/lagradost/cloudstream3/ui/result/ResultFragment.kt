@@ -1586,6 +1586,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                                 TvType.Torrent -> R.string.torrent_singular
                                 TvType.JAV -> R.string.jav
                                 TvType.Hentai -> R.string.hentai
+                                TvType.XXX -> R.string.xxx
                             }
                         )?.let {
                             result_meta_type?.text = it

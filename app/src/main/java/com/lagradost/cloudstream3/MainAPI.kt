@@ -83,21 +83,20 @@ object APIHolder {
         AkwamProvider(),
         AnimePaheProvider(),
 
-        // All of JAV sources
+        // All of NSFW sources
         Javhdicu(),
         JavSubCo(),
         OpJavCom(),
         Vlxx(),
-
+        Xvideos(),
+        Pornhub(),
+        // No stream links fetched
         JavTubeWatch(),
         JavFreeSh(),
         JavGuru(),
         HpJavTv(),
         JavMost(),
         Javclcom(),
-
-        Xvideos(),
-        Pornhub(),
     )
 
     val restrictedApis = arrayListOf(
@@ -220,7 +219,7 @@ object APIHolder {
             // Filter API depending on preferred media type
             val mediaTypeList = when (currentPrefMedia) {
                 2 -> listOf(TvType.Anime, TvType.AnimeMovie, TvType.OVA)
-                3 -> listOf(TvType.JAV, TvType.Hentai)
+                3 -> listOf(TvType.JAV, TvType.Hentai, TvType.XXX)
                 else -> listOf(TvType.Movie, TvType.TvSeries, TvType.Cartoon, TvType.Documentary)
             }
             val filteredAPI =
@@ -415,12 +414,13 @@ enum class TvType {
     Torrent,
     Documentary,
     JAV,
-    Hentai
+    Hentai,
+    XXX
 }
 
 // IN CASE OF FUTURE ANIME MOVIE OR SMTH
 fun TvType.isMovieType(): Boolean {
-    return this == TvType.Movie || this == TvType.AnimeMovie || this == TvType.Torrent || this == TvType.JAV
+    return this == TvType.Movie || this == TvType.AnimeMovie || this == TvType.Torrent || this == TvType.JAV || this == TvType.XXX
 }
 
 // returns if the type has an anime opening

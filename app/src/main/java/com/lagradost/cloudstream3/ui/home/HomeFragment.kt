@@ -152,7 +152,7 @@ class HomeFragment : Fragment() {
                 Pair(tvs, listOf(TvType.TvSeries)),
                 Pair(docs, listOf(TvType.Documentary)),
                 Pair(movies, listOf(TvType.Movie, TvType.Torrent)),
-                Pair(nsfw, listOf(TvType.JAV, TvType.Hentai))
+                Pair(nsfw, listOf(TvType.JAV, TvType.Hentai, TvType.XXX))
             )
         }
 
@@ -381,7 +381,8 @@ class HomeFragment : Fragment() {
                     Pair(R.string.anime, listOf(TvType.Anime, TvType.OVA, TvType.AnimeMovie)),
                     Pair(R.string.torrent, listOf(TvType.Torrent)),
                     Pair(R.string.jav, listOf(TvType.JAV)),
-                    Pair(R.string.hentai, listOf(TvType.Hentai))
+                    Pair(R.string.hentai, listOf(TvType.Hentai)),
+                    Pair(R.string.xxx, listOf(TvType.XXX))
                 ).filter { item -> currentApi.supportedTypes.any { type -> item.second.contains(type) } }
                 home_provider_meta_info?.text =
                     typeChoices.joinToString(separator = ", ") { getString(it.first) }
