@@ -23,6 +23,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 |[JAV Sub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some ``dood`` servers not loaded.|
 |[JAV HD](https://javhd.icu)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some scenes' links aren't loaded.|
 |[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some links not loaded.|
+|[PHub](https://www.pornhub.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|Might need VPN.|
 |[Xvideos](https://www.xvideos.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|-|
 |[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Vietnamese subbed. CloudFare issues on some areas.|
 |[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
