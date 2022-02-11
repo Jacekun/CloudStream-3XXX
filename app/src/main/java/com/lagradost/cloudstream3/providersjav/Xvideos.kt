@@ -10,9 +10,8 @@ class Xvideos:MainAPI() {
     override val hasMainPage = true
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true
-    override val supportedTypes = setOf(
-        TvType.JAV,
-    )
+    override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
+
     override suspend fun getMainPage(): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val urls = listOf(
@@ -23,22 +22,20 @@ class Xvideos:MainAPI() {
         for (i in urls) {
             try {
                 val soup = app.get(i.first).document
-                val home = soup.select("div.thumb-block").map {
-                    val title = if (i.first.contains("index")) it.selectFirst("p.profile-name a").text() else
-                        it.selectFirst("p.title a").text()
-                    val link = it.selectFirst("div.thumb a").attr("href")
-                    val imgnormal =  it.selectFirst("div.thumb a img").attr("data-src")
-                    TvSeriesSearchResponse(
-                        title,
-                        fixUrl(link),
-                        this.name,
-                        if (link.contains("/pelicula/")) TvType.Movie else TvType.TvSeries,
-                        if (i.first.contains("pornstars")) null else imgnormal ,
-                        null,
-                        null,
+                val home = soup.select("div.thumb-block").mapNotNull {
+                    if (it == null) { return@mapNotNull null }
+                    val title = it.selectFirst("p.title a")?.text() ?: ""
+                    val link = fixUrlNull(it.selectFirst("div.thumb a")?.attr("href")) ?: return@mapNotNull null
+                    val image = it.selectFirst("div.thumb a img")?.attr("data-src")
+                    MovieSearchResponse(
+                        name = title,
+                        url = link,
+                        apiName = this.name,
+                        type = TvType.XXX,
+                        posterUrl = image,
+                        year = null
                     )
                 }
-
                 items.add(HomePageList(i.second, home))
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -57,8 +54,7 @@ class Xvideos:MainAPI() {
                 it.selectFirst("p.title a").text()
             } catch (e:Exception) {
                 it.selectFirst("p.profile-name a").text()
-            }
-            catch (e:Exception) {
+            } catch (e:Exception) {
                 ""
             }
             val href = it.selectFirst("div.thumb a").attr("href")
@@ -68,7 +64,7 @@ class Xvideos:MainAPI() {
                 finaltitle,
                 fixUrl(href),
                 this.name,
-                TvType.Movie,
+                TvType.XXX,
                 image,
                 null
             )
@@ -76,7 +72,7 @@ class Xvideos:MainAPI() {
         }.toList()
     }
     override suspend fun load(url: String): LoadResponse? {
-        val soup = app.get(url, timeout = 120).document
+        val soup = app.get(url).document
         val title = if (url.contains("channels")||url.contains("pornstars")) soup.selectFirst("html.xv-responsive.is-desktop head title").text() else
             soup.selectFirst(".page-title").text()
         val description = title ?: null
@@ -96,7 +92,7 @@ class Xvideos:MainAPI() {
                 epthumb,
             )
         }
-        val tvType = if (url.contains("channels") || url.contains("pornstars")) TvType.TvSeries else TvType.Movie
+        val tvType = if (url.contains("channels") || url.contains("pornstars")) TvType.TvSeries else TvType.XXX
         return when (tvType) {
             TvType.TvSeries -> {
                 TvSeriesLoadResponse(
@@ -114,7 +110,7 @@ class Xvideos:MainAPI() {
                     tags,
                 )
             }
-            TvType.Movie -> {
+            TvType.XXX -> {
                 MovieLoadResponse(
                     title,
                     url,

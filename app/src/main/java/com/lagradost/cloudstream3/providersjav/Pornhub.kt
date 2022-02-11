@@ -3,6 +3,7 @@ package com.lagradost.cloudstream3.providersjav
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.utils.*
+import org.jsoup.nodes.Element
 import java.util.*
 
 class Pornhub:MainAPI() {
@@ -12,9 +13,8 @@ class Pornhub:MainAPI() {
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true
     override val vpnStatus = VPNStatus.MightBeNeeded //Cause it's a big site
-    override val supportedTypes = setOf(
-        TvType.JAV,
-    )
+    override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
+
     override suspend fun getMainPage(): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val urls = listOf(
@@ -26,42 +26,24 @@ class Pornhub:MainAPI() {
         for (i in urls) {
             try {
                 val soup = app.get(i.first).document
-                val home = soup.select("div.sectionWrapper div.wrap").map {
+                val home = soup.select("div.sectionWrapper div.wrap").mapNotNull {
+                    if (it == null) { return@mapNotNull null }
                     val title = it.selectFirst("span.title a").text()
-                    val link = it.selectFirst("a").attr("href")
-                    val img = try {
-                        it.selectFirst("img").attr("data-src")
-                    } catch (e:Exception) {
-                        it.selectFirst("img").attr("data-mediabook")
-                    }
-                    catch (e:Exception) {
-                        it.selectFirst("img").attr("alt")
-                    }
-                    catch (e:Exception) {
-                        it.selectFirst("img").attr("data-mediumthumb")
-                    }
-                    catch (e:Exception) {
-                        it.selectFirst("img").attr("data-thumb_url")
-                    }
-                    catch (e:Exception) {
-                        it.selectFirst("img").attr("src")
-                    }
+                    val link = fixUrlNull(it.selectFirst("a").attr("href")) ?: return@mapNotNull null
+                    val img = fetchImgUrl(it.selectFirst("img"))
                     MovieSearchResponse(
-                        title,
-                        fixUrl(link),
-                        this.name,
-                        TvType.Movie,
-                        img,
-                        null
+                        name = title,
+                        url = link,
+                        apiName = this.name,
+                        type = TvType.XXX,
+                        posterUrl = img
                     )
                 }
-
                 items.add(HomePageList(i.second, home))
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-
         if (items.size <= 0) throw ErrorLoadingException()
         return HomePageResponse(items)
     }
@@ -69,41 +51,24 @@ class Pornhub:MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/video/search?search=${query}"
         val document = app.get(url).document
-        return document.select("div.sectionWrapper div.wrap").map {
-            val title = it.selectFirst("span.title a").text()
-            val href = it.selectFirst("a").attr("href")
-            val image = try {
-                it.selectFirst("img").attr("data-src")
-            } catch (e:Exception) {
-                it.selectFirst("img").attr("data-mediabook")
-            }
-            catch (e:Exception) {
-                it.selectFirst("img").attr("alt")
-            }
-            catch (e:Exception) {
-                it.selectFirst("img").attr("data-mediumthumb")
-            }
-            catch (e:Exception) {
-                it.selectFirst("img").attr("data-thumb_url")
-            }
-            catch (e:Exception) {
-                it.selectFirst("img").attr("src")
-            }
+        return document.select("div.sectionWrapper div.wrap")?.mapNotNull {
+            if (it == null) { return@mapNotNull null }
+            val title = it.selectFirst("span.title a")?.text() ?: return@mapNotNull null
+            val link = fixUrlNull(it.selectFirst("a").attr("href")) ?: return@mapNotNull null
+            val image = fetchImgUrl(it.selectFirst("img"))
             MovieSearchResponse(
-                title,
-                fixUrl(href),
-                this.name,
-                TvType.Movie,
-                image,
-                null
+                name = title,
+                url = link,
+                apiName = this.name,
+                type = TvType.XXX,
+                posterUrl = image
             )
-
-        }.toList()
+        }?.distinctBy { it.url } ?: listOf()
     }
-    override suspend fun load(url: String): LoadResponse? {
-        val soup = app.get(url, timeout = 120).document
-        val title = soup.selectFirst(".title span").text()
-        val description = title ?: null
+    override suspend fun load(url: String): LoadResponse {
+        val soup = app.get(url).document
+        val title = soup.selectFirst(".title span")?.text() ?: ""
+        val description = title
         val poster: String? = soup.selectFirst("div.video-wrapper .mainPlayerDiv img").attr("src") ?:
             soup.selectFirst("head meta[property=og:image]").attr("content")
         val tags = soup.select("div.categoriesWrapper a")
@@ -112,7 +77,7 @@ class Pornhub:MainAPI() {
             title,
             url,
             this.name,
-            TvType.Movie,
+            TvType.XXX,
             url,
             poster,
             null,
@@ -151,5 +116,16 @@ class Pornhub:MainAPI() {
             }
 
         return true
+    }
+
+    private fun fetchImgUrl(imgsrc: Element?): String? {
+        val img = try { imgsrc?.attr("data-src")
+                ?: imgsrc?.attr("data-mediabook")
+                ?: imgsrc?.attr("alt")
+                ?: imgsrc?.attr("data-mediumthumb")
+                ?: imgsrc?.attr("data-thumb_url")
+                ?: imgsrc?.attr("src")
+        } catch (e:Exception) { null }
+        return img
     }
 }
