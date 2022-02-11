@@ -5,7 +5,10 @@ import android.content.Context
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.R
+import com.lagradost.cloudstream3.USER_AGENT
+import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.mapper
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,6 +16,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.*
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
@@ -108,14 +113,20 @@ class AppResponse(
     }
 }
 
-private fun getData(data: Map<String, String?>): RequestBody {
-    val builder = FormBody.Builder()
-    data.forEach {
-        it.value?.let { value ->
-            builder.add(it.key, value)
+private fun getData(data: Any?): RequestBody {
+    return when (data) {
+        null -> FormBody.Builder().build()
+        is Map<*, *> -> {
+            val builder = FormBody.Builder()
+            data.forEach {
+                if (it.key is String && it.value is String)
+                    builder.add(it.key as String, it.value as String)
+            }
+            builder.build()
         }
+        else ->
+            data.toString().toRequestBody("text/plain;charset=UTF-8".toMediaTypeOrNull())
     }
-    return builder.build()
 }
 
 // https://github.com, id=test -> https://github.com?id=test
@@ -170,7 +181,7 @@ fun postRequestCreator(
     referer: String? = null,
     params: Map<String, String> = emptyMap(),
     cookies: Map<String, String> = emptyMap(),
-    data: Map<String, String> = emptyMap(),
+    data: Any? = DEFAULT_DATA,
     cacheTime: Int = DEFAULT_TIME,
     cacheUnit: TimeUnit = DEFAULT_TIME_UNIT
 ): Request {
@@ -341,7 +352,7 @@ open class Requests {
         referer: String? = null,
         params: Map<String, String> = mapOf(),
         cookies: Map<String, String> = mapOf(),
-        data: Map<String, String> = DEFAULT_DATA,
+        data: Any? = DEFAULT_DATA,
         allowRedirects: Boolean = true,
         cacheTime: Int = DEFAULT_TIME,
         cacheUnit: TimeUnit = DEFAULT_TIME_UNIT,
