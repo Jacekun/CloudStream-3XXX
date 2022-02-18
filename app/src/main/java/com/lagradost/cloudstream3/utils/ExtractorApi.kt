@@ -130,6 +130,8 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     SBPlay2(),
     SBPlay3(),
 
+    JKhentaiExtractor(),
+
     //Jav extractors
     StreamLare(),
     PlayLtXyz()
