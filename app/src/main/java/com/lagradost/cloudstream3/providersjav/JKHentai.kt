@@ -15,7 +15,7 @@ class JKHentai:MainAPI() {
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(
-        TvType.Anime,
+        TvType.Hentai,
     )
     override suspend fun getMainPage(): HomePageResponse {
         val urls = listOf(
@@ -91,7 +91,7 @@ class JKHentai:MainAPI() {
             else -> null
         }
 
-        return newAnimeLoadResponse(title, url, TvType.Anime) {
+        return newAnimeLoadResponse(title, url, TvType.Hentai) {
             posterUrl = fixUrl(poster)
             addEpisodes(DubStatus.Subbed, episodes)
             showStatus = status

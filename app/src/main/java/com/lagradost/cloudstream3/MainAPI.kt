@@ -94,6 +94,7 @@ object APIHolder {
         Xvideos(),
         Pornhub(),
         HentaiLa(),
+        JKHentai(),
         // No stream links fetched
         JavTubeWatch(),
         JavFreeSh(),
