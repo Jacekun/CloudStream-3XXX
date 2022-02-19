@@ -94,6 +94,7 @@ object APIHolder {
         Xvideos(),
         Pornhub(),
         Hanime(),
+        HahoMoe(),
         // No stream links fetched
         JavTubeWatch(),
         JavFreeSh(),

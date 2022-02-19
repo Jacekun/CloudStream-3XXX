@@ -52,7 +52,7 @@ class Hanime : MainAPI() {
 
     override val supportedTypes: Set<TvType>
         get() = setOf(
-            TvType.Anime
+            TvType.Hentai
         )
 
     private data class HpHentaiVideos (
