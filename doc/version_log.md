@@ -1,3 +1,9 @@
+# CloudStream-3XXX r1021
++ [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/8f9ac96de51e8f9d6529831c94b7f4714f3d8371).
++ Fix: Issues after merging base.
++ Added hentai providers: Hanime, Hahomoe (#11), JKHentai, Hentaila (#10).
++ Changed array caption for NSFW.
+
 # CloudStream-3XXX r972
 + [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/a237ee5b7ade3d19e80cac7de1d663d17d890e88).
 + Fix: Issues after merging base.
