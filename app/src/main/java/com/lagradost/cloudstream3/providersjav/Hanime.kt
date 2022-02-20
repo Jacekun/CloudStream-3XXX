@@ -39,21 +39,12 @@ class Hanime : MainAPI() {
         }
     }
 
-    override val mainUrl: String
-        get() = "https://hanime.tv"
-    override val name: String
-        get() = "hanime"
-    override val hasQuickSearch: Boolean
-        get() = false
-    override val hasMainPage: Boolean
-        get() = true
-    override val hasDownloadSupport: Boolean
-        get() = false
-
-    override val supportedTypes: Set<TvType>
-        get() = setOf(
-            TvType.Hentai
-        )
+    override val mainUrl: String get() = "https://hanime.tv"
+    override val name: String get() = "Hanime"
+    override val hasQuickSearch: Boolean get() = false
+    override val hasMainPage: Boolean get() = true
+    override val hasDownloadSupport: Boolean get() = false
+    override val supportedTypes: Set<TvType> get() = setOf(TvType.Hentai)
 
     private data class HpHentaiVideos (
         @JsonProperty("id") val id : Int,

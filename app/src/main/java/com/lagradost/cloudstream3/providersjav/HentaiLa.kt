@@ -6,17 +6,14 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class HentaiLa:MainAPI() {
-    override val mainUrl: String
-        get() = "https://hentaila.com"
-    override val name: String
-        get() = "HentaiLA"
+    override val mainUrl: String get() = "https://hentaila.com"
+    override val name: String get() = "HentaiLA"
     override val lang = "es"
     override val hasMainPage = true
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true
-    override val supportedTypes = setOf(
-        TvType.Hentai,
-    )
+    override val supportedTypes = setOf(TvType.Hentai)
+
     override suspend fun getMainPage(): HomePageResponse {
         val urls = listOf(
             Pair("$mainUrl/directorio", "Hentais"),

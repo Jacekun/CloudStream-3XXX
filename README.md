@@ -20,8 +20,12 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 ## NSFW Sites
 | Site | MainPage           | Search | Stream | Types | Remarks |
 |------|--------------------|--------|--------|---------|---------|
-|[JAV Sub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some ``dood`` servers not loaded.|
+|[Haho moe](https://haho.moe)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|-|
+|[Hanime](https://hanime.tv)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|-|
+|[HentaiLA](https://hentaila.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|Spanish provider.|
 |[JAV HD](https://javhd.icu)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some scenes' links aren't loaded.|
+|[JAV Sub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some ``dood`` servers not loaded.|
+|[JKhentai](https://jkhentai.net)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|Spanish provider.|
 |[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some links not loaded.|
 |[PHub](https://www.pornhub.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|Might need VPN.|
 |[Xvideos](https://www.xvideos.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|-|
