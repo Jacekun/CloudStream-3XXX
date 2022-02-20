@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.material.button.MaterialButton
 import com.hippo.unifile.UniFile
 import com.lagradost.cloudstream3.*
@@ -141,15 +142,23 @@ class GeneratorPlayer : FullScreenPlayer() {
     }
 
     private fun openSubPicker() {
-        subsPathPicker.launch(
-            arrayOf(
-                "text/vtt",
-                "application/x-subrip",
-                "text/plain",
-                "text/str",
-                "application/octet-stream"
+        try {
+            subsPathPicker.launch(
+                arrayOf(
+                    "text/plain",
+                    "text/str",
+                    "application/octet-stream",
+                    MimeTypes.TEXT_UNKNOWN,
+                    MimeTypes.TEXT_VTT,
+                    MimeTypes.TEXT_SSA,
+                    MimeTypes.APPLICATION_TTML,
+                    MimeTypes.APPLICATION_MP4VTT,
+                    MimeTypes.APPLICATION_SUBRIP,
+                )
             )
-        )
+        } catch (e : Exception) {
+            logError(e)
+        }
     }
 
     // Open file picker
@@ -299,7 +308,6 @@ class GeneratorPlayer : FullScreenPlayer() {
                         } else {
                             currentSubtitles.getOrNull(subtitleIndex - 1)?.let {
                                 setSubtitles(it)
-                                true
                             } ?: false
                         }
                     }
@@ -476,8 +484,10 @@ class GeneratorPlayer : FullScreenPlayer() {
         var season: Int? = null
         var tvType: TvType? = null
 
+        var isFiller : Boolean? = null
         when (val meta = currentMeta) {
             is ResultEpisode -> {
+                isFiller = meta.isFiller
                 headerName = meta.headerName
                 episode = meta.episode
                 season = meta.season
@@ -490,6 +500,8 @@ class GeneratorPlayer : FullScreenPlayer() {
                 tvType = meta.tvType
             }
         }
+
+        player_episode_filler_holder?.isVisible = isFiller ?: false
 
         player_video_title?.text = if (headerName != null) {
             headerName +

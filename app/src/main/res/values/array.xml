@@ -76,8 +76,8 @@
     </array>
 
     <array name="episode_long_click_options">
-        <item>@string/episode_action_chomecast_episode</item>
-        <item>@string/episode_action_chomecast_mirror</item>
+        <item>@string/episode_action_chromecast_episode</item>
+        <item>@string/episode_action_chromecast_mirror</item>
         <item>@string/episode_action_play_in_app</item>
         <item>@string/episode_action_play_in_vlc</item>
         <item>@string/episode_action_play_in_browser</item>
@@ -102,12 +102,14 @@
         <item>@string/automatic</item>
         <item>@string/phone_layout</item>
         <item>@string/tv_layout</item>
+        <item>@string/emulator_layout</item>
     </array>
 
     <array name="app_layout_values">
         <item>-1</item>
         <item>0</item>
         <item>1</item>
+        <item>2</item>
     </array>
 
     <string-array name="themes_overlay_names">

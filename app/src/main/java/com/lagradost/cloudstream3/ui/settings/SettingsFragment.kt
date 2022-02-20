@@ -38,6 +38,7 @@ import com.lagradost.cloudstream3.syncproviders.OAuth2API
 import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.aniListApi
 import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.malApi
 import com.lagradost.cloudstream3.ui.APIRepository
+import com.lagradost.cloudstream3.ui.subtitles.ChromecastSubtitlesFragment
 import com.lagradost.cloudstream3.ui.subtitles.SubtitlesFragment
 import com.lagradost.cloudstream3.utils.AppUtils
 import com.lagradost.cloudstream3.utils.HOMEPAGE_API
@@ -58,13 +59,25 @@ import kotlin.concurrent.thread
 
 class SettingsFragment : PreferenceFragmentCompat() {
     companion object {
-        fun Context.isTvSettings(): Boolean {
+        private fun Context.getLayoutInt() : Int {
             val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
-            var value = settingsManager.getInt(this.getString(R.string.app_layout_key), -1)
+            return settingsManager.getInt(this.getString(R.string.app_layout_key), -1)
+        }
+
+        fun Context.isTvSettings(): Boolean {
+            var value = getLayoutInt()
             if (value == -1) {
                 value = if (isAutoTv()) 1 else 0
             }
-            return value == 1
+            return value == 1 || value == 2
+        }
+
+        fun Context.isTrueTvSettings() : Boolean {
+            return getLayoutInt() == 1
+        }
+
+        fun Context.isEmulatorSettings() : Boolean {
+            return getLayoutInt() == 2
         }
 
         private fun Context.isAutoTv(): Boolean {
@@ -201,6 +214,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val subPreference = findPreference<Preference>(getString(R.string.subtitle_settings_key))!!
         val videoCachePreference = findPreference<Preference>(getString(R.string.video_cache_key))!!
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val chromecastSubsPreference = findPreference<Preference>(getString(R.string.subtitle_settings_chromecast_key))!!
 
         videoCachePreference.setOnPreferenceClickListener {
             val prefNames = resources.getStringArray(R.array.video_cache_size_names)
@@ -224,6 +238,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         subPreference.setOnPreferenceClickListener {
             SubtitlesFragment.push(activity, false)
+            return@setOnPreferenceClickListener true
+        }
+
+        chromecastSubsPreference.setOnPreferenceClickListener {
+            ChromecastSubtitlesFragment.push(activity, false)
             return@setOnPreferenceClickListener true
         }
 
@@ -358,7 +377,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 {}) {
                 // Last = custom
                 if (it == dirs.size) {
-                    pathPicker.launch(Uri.EMPTY)
+                    try {
+                        pathPicker.launch(Uri.EMPTY)
+                    } catch (e : Exception) {
+                        logError(e)
+                    }
                 } else {
                     // Sets both visual and actual paths.
                     // key = used path

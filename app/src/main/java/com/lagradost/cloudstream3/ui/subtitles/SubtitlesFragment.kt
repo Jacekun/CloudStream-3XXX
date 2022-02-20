@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.annotation.FontRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.ui.CaptionStyleCompat
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
@@ -25,7 +26,7 @@ import com.lagradost.cloudstream3.CommonActivity.onColorSelectedEvent
 import com.lagradost.cloudstream3.CommonActivity.onDialogDismissedEvent
 import com.lagradost.cloudstream3.CommonActivity.showToast
 import com.lagradost.cloudstream3.R
-import com.lagradost.cloudstream3.ui.settings.SettingsFragment.Companion.isTvSettings
+import com.lagradost.cloudstream3.ui.settings.SettingsFragment.Companion.isTrueTvSettings
 import com.lagradost.cloudstream3.utils.DataStore.setKey
 import com.lagradost.cloudstream3.utils.Event
 import com.lagradost.cloudstream3.utils.SingleSelectionHelper.showDialog
@@ -42,18 +43,18 @@ const val SUBTITLE_AUTO_SELECT_KEY = "subs_auto_select"
 const val SUBTITLE_DOWNLOAD_KEY = "subs_auto_download"
 
 data class SaveCaptionStyle(
-    var foregroundColor: Int,
-    var backgroundColor: Int,
-    var windowColor: Int,
+    @JsonProperty("foregroundColor") var foregroundColor: Int,
+    @JsonProperty("backgroundColor") var backgroundColor: Int,
+    @JsonProperty("windowColor") var windowColor: Int,
     @CaptionStyleCompat.EdgeType
-    var edgeType: Int,
-    var edgeColor: Int,
+    @JsonProperty("edgeType") var edgeType: Int,
+    @JsonProperty("edgeColor")  var edgeColor: Int,
     @FontRes
-    var typeface: Int?,
+    @JsonProperty("typeface") var typeface: Int?,
     /**in dp**/
-    var elevation: Int,
+    @JsonProperty("elevation") var elevation: Int,
     /**in sp**/
-    var fixedTextSize: Float?,
+    @JsonProperty("fixedTextSize") var fixedTextSize: Float?,
 )
 
 const val DEF_SUBS_ELEVATION = 20
@@ -196,10 +197,10 @@ class SubtitlesFragment : Fragment() {
         state = getCurrentSavedStyle()
         context?.updateState()
 
-        val isTvSettings = context?.isTvSettings() == true
+        val isTvTrueSettings = context?.isTrueTvSettings() == true
 
         fun View.setFocusableInTv() {
-            this.isFocusableInTouchMode = isTvSettings
+            this.isFocusableInTouchMode = isTvTrueSettings
         }
 
         fun View.setup(id: Int) {

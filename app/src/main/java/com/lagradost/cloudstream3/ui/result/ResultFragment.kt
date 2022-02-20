@@ -118,7 +118,7 @@ data class ResultEpisode(
     val description: String?,
     val isFiller: Boolean?,
     val tvType: TvType,
-    val parentId: Int?,
+    val parentId: Int,
 )
 
 fun ResultEpisode.getRealPosition(): Long {
@@ -151,7 +151,7 @@ fun buildResultEpisode(
     description: String?,
     isFiller: Boolean?,
     tvType: TvType,
-    parentId: Int?,
+    parentId: Int,
 ): ResultEpisode {
     val posDur = getViewPos(id)
     return ResultEpisode(
@@ -629,7 +629,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             media_route_button?.alpha = if (chromecastSupport) 1f else 0.3f
             if (!chromecastSupport) {
                 media_route_button.setOnClickListener {
-                    showToast(activity, R.string.no_chomecast_support_toast, Toast.LENGTH_LONG)
+                    showToast(activity, R.string.no_chromecast_support_toast, Toast.LENGTH_LONG)
                 }
             }
 
@@ -908,7 +908,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 }
 
                 ACTION_CHROME_CAST_MIRROR -> {
-                    acquireSingeExtractorLink(getString(R.string.episode_action_chomecast_mirror)) { link ->
+                    acquireSingeExtractorLink(getString(R.string.episode_action_chromecast_mirror)) { link ->
                         val mirrorIndex = currentLinks?.indexOf(link) ?: -1
                         startChromecast(if (mirrorIndex == -1) 0 else mirrorIndex)
                     }
@@ -1097,7 +1097,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 }
 
                 getViewPos(resume.episodeId)?.let { viewPos ->
-                    if(viewPos.position > 30_000L || currentIsMovie == false) { // first 30s will not show for movies
+                    if (viewPos.position > 30_000L || currentIsMovie == false) { // first 30s will not show for movies
                         result_resume_series_progress?.apply {
                             max = (viewPos.duration / 1000).toInt()
                             progress = (viewPos.position / 1000).toInt()
@@ -1184,9 +1184,9 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     result_episode_loading?.isVisible = false
                     if (result_episodes == null || result_episodes.adapter == null) return@observe
                     currentEpisodes = episodes.value
-                    (result_episodes?.adapter as EpisodeAdapter?)?.cardList = episodes.value
-                    (result_episodes?.adapter as EpisodeAdapter?)?.updateLayout()
-                    (result_episodes?.adapter as EpisodeAdapter?)?.notifyDataSetChanged()
+                    (result_episodes?.adapter as? EpisodeAdapter?)?.cardList = episodes.value
+                    (result_episodes?.adapter as? EpisodeAdapter?)?.updateLayout()
+                    (result_episodes?.adapter as? EpisodeAdapter?)?.notifyDataSetChanged()
                 }
             }
         }
@@ -1512,7 +1512,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 
                                 result_download_movie?.setOnLongClickListener {
                                     val card =
-                                        currentEpisodes?.firstOrNull() ?: return@setOnLongClickListener false
+                                        currentEpisodes?.firstOrNull()
+                                            ?: return@setOnLongClickListener false
                                     handleAction(EpisodeClickEvent(ACTION_DOWNLOAD_MIRROR, card))
                                     return@setOnLongClickListener true
                                 }

@@ -11,6 +11,7 @@
     <string name="fast_forward_button_time_key" translatable="false">fast_forward_button_time</string>
     <string name="benene_count" translatable="false">benene_count</string>
     <string name="subtitle_settings_key" translatable="false">subtitle_settings_key</string>
+    <string name="subtitle_settings_chromecast_key" translatable="false">subtitle_settings_chromecast_key</string>
     <string name="quality_pref_key" translatable="false">quality_pref_key</string>
     <string name="video_cache_key" translatable="false">video_cache_key</string>
     <string name="prerelease_commit_hash" translatable="false">unknown_prerelease</string>
@@ -175,6 +176,9 @@
     <string name="player_size_settings_des">Remove the black borders</string>
     <string name="player_subtitles_settings">Subtitles</string>
     <string name="player_subtitles_settings_des">Player subtitles settings</string>
+    <string name="chromecast_subtitles_settings">Chromecast Subtitles</string>
+    <string name="chromecast_subtitles_settings_des">Chromecast subtitles settings</string>
+
     <string name="eigengraumode_settings">Eigengravy Mode</string>
     <string name="eigengraumode_settings_des">Adds a speed option in the player</string>
     <string name="swipe_to_seek_settings">Swipe to seek</string>
@@ -211,7 +215,7 @@
 
     <string name="app_language">App Language</string>
 
-    <string name="no_chomecast_support_toast">This provider has no Chromecast support</string>
+    <string name="no_chromecast_support_toast">This provider has no Chromecast support</string>
     <string name="no_links_found_toast">No Links Found</string>
     <string name="copy_link_toast">Link copied to clipboard</string>
     <string name="play_episode_toast">Play Episode</string>
@@ -284,8 +288,8 @@
     <string name="unexpected_error">Unexpected player error</string>
     <string name="storage_error">Download error, check storage permissions</string>
 
-    <string name="episode_action_chomecast_episode">Chromecast Episode</string>
-    <string name="episode_action_chomecast_mirror">Chromecast Mirror</string>
+    <string name="episode_action_chromecast_episode">Chromecast Episode</string>
+    <string name="episode_action_chromecast_mirror">Chromecast Mirror</string>
     <string name="episode_action_play_in_app">Play In App</string>
     <string name="episode_action_play_in_vlc">Play In VLC</string>
     <string name="episode_action_play_in_browser">Play in browser</string>
@@ -343,6 +347,7 @@
     <string name="automatic">Auto</string>
     <string name="tv_layout">TV Layout</string>
     <string name="phone_layout">Phone Layout</string>
+    <string name="emulator_layout">Emulator Layout</string>
 
     <string name="primary_color_settings">Primary Color</string>
     <string name="app_theme_settings">App Theme</string>
@@ -366,6 +371,8 @@
     <string name="add_account">Add account</string>
     <string name="add_sync">Add tracking</string>
     <string name="added_sync_format" formatted="true">Added %s</string>
+    <string name="upload_sync">Sync</string>
+
     <!-- ============ -->
     <string name="none">None</string>
     <string name="normal">Normal</string>
@@ -377,6 +384,13 @@
     <string name="subtitles_depressed">Depressed</string>
     <string name="subtitles_shadow">Shadow</string>
     <string name="subtitles_raised">Raised</string>
+    <string name="subtitle_offset">Sync subs</string>
+    <string name="subtitle_offset_hint">1000ms</string>
+    <string name="subtitle_offset_title">Subtitle delay</string>
+    <string name="subtitle_offset_extra_hint_later_format">Use this if the subtitles are shown %dms too early</string>
+    <string name="subtitle_offset_extra_hint_before_format">Use this if subtitles are shown %dms too late</string>
+    <string name="subtitle_offset_extra_hint_none_format">No subtitle delay</string>
+
     <!--
     Example text (pangram) can optionally be translated; if you do, include all the letters in the alphabet,
     see: 

@@ -2,6 +2,7 @@ package com.lagradost.cloudstream3.ui.player
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.FrameLayout
@@ -35,7 +36,7 @@ const val TAG = "CS3ExoPlayer"
 
 /** Cache */
 
-class CS3IPlayer() : IPlayer {
+class CS3IPlayer : IPlayer {
     private var isPlaying = false
     private var exoPlayer: ExoPlayer? = null
     var cacheSize = 300L * 1024L * 1024L // 300 mb
@@ -73,6 +74,7 @@ class CS3IPlayer() : IPlayer {
     private var updateIsPlaying: ((Pair<CSPlayerLoading, CSPlayerLoading>) -> Unit)? = null
     private var requestAutoFocus: (() -> Unit)? = null
     private var playerError: ((Exception) -> Unit)? = null
+    private var subtitlesUpdates: (() -> Unit)? = null
 
     /** width x height */
     private var playerDimensionsLoaded: ((Pair<Int, Int>) -> Unit)? = null
@@ -99,7 +101,8 @@ class CS3IPlayer() : IPlayer {
         requestedListeningPercentages: List<Int>?,
         playerPositionChanged: ((Pair<Long, Long>) -> Unit)?,
         nextEpisode: (() -> Unit)?,
-        prevEpisode: (() -> Unit)?
+        prevEpisode: (() -> Unit)?,
+        subtitlesUpdates: (() -> Unit)?
     ) {
         this.playerUpdated = playerUpdated
         this.updateIsPlaying = updateIsPlaying
@@ -110,6 +113,24 @@ class CS3IPlayer() : IPlayer {
         this.playerPositionChanged = playerPositionChanged
         this.nextEpisode = nextEpisode
         this.prevEpisode = prevEpisode
+        this.subtitlesUpdates = subtitlesUpdates
+    }
+
+    // I know, this is not a perfect solution, however it works for fixing subs
+    private fun reloadSubs() {
+        exoPlayer?.applicationLooper?.let {
+            try {
+                Handler(it).post {
+                    try {
+                        seekTime(1L)
+                    } catch (e: Exception) {
+                        logError(e)
+                    }
+                }
+            } catch (e: Exception) {
+                logError(e)
+            }
+        }
     }
 
     fun initSubtitles(subView: SubtitleView?, subHolder: FrameLayout?, style: SaveCaptionStyle?) {
@@ -178,6 +199,13 @@ class CS3IPlayer() : IPlayer {
                             trackSelector.buildUponParameters()
                                 .setPreferredTextLanguage("_$name")
                         )
+
+                        // ugliest code I have written, it seeks 1ms to *update* the subtitles
+                        //exoPlayer?.applicationLooper?.let {
+                        //    Handler(it).postDelayed({
+                        //        seekTime(1L)
+                        //    }, 1)
+                        //}
                     }
                     SubtitleStatus.NOT_FOUND -> {
                         // not found
@@ -188,6 +216,17 @@ class CS3IPlayer() : IPlayer {
             }
             return false
         } ?: false
+    }
+
+    var currentSubtitleOffset : Long = 0
+
+    override fun setSubtitleOffset(offset: Long) {
+        currentSubtitleOffset = offset
+        currentTextRenderer?.setRenderOffsetMs(offset)
+    }
+
+    override fun getSubtitleOffset(): Long {
+        return currentSubtitleOffset//currentTextRenderer?.getRenderOffsetMs() ?: currentSubtitleOffset
     }
 
     override fun getCurrentPreferredSubtitle(): SubtitleData? {
@@ -226,6 +265,7 @@ class CS3IPlayer() : IPlayer {
 
         exoPlayer?.release()
         simpleCache?.release()
+        currentTextRenderer = null
 
         exoPlayer = null
         simpleCache = null
@@ -261,6 +301,8 @@ class CS3IPlayer() : IPlayer {
     }
 
     companion object {
+        var requestSubtitleUpdate: (() -> Unit)? = null
+
         private fun createOnlineSource(link: ExtractorLink): DataSource.Factory {
             // Because Trailers.to seems to fail with http/1.1 the normal one uses.
             return DefaultHttpDataSource.Factory().apply {
@@ -368,6 +410,8 @@ class CS3IPlayer() : IPlayer {
             return trackSelector
         }
 
+        var currentTextRenderer: CustomTextRenderer? = null
+
         private fun buildExoPlayer(
             context: Context,
             mediaItem: MediaItem,
@@ -375,6 +419,7 @@ class CS3IPlayer() : IPlayer {
             currentWindow: Int,
             playbackPosition: Long,
             playBackSpeed: Float,
+            subtitleOffset : Long,
             playWhenReady: Boolean = true,
             cacheFactory: CacheDataSource.Factory? = null,
             trackSelector: TrackSelector? = null,
@@ -389,11 +434,15 @@ class CS3IPlayer() : IPlayer {
                             textRendererOutput,
                             metadataRendererOutput
                         ).map {
-                            if (it is TextRenderer) TextRenderer(
-                                textRendererOutput,
-                                eventHandler.looper,
-                                CustomSubtitleDecoderFactory()
-                            ) else it
+                            if (it is TextRenderer) {
+                                currentTextRenderer = CustomTextRenderer(
+                                    subtitleOffset,
+                                    textRendererOutput,
+                                    eventHandler.looper,
+                                    CustomSubtitleDecoderFactory()
+                                )
+                                currentTextRenderer!!
+                            } else it
                         }.toTypedArray()
                     }
                     .setTrackSelector(trackSelector ?: getTrackSelector(context))
@@ -502,8 +551,11 @@ class CS3IPlayer() : IPlayer {
                 playbackPosition,
                 playBackSpeed,
                 playWhenReady = isPlaying, // this keep the current state of the player
-                cacheFactory = cacheFactory
+                cacheFactory = cacheFactory,
+                subtitleOffset = currentSubtitleOffset
             )
+
+            requestSubtitleUpdate = ::reloadSubs
 
             playerUpdated?.invoke(exoPlayer)
             exoPlayer?.prepare()
@@ -524,6 +576,7 @@ class CS3IPlayer() : IPlayer {
                 override fun onTracksInfoChanged(tracksInfo: TracksInfo) {
                     exoPlayerSelectedTracks =
                         tracksInfo.trackGroupInfos.mapNotNull { it.trackGroup.getFormat(0).language?.let { lang -> lang to it.isSelected } }
+                    subtitlesUpdates?.invoke()
                     super.onTracksInfoChanged(tracksInfo)
                 }
 
@@ -563,8 +616,16 @@ class CS3IPlayer() : IPlayer {
                     super.onPlayerError(error)
                 }
 
+                //override fun onCues(cues: MutableList<Cue>) {
+                //    cues.firstOrNull()?.text?.let {
+                //        println("CUE: $it")
+                //    }
+                //    super.onCues(cues)
+                //}
+
                 override fun onRenderedFirstFrame() {
                     updatedTime()
+
                     if (!hasUsedFirstRender) { // this insures that we only call this once per player load
                         Log.i(TAG, "Rendered first frame")
 
@@ -617,8 +678,8 @@ class CS3IPlayer() : IPlayer {
             val offlineSourceFactory = context.createOfflineSource()
 
             val (subSources, activeSubtitles) = getSubSources(
-                offlineSourceFactory,
-                offlineSourceFactory,
+                onlineSourceFactory = offlineSourceFactory,
+                offlineSourceFactory = offlineSourceFactory,
                 subtitleHelper,
             )
 
@@ -697,8 +758,8 @@ class CS3IPlayer() : IPlayer {
             val offlineSourceFactory = context.createOfflineSource()
 
             val (subSources, activeSubtitles) = getSubSources(
-                offlineSourceFactory,
-                onlineSourceFactory,
+                onlineSourceFactory = onlineSourceFactory,
+                offlineSourceFactory = offlineSourceFactory,
                 subtitleHelper
             )
 
