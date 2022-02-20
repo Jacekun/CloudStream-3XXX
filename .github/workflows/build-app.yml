@@ -18,6 +18,16 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
         
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
+    - name: Decode Keystore
+      env:
+        ENCODED_STRING: ${{ secrets.KEYSTORE }}
+      run: |
+        TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
+        mkdir -p "${TMP_KEYSTORE_FILE_PATH}"
+        echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/release_keystore.keystore
+        
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
@@ -33,16 +43,6 @@ jobs:
       with:
           gradlePath: app/build.gradle # or app/build.gradle.kts 
           versionCode: ${{ env.COMMIT_COUNT }}
-        
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Decode Keystore
-      env:
-        ENCODED_STRING: ${{ secrets.KEYSTORE }}
-      run: |
-        TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
-        mkdir -p "${TMP_KEYSTORE_FILE_PATH}"
-        echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/release_keystore.keystore
         
     - name: Run Gradle
       run: ./gradlew app:assembleRelease
