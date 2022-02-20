@@ -17,4 +17,3 @@ app/release/
 ignore/
 app/prerelease/
 .idea/
-gradlew
