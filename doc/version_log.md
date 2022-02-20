@@ -1,3 +1,8 @@
+# CloudStream-3XXX r1026
++ Upgrade gradle version.
++ Better updater code.
++ Changed ACRA link.
+
 # CloudStream-3XXX r1021
 + [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/8f9ac96de51e8f9d6529831c94b7f4714f3d8371).
 + Fix: Issues after merging base.
