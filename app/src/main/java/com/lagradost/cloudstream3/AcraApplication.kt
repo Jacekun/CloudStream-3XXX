@@ -29,7 +29,7 @@ class CustomReportSender : ReportSender {
     override fun send(context: Context, errorContent: CrashReportData) {
         println("Sending report")
         val url =
-            "https://docs.google.com/forms/u/0/d/e/1FAIpQLSeFmyBChi6HF3IkhTVWPiDXJtxt8W0Hf4Agljm_0-0_QuEYFg/formResponse"
+            "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfEuN0Q5wO44Wk0pJUqrOGeqSacembKlw4i_WU94rTRyk3duA/formResponse"
         val data = mapOf(
             "entry.134906550" to errorContent.toJSON()
         )
