@@ -93,8 +93,11 @@ object APIHolder {
         Vlxx(),
         Xvideos(),
         Pornhub(),
+        HentaiLa(),
+        JKHentai(),
         Hanime(),
         HahoMoe(),
+      
         // No stream links fetched
         JavTubeWatch(),
         JavFreeSh(),

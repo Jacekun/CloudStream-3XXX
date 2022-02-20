@@ -7,6 +7,10 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.getQualityFromName
 
+class JKhentaiExtractor : WatchSB() {
+    override val name = "JKhentai"
+    override val mainUrl = "https://stream.jkhentai.net"
+}
 open class WatchSB : ExtractorApi() {
     override val name = "WatchSB"
     override val mainUrl = "https://watchsb.com"
