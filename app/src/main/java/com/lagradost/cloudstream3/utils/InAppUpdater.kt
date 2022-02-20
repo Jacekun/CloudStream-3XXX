@@ -25,6 +25,7 @@ import com.lagradost.cloudstream3.R
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.mvvm.normalSafeApiCall
+import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.concurrent.thread
@@ -92,19 +93,6 @@ class InAppUpdater {
                     ).text
                 })
 
-            val versionRegex = Regex("""(?<=r\.)(.*\d+)(?=\.-release)""")
-            val found =
-                response.filter { rel ->
-                    !rel.prerelease
-                }.sortedWith(compareBy { release ->
-                    release.assets.filter { it.content_type == "application/vnd.android.package-archive" }
-                        .getOrNull(0)?.name?.let { it1 ->
-                            versionRegex.find(
-                                it1
-                            )?.groupValues?.get(1)
-                        }
-                }).toList().lastOrNull()
-            val foundAsset = found?.assets?.getOrNull(0)
             val currentVersion = packageName?.let {
                 packageManager.getPackageInfo(
                     it,
@@ -113,10 +101,18 @@ class InAppUpdater {
             }
             Log.i("d", "Result => (currentVersion) ${currentVersion?.versionCode}")
 
+            val versionRegex = Regex("""(?<=r\.)(.*\d+)(?=\.-release)""")
+            val found = response.filter { !it.prerelease }
+                .filter { it.assets.any { a -> a.content_type.equals("application/vnd.android.package-archive") } }
+                .toList()
+                .maxByOrNull { it.tag_name.replace("jav_r", "").trim().toInt() }
+            Log.i("d", "Result => (found) ${found?.toJson()}")
+
+            val foundAsset = found?.assets?.getOrNull(0)
             foundAsset?.name?.let { assetName ->
                 val foundVersion = when (assetName.isNotEmpty()) {
                     true -> {
-                        Log.i("d", "Result => (assetName) ${assetName}")
+                        Log.i("d", "Result => (assetName) $assetName")
                         val code = assetName.let { it1 ->
                             versionRegex.find(
                                 it1
