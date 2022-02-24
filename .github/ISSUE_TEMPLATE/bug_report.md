@@ -11,6 +11,7 @@ assignees: ''
 - [x] It **is not** a duplicate issue.
 - [x] It **does not** exist on [Cloudstream 3](https://github.com/LagradOst/CloudStream-3) Issues tab.
 - [x] If provider bug, **it is only** exclusively on this Fork.
+- [x] If related to a provider, I have checked the site and it works, but not the app.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
