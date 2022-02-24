@@ -1,6 +1,6 @@
 ---
 name: Provider Request
-about: Add provider.
+about: Request to add new website to App.
 title: "[Provider] Add 'provider name'"
 labels: provider
 assignees: ''
