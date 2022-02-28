@@ -1,7 +1,9 @@
 package com.lagradost.cloudstream3.animeproviders
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
+import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -73,8 +75,16 @@ class HentaiLa:MainAPI() {
         return HomePageResponse(items)
     }
 
+    data class Search (
+        @JsonProperty("id") val id: String,
+        @JsonProperty("title") val title: String,
+        @JsonProperty("type") val type: String,
+        @JsonProperty("slug") val slug: String
+    )
+
+
     override suspend fun search(query: String): ArrayList<SearchResponse> {
-        val doc = app.post("$mainUrl/api/search",
+        val response = app.post("$mainUrl/api/search",
             headers = mapOf(
                 "Host" to "hentaila.com",
                 "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0",
@@ -92,20 +102,26 @@ class HentaiLa:MainAPI() {
             data = mapOf(Pair("value",query))
         ).text
         val searchresult = mutableListOf<AnimeSearchResponse>()
-        val title = doc.substringAfter("\"title\":\"").substringBefore("\",\"")
-        val href = "$mainUrl/hentai-${doc.substringAfter("\"slug\":\"").substringBefore("\"")}"
-        val image = "https://hentaila.com/uploads/portadas/${doc.substringAfter("\"id\":\"").substringBefore("\",")}.jpg"
-        searchresult.add(  AnimeSearchResponse(
-            title,
-            href,
-            this.name,
-            TvType.Anime,
-            fixUrl(image),
-            null,
-            if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
-        ))
+        parseJson<List<Search>>(response).forEach {
+            val title = it.title
+            val href = "$mainUrl/hentai-${it.slug}"
+            val image = "$mainUrl/uploads/portadas/${it.id}.jpg"
+            searchresult.add(
+                AnimeSearchResponse(
+                title,
+                href,
+                this.name,
+                TvType.Hentai,
+                fixUrl(image),
+                null,
+                if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
+                )
+            )
+        }
+
         return ArrayList(searchresult)
     }
+
 
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
@@ -129,7 +145,7 @@ class HentaiLa:MainAPI() {
             "Finalizado" -> ShowStatus.Completed
             else -> null
         }
-        return newAnimeLoadResponse(title, url, TvType.Hentai) {
+        return newAnimeLoadResponse(title, url, TvType.Anime) {
             posterUrl = fixUrl(poster)
             addEpisodes(DubStatus.Subbed, episodes)
             showStatus = status
