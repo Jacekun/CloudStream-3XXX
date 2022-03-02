@@ -81,6 +81,13 @@ jobs:
         path: doc/unreleased.md
         contents: +
         write-mode: overwrite
+    
+    - name: Overwrite last tag
+      uses: DamianReeves/write-file-action@v1.0
+      with:
+        path: doc/last_tag.txt
+        contents: jav_r${{ env.COMMIT_COUNT }}
+        write-mode: overwrite
   
     - name: Commit to the repo
       run: |
