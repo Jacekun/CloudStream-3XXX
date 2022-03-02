@@ -88,7 +88,7 @@ jobs:
         git config user.email "actions@github.com"
         git add .
         # "echo" returns true so the build succeeds, even if no changed files
-        git commit -m '[actions] bump version and update version history' || echo
+        git commit -m '[skip ci] bump version and update version history' || echo
         git push
         
     - name: Create Release
