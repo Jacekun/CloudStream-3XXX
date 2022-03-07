@@ -49,8 +49,7 @@ class Javclcom : MainAPI() {
         //Log.i(this.name, "Result => ${body}")
         val poster = doc.selectFirst("meta[property=og:image]")?.attr("content")
         val title = doc.selectFirst("meta[property=og:title]")?.attr("content") ?: "<No Title>"
-        val descript = doc.selectFirst("meta[property=og:description]")
-            ?.attr("content") ?:"<No Synopsis found>"
+        val descript = doc.selectFirst("meta[property=og:description]")?.attr("content")
         //Log.i(this.name, "Result => ${descript}")
         val re = Regex("\\d{4}")
         val year = when (!poster.isNullOrEmpty()) {
