@@ -72,6 +72,7 @@ object APIHolder {
         SflixProvider("https://dopebox.to", "Dopebox"),
         SflixProvider("https://solarmovie.pe", "Solarmovie"),
 
+        SoaptwoDayProvider(),
         //TmdbProvider(),
 
         FilmanProvider(),
