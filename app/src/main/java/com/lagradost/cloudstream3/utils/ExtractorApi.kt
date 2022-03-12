@@ -123,7 +123,7 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     Evoload(),
     Evoload1(),
     VoeExtractor(),
-    //UpstreamExtractor(), GenericM3U8.kt works
+    UpstreamExtractor(), //GenericM3U8.kt works
 
     Tomatomatela(),
     Cinestart(),
@@ -137,12 +137,7 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
 
     AsianLoad(),
 
-    SBPlay(),
-    SBPlay1(),
-    SBPlay2(),
-    SBPlay3(),
-
-    // GenericM3U8(),
+    GenericM3U8(),
     Jawcloud(),
     Zplayer(),
     ZplayerV2(),

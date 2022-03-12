@@ -123,7 +123,7 @@ object APIHolder {
         AsiaFlixProvider(),
     )
 
-    private val backwardsCompatibleProviders = arrayListOf(
+    val backwardsCompatibleProviders = arrayListOf(
         KawaiifuProvider(), // removed due to cloudflare
         HDMProvider(),// removed due to cloudflare
 

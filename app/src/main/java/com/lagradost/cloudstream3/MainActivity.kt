@@ -24,6 +24,7 @@ import com.google.android.gms.cast.framework.*
 import com.google.android.material.navigationrail.NavigationRailView
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import com.lagradost.cloudstream3.APIHolder.apis
+import com.lagradost.cloudstream3.APIHolder.backwardsCompatibleProviders
 import com.lagradost.cloudstream3.APIHolder.getApiDubstatusSettings
 import com.lagradost.cloudstream3.APIHolder.restrictedApis
 import com.lagradost.cloudstream3.CommonActivity.backEvent
@@ -494,6 +495,8 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
             val count = settingsManager.getInt(getString(R.string.benene_count), 0)
             if (count > 30 && restrictedApis.size > 0 && !apis.contains(restrictedApis.first()))
                 apis.addAll(restrictedApis)
+            if (count > 10 && backwardsCompatibleProviders.size > 0 && !apis.contains(backwardsCompatibleProviders.first()))
+                apis.addAll(backwardsCompatibleProviders)
         } catch (e: Exception) {
             e.printStackTrace()
         }
