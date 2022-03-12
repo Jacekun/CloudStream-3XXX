@@ -51,6 +51,7 @@ class HpJavTv : MainAPI() {
         return HomePageResponse(all.filter { hp -> hp.list.isNotEmpty() })
     }
 
+    //TODO: Fix search
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=$query"
         val document = app.get(url).document.getElementsByTag("body")
@@ -78,7 +79,7 @@ class HpJavTv : MainAPI() {
             )
         }
     }
-
+    //TODO: Fix load
     override suspend fun load(url: String): LoadResponse {
         val response = app.get(url).text
         val document = Jsoup.parse(response)

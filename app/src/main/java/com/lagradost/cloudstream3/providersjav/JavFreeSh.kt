@@ -2,11 +2,10 @@ package com.lagradost.cloudstream3.providersjav
 
 import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.StreamSB
 import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.mapper
+import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
@@ -136,7 +135,7 @@ class JavFreeSh : MainAPI() {
     ): Boolean {
         if (data == "about:blank") return false
         if (data.isEmpty()) return false
-        val sources = mutableListOf<ExtractorLink>()
+        var count = 0
         try {
             // get request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
@@ -144,10 +143,11 @@ class JavFreeSh : MainAPI() {
             val jsonres = app.get(linkToGet, referer = mainUrl).text
             //Log.i(this.name, "Result => (jsonres) ${jsonres}")
             // Invoke sources
-            mapper.readValue<ResponseJson?>(jsonres).let { it2 ->
-                if (!it2?.list.isNullOrEmpty()) {
+            parseJson<ResponseJson?>(jsonres).let { it2 ->
+                val responseList = it2?.list ?: listOf()
+                if (responseList.isNotEmpty()) {
                     val referer = "https://player.javfree.sh/embed.html"
-                    for (link in it2!!.list!!) {
+                    for (link in responseList) {
                         var linkUrl = link.file ?: ""
                         var server = link.server ?: this.name
                         if (linkUrl.isNotEmpty()) {
@@ -158,28 +158,23 @@ class JavFreeSh : MainAPI() {
                             }
                             if (server.contains("streamsb")) {
                                 linkUrl = linkUrl.substring(0, linkUrl.indexOf("?poster"))
-                                    .replace("streamsb.net", "sbplay.org")
-                                Log.i(this.name, "Result => (streamsb link) ${linkUrl}")
-                                val extractor = StreamSB()
-                                val src = extractor.getUrl(linkUrl, referer = referer)
-                                if (src.isNotEmpty()) {
-                                    //Log.i(this.name, "Result => (streamsb) ${src}")
-                                    sources.addAll(src)
+                                    //.replace("streamsb.net", "sbplay.org")
+                                Log.i(this.name, "Result => (streamsb link) $linkUrl")
+                                val src = StreamSB().getUrl(linkUrl, referer = referer)
+                                src?.forEach { srcUrl ->
+                                    callback.invoke(srcUrl)
+                                    count++
                                 }
                             } else {
-                                loadExtractor(linkUrl, referer, callback)
+                                if (loadExtractor(linkUrl, referer, callback)) {
+                                    count++
+                                }
                             }
                         }
                     }
                 }
             }
-            if (sources.isNotEmpty()) {
-                for (source in sources) {
-                    callback.invoke(source)
-                    //Log.i(this.name, "Result => (source) ${source.url}")
-                }
-                return true
-            }
+            return count > 0
         } catch (e: Exception) {
             e.printStackTrace()
             Log.i(this.name, "Result => (e) ${e}")
