@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.lagradost.cloudstream3.animeproviders.*
+import com.lagradost.cloudstream3.metaproviders.CrossTmdbProvider
 import com.lagradost.cloudstream3.movieproviders.*
 import com.lagradost.cloudstream3.providersjav.*
 import com.lagradost.cloudstream3.ui.player.SubtitleData
@@ -68,9 +69,10 @@ object APIHolder {
 
         AsianLoadProvider(),
 
-        SflixProvider("https://sflix.to", "Sflix"),
-        SflixProvider("https://dopebox.to", "Dopebox"),
-        SflixProvider("https://solarmovie.pe", "Solarmovie"),
+        BflixProvider("https://bflix.ru","Bflix"),
+        BflixProvider("https://fmovies.to","Fmovies.to"),
+        BflixProvider("https://sflix.pro","Sflix.pro"),
+
 
         //TmdbProvider(),
 
@@ -85,7 +87,13 @@ object APIHolder {
         WatchAsianProvider(),
         KdramaHoodProvider(),
         AkwamProvider(),
+        MyCimaProvider(),
         AnimePaheProvider(),
+        NineAnimeProvider(),
+        AnimeWorldProvider(),
+        SoaptwoDayProvider(),
+
+        CrossTmdbProvider(),
 
         // All of NSFW sources
         Javhdicu(),
@@ -105,7 +113,7 @@ object APIHolder {
         JavGuru(),
         HpJavTv(),
         JavMost(),
-        Javclcom(),
+        Javclcom()
     )
 
     val restrictedApis = arrayListOf(
@@ -118,6 +126,10 @@ object APIHolder {
     private val backwardsCompatibleProviders = arrayListOf(
         KawaiifuProvider(), // removed due to cloudflare
         HDMProvider(),// removed due to cloudflare
+
+        SflixProvider("https://sflix.to", "Sflix"),
+        SflixProvider("https://dopebox.to", "Dopebox"),
+        SflixProvider("https://solarmovie.pe", "Solarmovie"),
     )
 
     fun getApiFromName(apiName: String?): MainAPI {
@@ -294,6 +306,8 @@ object APIHolder {
 abstract class MainAPI {
     open val name = "NONE"
     open val mainUrl = "NONE"
+
+    //open val uniqueId : Int by lazy { this.name.hashCode() } // in case of duplicate providers you can have a shared id
 
     open val lang = "en" // ISO_639_1 check SubtitleHelper
 
@@ -611,7 +625,7 @@ interface LoadResponse {
     val tags: List<String>?
     var duration: Int? // in minutes
     val trailerUrl: String?
-    val recommendations: List<SearchResponse>?
+    var recommendations: List<SearchResponse>?
     var actors: List<ActorData>?
 
     companion object {
