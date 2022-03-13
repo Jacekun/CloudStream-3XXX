@@ -1,7 +1,3 @@
-+ code cleanups (Jace)
-+ Enable some providers and extractors disabled from upstream. (Jace)
-+ Merge branch 'master' of github.com:LagradOst/CloudStream-3 into javdev (Jace)
-+ Update issue templates (Jace)
-+ Update issue templates (Jace)
-+ Merge branch 'javdev' of github.com:Jacekun/CloudStream-3XXX into javdev (Jace)
-+ code cleanups and updated docs. (Jace)
++ [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/9eec4df8ba2c44b969f98a495f12e2317952fda3).
++ Enable some providers and extractors disabled from upstream.
++ Various cleanups and optimizations.
