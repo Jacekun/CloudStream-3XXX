@@ -1,3 +1,8 @@
+# CloudStream-3XXX r1090
++ [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/9eec4df8ba2c44b969f98a495f12e2317952fda3).
++ Enable some providers and extractors disabled from upstream.
++ Various cleanups and optimizations.
+
 # CloudStream-3XXX r1026
 + Upgrade gradle version.
 + Better updater code.
