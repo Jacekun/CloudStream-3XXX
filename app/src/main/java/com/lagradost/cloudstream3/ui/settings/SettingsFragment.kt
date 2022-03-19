@@ -23,7 +23,6 @@ import com.hippo.unifile.UniFile
 import com.lagradost.cloudstream3.APIHolder.apis
 import com.lagradost.cloudstream3.APIHolder.getApiDubstatusSettings
 import com.lagradost.cloudstream3.APIHolder.getApiProviderLangSettings
-import com.lagradost.cloudstream3.APIHolder.restrictedApis
 import com.lagradost.cloudstream3.AcraApplication
 import com.lagradost.cloudstream3.AcraApplication.Companion.removeKey
 import com.lagradost.cloudstream3.CommonActivity.setLocale
@@ -143,6 +142,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         Triple("\ud83c\udde7\ud83c\uddf7", "Portuguese (Brazil)", "pt"),
         Triple("\ud83c\uddf7\ud83c\uddf4", "Romanian", "ro"),
         Triple("\uD83C\uDDEE\uD83C\uDDF9", "Italian", "it"),
+        Triple("\uD83C\uDDE8\uD83C\uDDF3", "Chinese", "cn"),
     ).sortedBy { it.second } //ye, we go alphabetical, so ppl don't put their lang on top
 
     private fun showAccountSwitch(context: Context, api: AccountManager) {
@@ -201,10 +201,24 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private fun getPref(id: Int): Preference? {
         return try {
             findPreference(getString(id))
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             logError(e)
             null
         }
+    }
+
+    fun getFolderSize(dir: File): Long {
+        var size: Long = 0
+        dir.listFiles()?.let {
+            for (file in it) {
+                size += if (file.isFile) {
+                    // System.out.println(file.getName() + " " + file.length());
+                    file.length()
+                } else getFolderSize(file)
+            }
+        }
+
+        return size
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -212,21 +226,86 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.settings, rootKey)
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
-        getPref(R.string.video_cache_key)?.setOnPreferenceClickListener {
-            val prefNames = resources.getStringArray(R.array.video_cache_size_names)
-            val prefValues = resources.getIntArray(R.array.video_cache_size_values)
+        getPref(R.string.video_buffer_length_key)?.setOnPreferenceClickListener {
+            val prefNames = resources.getStringArray(R.array.video_buffer_length_names)
+            val prefValues = resources.getIntArray(R.array.video_buffer_length_values)
 
             val currentPrefSize =
-                settingsManager.getInt(getString(R.string.video_cache_key), 300)
+                settingsManager.getInt(getString(R.string.video_buffer_length_key), 0)
 
-            activity?.showBottomDialog(
+            activity?.showDialog(
                 prefNames.toList(),
                 prefValues.indexOf(currentPrefSize),
-                getString(R.string.video_cache_settings),
+                getString(R.string.video_buffer_length_settings),
                 true,
                 {}) {
                 settingsManager.edit()
-                    .putInt(getString(R.string.video_cache_key), prefValues[it])
+                    .putInt(getString(R.string.video_buffer_length_key), prefValues[it])
+                    .apply()
+            }
+            return@setOnPreferenceClickListener true
+        }
+
+        getPref(R.string.video_buffer_size_key)?.setOnPreferenceClickListener {
+            val prefNames = resources.getStringArray(R.array.video_buffer_size_names)
+            val prefValues = resources.getIntArray(R.array.video_buffer_size_values)
+
+            val currentPrefSize =
+                settingsManager.getInt(getString(R.string.video_buffer_size_key), 0)
+
+            activity?.showDialog(
+                prefNames.toList(),
+                prefValues.indexOf(currentPrefSize),
+                getString(R.string.video_buffer_size_settings),
+                true,
+                {}) {
+                settingsManager.edit()
+                    .putInt(getString(R.string.video_buffer_size_key), prefValues[it])
+                    .apply()
+            }
+            return@setOnPreferenceClickListener true
+        }
+
+        getPref(R.string.video_buffer_clear_key)?.let { pref ->
+            val cacheDir = context?.cacheDir ?: return@let
+
+            fun updateSummery() {
+                try {
+                    pref.summary =
+                        getString(R.string.mb_format).format(getFolderSize(cacheDir) / (1024L * 1024L))
+                } catch (e: Exception) {
+                    logError(e)
+                }
+            }
+
+            updateSummery()
+
+            pref.setOnPreferenceClickListener {
+                try {
+                    cacheDir.deleteRecursively()
+                    updateSummery()
+                } catch (e: Exception) {
+                    logError(e)
+                }
+                return@setOnPreferenceClickListener true
+            }
+        }
+
+        getPref(R.string.video_buffer_disk_key)?.setOnPreferenceClickListener {
+            val prefNames = resources.getStringArray(R.array.video_buffer_size_names)
+            val prefValues = resources.getIntArray(R.array.video_buffer_size_values)
+
+            val currentPrefSize =
+                settingsManager.getInt(getString(R.string.video_buffer_disk_key), 0)
+
+            activity?.showDialog(
+                prefNames.toList(),
+                prefValues.indexOf(currentPrefSize),
+                getString(R.string.video_buffer_disk_settings),
+                true,
+                {}) {
+                settingsManager.edit()
+                    .putInt(getString(R.string.video_buffer_disk_key), prefValues[it])
                     .apply()
             }
             return@setOnPreferenceClickListener true
@@ -301,9 +380,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             activity?.getApiProviderLangSettings()?.let { current ->
                 val allLangs = HashSet<String>()
                 for (api in apis) {
-                    allLangs.add(api.lang)
-                }
-                for (api in restrictedApis) {
                     allLangs.add(api.lang)
                 }
 

@@ -5,18 +5,20 @@ import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.app
 
 
-open class Jawcloud : ExtractorApi() {
-    override var name = "Jawcloud"
-    override var mainUrl = "https://jawcloud.co"
+open class PlayerVoxzer : ExtractorApi() {
+    override var name = "Voxzer"
+    override var mainUrl = "https://player.voxzer.org"
     override val requiresReferer = false
 
     override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
-        val doc = app.get(url).document
-        val urlString = doc.select("html body div source").attr("src")
+        val listurl = url.replace("/view/","/list/")
+        val urltext = app.get(listurl, referer = url).text
+        val m3u8regex = Regex("((https:|http:)\\/\\/.*\\.m3u8)")
         val sources = mutableListOf<ExtractorLink>()
-        if (urlString.contains("m3u8"))  M3u8Helper().m3u8Generation(
+        val listm3 = m3u8regex.find(urltext)?.value
+        if (listm3?.contains("m3u8") == true)  M3u8Helper().m3u8Generation(
             M3u8Helper.M3u8Stream(
-                urlString,
+                listm3,
                 headers = app.get(url).headers.toMap()
             ), true
         )
