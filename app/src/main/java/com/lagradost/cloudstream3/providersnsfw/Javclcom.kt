@@ -1,9 +1,7 @@
-package com.lagradost.cloudstream3.providersjav
+package com.lagradost.cloudstream3.providersnsfw
 
-import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
-import org.jsoup.Jsoup
 
 class Javclcom : MainAPI() {
     override var name = "JAVcl.com"

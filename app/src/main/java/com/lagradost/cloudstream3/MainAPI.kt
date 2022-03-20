@@ -13,7 +13,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.lagradost.cloudstream3.animeproviders.*
 import com.lagradost.cloudstream3.metaproviders.CrossTmdbProvider
 import com.lagradost.cloudstream3.movieproviders.*
-import com.lagradost.cloudstream3.providersjav.*
+import com.lagradost.cloudstream3.providersnsfw.*
 import com.lagradost.cloudstream3.ui.player.SubtitleData
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import java.util.*

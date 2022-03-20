@@ -1,4 +1,4 @@
-package com.lagradost.cloudstream3.providersjav
+package com.lagradost.cloudstream3.providersnsfw
 
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue

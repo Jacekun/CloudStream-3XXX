@@ -1,4 +1,4 @@
-package com.lagradost.cloudstream3.providersjav
+package com.lagradost.cloudstream3.providersnsfw
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
