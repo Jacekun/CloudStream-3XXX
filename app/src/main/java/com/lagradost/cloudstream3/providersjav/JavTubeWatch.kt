@@ -7,8 +7,8 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 
 class JavTubeWatch : MainAPI() {
-    override val name: String get() = "JavTube"
-    override val mainUrl: String get() = "https://javtube.watch"
+    override var name = "JavTube"
+    override var mainUrl = "https://javtube.watch"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true

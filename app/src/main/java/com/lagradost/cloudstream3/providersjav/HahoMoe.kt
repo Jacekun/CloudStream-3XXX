@@ -25,8 +25,8 @@ class HahoMoe : MainAPI() {
         }
     }
 
-    override val mainUrl: String get() = "https://haho.moe"
-    override val name: String get() = "Haho moe"
+    override var mainUrl = "https://haho.moe"
+    override var name = "Haho moe"
     override val hasQuickSearch: Boolean get() = false
     override val hasMainPage: Boolean get() = true
     override val supportedTypes: Set<TvType> get() = setOf(TvType.Hentai)

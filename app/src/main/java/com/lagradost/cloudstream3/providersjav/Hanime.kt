@@ -39,8 +39,8 @@ class Hanime : MainAPI() {
         }
     }
 
-    override val mainUrl: String get() = "https://hanime.tv"
-    override val name: String get() = "Hanime"
+    override var mainUrl = "https://hanime.tv"
+    override var name = "Hanime"
     override val hasQuickSearch: Boolean get() = false
     override val hasMainPage: Boolean get() = true
     override val hasDownloadSupport: Boolean get() = false

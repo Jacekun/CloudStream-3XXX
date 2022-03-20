@@ -7,8 +7,8 @@ import org.jsoup.nodes.Element
 import java.util.*
 
 class Pornhub:MainAPI() {
-    override val mainUrl = "https://www.pornhub.com"
-    override val name = "Pornhub"
+    override var mainUrl = "https://www.pornhub.com"
+    override var name = "Pornhub"
     override val hasMainPage = true
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true

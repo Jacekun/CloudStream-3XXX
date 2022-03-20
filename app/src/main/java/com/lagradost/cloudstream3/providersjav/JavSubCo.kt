@@ -12,8 +12,8 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavSubCo : MainAPI() {
-    override val name: String get() = "JAV Sub"
-    override val mainUrl: String get() = "https://javsub.co"
+    override var name = "JAV Sub"
+    override var mainUrl = "https://javsub.co"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = true
     override val hasMainPage: Boolean get() = true

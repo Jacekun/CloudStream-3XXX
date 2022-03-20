@@ -58,8 +58,8 @@ class CrunchyrollProvider : MainAPI() {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
     }
 
-    override val mainUrl: String get() = "http://www.crunchyroll.com"
-    override val name: String get() = "Crunchyroll"
+    override var mainUrl = "http://www.crunchyroll.com"
+    override var name = "Crunchyroll"
     override val hasQuickSearch: Boolean get() = false
     override val hasMainPage: Boolean get() = true
 
@@ -126,10 +126,10 @@ class CrunchyrollProvider : MainAPI() {
 
     private fun getCloseMatches(sequence: String, items: Collection<String>): ArrayList<String> {
         val closeMatches = ArrayList<String>()
-        val a = sequence.trim().toLowerCase()
+        val a = sequence.trim().lowercase()
 
         for (item in items) {
-            val b = item.trim().toLowerCase()
+            val b = item.trim().lowercase()
             if (b.contains(a)) {
                 closeMatches.add(item)
             } else if (a.contains(b)) {
@@ -206,7 +206,7 @@ class CrunchyrollProvider : MainAPI() {
             val seasonName = it.selectFirst("a.season-dropdown")?.text()?.trim()
             it.select(".episode").forEach { ep ->
                 val epTitle = ep.selectFirst(".short-desc")?.text()
-                val epNum = CrunchyrollProvider.episodeNumRegex.find(ep.selectFirst("span.ellipsis")?.text().toString())?.destructured?.component1()
+                val epNum = episodeNumRegex.find(ep.selectFirst("span.ellipsis")?.text().toString())?.destructured?.component1()
 
                 val epi = AnimeEpisode(
                     fixUrl(ep.attr("href")),

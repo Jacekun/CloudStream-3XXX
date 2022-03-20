@@ -13,8 +13,8 @@ import com.lagradost.cloudstream3.utils.getQualityFromName
 import java.lang.Exception
 
 class Vlxx : MainAPI() {
-    override val name: String get() = "Vlxx"
-    override val mainUrl: String get() = "https://vlxx.sex"
+    override var name = "Vlxx"
+    override var mainUrl = "https://vlxx.sex"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true

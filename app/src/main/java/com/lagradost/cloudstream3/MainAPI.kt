@@ -100,6 +100,9 @@ object APIHolder {
             MonoschinosProvider(),
             KawaiifuProvider(), // disabled due to cloudflare
 
+            // Additional providers
+            CrunchyrollProvider(),
+
             // All of NSFW sources
             Javhdicu(),
             JavSubCo(),

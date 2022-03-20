@@ -13,8 +13,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
 class OpJavCom : MainAPI() {
-    override val name: String get() = "OpJAV"
-    override val mainUrl: String get() = "https://opjav.com"
+    override var name = "OpJAV"
+    override var mainUrl = "https://opjav.com"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true

@@ -6,8 +6,8 @@ import com.lagradost.cloudstream3.app
 import org.jsoup.Jsoup
 
 class JavMost : MainAPI() {
-    override val name: String get() = "JAVMost.com"
-    override val mainUrl: String get() = "https://www5.javmost.com"
+    override var name = "JAVMost.com"
+    override var mainUrl = "https://www5.javmost.com"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true

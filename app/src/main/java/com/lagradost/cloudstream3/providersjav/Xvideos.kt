@@ -5,8 +5,8 @@ import com.lagradost.cloudstream3.utils.*
 import java.util.*
 
 class Xvideos:MainAPI() {
-    override val mainUrl = "https://www.xvideos.com"
-    override val name = "Xvideos"
+    override var mainUrl = "https://www.xvideos.com"
+    override var name = "Xvideos"
     override val hasMainPage = true
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true
