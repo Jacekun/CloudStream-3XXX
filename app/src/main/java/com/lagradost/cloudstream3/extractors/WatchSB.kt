@@ -8,8 +8,8 @@ import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.getQualityFromName
 
 class JKhentaiExtractor : WatchSB() {
-    override val name = "JKhentai"
-    override val mainUrl = "https://stream.jkhentai.net"
+    override var name = "JKhentai"
+    override var mainUrl = "https://stream.jkhentai.net"
 }
 open class WatchSB : ExtractorApi() {
     override var name = "WatchSB"
