@@ -1,13 +1,10 @@
 package com.lagradost.cloudstream3.utils
 
-import com.lagradost.cloudstream3.AnimeEpisode
-import com.lagradost.cloudstream3.animeproviders.CrunchyrollProvider
 import khttp.responses.Response
 import khttp.structures.authorization.Authorization
 import khttp.structures.cookie.Cookie
 import khttp.structures.cookie.CookieJar
 import khttp.structures.files.FileLike
-import java.util.ArrayList
 
 /**
  * An HTTP session manager.

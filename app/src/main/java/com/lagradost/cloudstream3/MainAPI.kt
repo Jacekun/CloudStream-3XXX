@@ -101,7 +101,7 @@ object APIHolder {
             KawaiifuProvider(), // disabled due to cloudflare
 
             // Additional providers
-            CrunchyrollProvider(),
+            KrunchyProvider(),
 
             // All of NSFW sources
             Javhdicu(),
@@ -522,6 +522,7 @@ enum class ShowStatus {
 enum class DubStatus {
     Dubbed,
     Subbed,
+    Premium
 }
 
 enum class TvType {
