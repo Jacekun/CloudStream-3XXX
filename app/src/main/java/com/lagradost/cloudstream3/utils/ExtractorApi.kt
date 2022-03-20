@@ -145,16 +145,15 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     ZplayerV2(),
     Upstream(),
 
+    // StreamSB.kt works
+    //  SBPlay(),
+    //  SBPlay1(),
+    //  SBPlay2(),
+
     //Nsfw extractors
     StreamLare(),
     PlayLtXyz(),
-    JKhentaiExtractor()
-
-  // StreamSB.kt works
-  //  SBPlay(),
-  //  SBPlay1(),
-  //  SBPlay2(),
-
+    JKhentaiExtractor(),
     PlayerVoxzer(),
 )
 

@@ -43,7 +43,7 @@ class Hanime : MainAPI() {
     override var name = "Hanime"
     override val hasQuickSearch: Boolean get() = false
     override val hasMainPage: Boolean get() = true
-    override val hasDownloadSupport: Boolean get() = false
+    override val hasDownloadSupport = true
     override val supportedTypes: Set<TvType> get() = setOf(TvType.Hentai)
 
     private data class HpHentaiVideos (
