@@ -101,7 +101,7 @@ object APIHolder {
             KawaiifuProvider(), // disabled due to cloudflare
 
             // Additional providers
-            CrunchyrollProvider(),
+            KrunchyProvider(),
 
             // All of NSFW sources
             Javhdicu(),
