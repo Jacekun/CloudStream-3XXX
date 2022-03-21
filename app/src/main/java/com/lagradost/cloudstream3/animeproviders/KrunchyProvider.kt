@@ -12,6 +12,7 @@ import java.util.*
 
 private fun String.toAscii() = this.map { it.toInt() }.joinToString()
 
+
 class KrunchyGeoBypasser {
     companion object {
         const val BYPASS_SERVER = "https://cr-unblocker.us.to/start_session"
@@ -50,7 +51,7 @@ class KrunchyGeoBypasser {
 
     private suspend fun autoLoadSession(): Boolean {
         if (sessionId != null) return true
-            getSessionId()
+        getSessionId()
         return autoLoadSession()
     }
 
@@ -69,16 +70,19 @@ class KrunchyProvider : MainAPI() {
     }
 
     override var mainUrl = "http://www.crunchyroll.com"
-    override var name: String = "Krunchyroll"
+    override var name: String = "Crunchyroll"
     override val lang = "en"
-    override val hasQuickSearch = false
-    override val hasMainPage = true
+    override val hasQuickSearch: Boolean
+        get() = false
+    override val hasMainPage: Boolean
+        get() = true
 
-    override val supportedTypes = setOf(
-        TvType.AnimeMovie,
-        TvType.Anime,
-        TvType.OVA
-    )
+    override val supportedTypes: Set<TvType>
+        get() = setOf(
+            TvType.AnimeMovie,
+            TvType.Anime,
+            TvType.OVA
+        )
 
     override suspend fun getMainPage(): HomePageResponse {
         val urls = listOf(
@@ -130,10 +134,10 @@ class KrunchyProvider : MainAPI() {
 
     private fun getCloseMatches(sequence: String, items: Collection<String>): ArrayList<String> {
         val closeMatches = ArrayList<String>()
-        val a = sequence.trim().lowercase()
+        val a = sequence.trim().toLowerCase()
 
         for (item in items) {
-            val b = item.trim().lowercase()
+            val b = item.trim().toLowerCase()
             if (b.contains(a)) {
                 closeMatches.add(item)
             } else if (a.contains(b)) {
@@ -211,34 +215,35 @@ class KrunchyProvider : MainAPI() {
                 val epTitle = ep.selectFirst(".short-desc")?.text()
 
                 val epNum = episodeNumRegex.find(ep.selectFirst("span.ellipsis")?.text().toString())?.destructured?.component1()
-                var poster1 = ep.selectFirst("img.landscape")?.attr("data-thumbnailurl")
+                var poster = ep.selectFirst("img.landscape")?.attr("data-thumbnailurl")
                 val poster2 = ep.selectFirst("img")?.attr("src")
-                if (poster1.isNullOrBlank()) { poster1 = poster2}
+                if (poster == "") { poster = poster2}
 
                 var epDesc = (if (epNum == null) "" else "Episode $epNum") + (if (!seasonName.isNullOrEmpty()) " - $seasonName" else "")
-                val isPremium = poster1?.contains("widestar") ?: false
+                val isPremium = poster?.contains("widestar") == true
                 if (isPremium) {
-                    epDesc = "★ $epDesc ★"
+                epDesc =  "★ "+epDesc+" ★"
                 }
+                
+                    
+                
 
                 val epi = AnimeEpisode(
                     fixUrl(ep.attr("href")),
                     "$epTitle",
-                    poster1?.replace("widestar","full")?.replace("wide","full"),
+                    poster?.replace("widestar","full")?.replace("wide","full"),
                     null,
                     null,
                     epDesc,
                     null
                 )
                 if (isPremium) {
-                    premiumEpisodes.add(epi)
-                } else if (!seasonName.isNullOrEmpty()) {
-                    if (seasonName.contains("Dub") || seasonName.contains("Russian") || seasonName.contains("Spanish")) {
-                        dubEpisodes.add(epi)
-                    }
-                } else {
-                    subEpisodes.add(epi)
-                }
+                premiumEpisodes.add(epi)
+                } else if (seasonName != null && (seasonName.contains("Dub") || seasonName.contains("Russian") || seasonName.contains("Spanish"))) {
+                dubEpisodes.add(epi)
+               } else {
+               subEpisodes.add(epi)
+              }
             }
         }
         return AnimeLoadResponse(
