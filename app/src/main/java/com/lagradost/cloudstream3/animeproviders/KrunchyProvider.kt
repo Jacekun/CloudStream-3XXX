@@ -9,8 +9,10 @@ import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import org.jsoup.Jsoup
 import java.util.*
+import kotlin.collections.ArrayList
 
 private fun String.toAscii() = this.map { it.toInt() }.joinToString()
+
 
 class KrunchyGeoBypasser {
     companion object {
@@ -50,7 +52,7 @@ class KrunchyGeoBypasser {
 
     private suspend fun autoLoadSession(): Boolean {
         if (sessionId != null) return true
-            getSessionId()
+        getSessionId()
         return autoLoadSession()
     }
 
@@ -69,16 +71,19 @@ class KrunchyProvider : MainAPI() {
     }
 
     override var mainUrl = "http://www.crunchyroll.com"
-    override var name: String = "Krunchyroll"
+    override var name: String = "Crunchyroll"
     override val lang = "en"
-    override val hasQuickSearch = false
-    override val hasMainPage = true
+    override val hasQuickSearch: Boolean
+        get() = false
+    override val hasMainPage: Boolean
+        get() = true
 
-    override val supportedTypes = setOf(
-        TvType.AnimeMovie,
-        TvType.Anime,
-        TvType.OVA
-    )
+    override val supportedTypes: Set<TvType>
+        get() = setOf(
+            TvType.AnimeMovie,
+            TvType.Anime,
+            TvType.OVA
+        )
 
     override suspend fun getMainPage(): HomePageResponse {
         val urls = listOf(
@@ -87,11 +92,9 @@ class KrunchyProvider : MainAPI() {
             Pair("$mainUrl/videos/anime/popular/ajax_page?pg=3", "Popular 3"),
             Pair("$mainUrl/videos/anime/simulcasts/ajax_page", "Simulcasts"),
         )
-
+        val doc = Jsoup.parse(crUnblock.geoBypassRequest(mainUrl).text)
         val items = ArrayList<HomePageList>()
-        items.add(HomePageList("Featured", Jsoup.parse(crUnblock.geoBypassRequest(mainUrl).text).select(
-            ".js-featured-show-list > li"
-        ).map { anime ->
+        val featured = doc.select(".js-featured-show-list > li").map { anime ->
             AnimeSearchResponse(
                 anime.selectFirst("img").attr("alt"),
                 fixUrl(anime.selectFirst("a").attr("href")),
@@ -103,7 +106,31 @@ class KrunchyProvider : MainAPI() {
                 null,
                 null
             )
-        }))
+        }
+        val recent = doc.select("div.welcome-countdown-day:contains(Now Showing) li")?.mapNotNull {
+            val link = fixUrl(it.selectFirst("a").attr("href"))
+            val name = it.selectFirst("span.welcome-countdown-name").text()
+            val img = it.selectFirst("img").attr("src").replace("medium","full")
+            val dubstat = if (name.contains("Dub)",true)) EnumSet.of(DubStatus.Dubbed) else
+                EnumSet.of(DubStatus.Subbed)
+            val details = it.selectFirst("span.welcome-countdown-details").text()
+            val epnum = episodeNumRegex.find(details)?.value?.replace("Episode ","") ?: ""
+            AnimeSearchResponse(
+                "★ $name ★",
+                link.replace(Regex("(\\/episode.*)"),""),
+                this.name,
+                TvType.Anime,
+                fixUrl(img),
+                null,
+                dubstat,
+                subEpisodes = epnum.toIntOrNull(),
+                dubEpisodes = epnum.toIntOrNull()
+            )
+        }
+        if (recent!!.isNotEmpty()) {
+            items.add(HomePageList("Now Showing", recent))
+        }
+        items.add(HomePageList("Featured", featured))
         urls.apmap { (url, name) ->
             val response = crUnblock.geoBypassRequest(url)
             val soup = Jsoup.parse(response.text)
@@ -167,6 +194,8 @@ class KrunchyProvider : MainAPI() {
                 break
             }
             if (anime.name == results[count]) {
+                val dubstat = if (anime.name.contains("Dub)",true)) EnumSet.of(DubStatus.Dubbed) else
+                    EnumSet.of(DubStatus.Subbed)
                 anime.link = fixUrl(anime.link)
                 anime.img = anime.img.replace("small", "full")
                 searchResutls.add(AnimeSearchResponse(
@@ -176,7 +205,7 @@ class KrunchyProvider : MainAPI() {
                     TvType.Anime,
                     anime.img,
                     null,
-                    EnumSet.of(DubStatus.Subbed),
+                    dubstat,
                     null,
                     null
                 ))
@@ -190,7 +219,7 @@ class KrunchyProvider : MainAPI() {
     override suspend fun load(url: String): LoadResponse {
         val soup = Jsoup.parse(crUnblock.geoBypassRequest(url).text)
         val title = soup.selectFirst("#showview-content-header .ellipsis")?.text()?.trim()
-        val poster = soup.selectFirst(".poster")?.attr("src")
+        val posterU = soup.selectFirst(".poster")?.attr("src")
 
         val p = soup.selectFirst(".description")
         val description = if (p.selectFirst(".more") != null && !p.selectFirst(".more")?.text()?.trim().isNullOrEmpty()) {
@@ -201,22 +230,22 @@ class KrunchyProvider : MainAPI() {
 
         val genres = soup.select(".large-margin-bottom > ul:nth-child(2) li:nth-child(2) a").map { it.text() }
         val year = genres.filter { it.toIntOrNull() != null }.map { it.toInt() }.sortedBy { it }.getOrNull(0)
-
         val subEpisodes = ArrayList<AnimeEpisode>()
         val dubEpisodes = ArrayList<AnimeEpisode>()
-        val premiumEpisodes = ArrayList<AnimeEpisode>()
+        val premiumSubEpisodes = ArrayList<AnimeEpisode>()
+        val premiumDubEpisodes = ArrayList<AnimeEpisode>()
         soup.select(".season").forEach {
             val seasonName = it.selectFirst("a.season-dropdown")?.text()?.trim()
             it.select(".episode").forEach { ep ->
                 val epTitle = ep.selectFirst(".short-desc")?.text()
 
                 val epNum = episodeNumRegex.find(ep.selectFirst("span.ellipsis")?.text().toString())?.destructured?.component1()
-                var poster1 = ep.selectFirst("img.landscape")?.attr("data-thumbnailurl")
+                var poster = ep.selectFirst("img.landscape")?.attr("data-thumbnailurl")
                 val poster2 = ep.selectFirst("img")?.attr("src")
-                if (poster1.isNullOrBlank()) { poster1 = poster2}
+                if (poster.isNullOrBlank()) { poster = poster2}
 
                 var epDesc = (if (epNum == null) "" else "Episode $epNum") + (if (!seasonName.isNullOrEmpty()) " - $seasonName" else "")
-                val isPremium = poster1?.contains("widestar") ?: false
+                val isPremium = poster?.contains("widestar", ignoreCase = true) == true
                 if (isPremium) {
                     epDesc = "★ $epDesc ★"
                 }
@@ -224,37 +253,59 @@ class KrunchyProvider : MainAPI() {
                 val epi = AnimeEpisode(
                     fixUrl(ep.attr("href")),
                     "$epTitle",
-                    poster1?.replace("widestar","full")?.replace("wide","full"),
+                    poster?.replace("widestar","full")?.replace("wide","full"),
                     null,
                     null,
                     epDesc,
                     null
                 )
-                if (isPremium) {
-                    premiumEpisodes.add(epi)
-                } else if (!seasonName.isNullOrEmpty()) {
-                    if (seasonName.contains("Dub") || seasonName.contains("Russian") || seasonName.contains("Spanish")) {
-                        dubEpisodes.add(epi)
-                    }
-                } else {
+                if (isPremium && seasonName != null && (seasonName.contains("Dub") || seasonName.contains("Russian") || seasonName.contains("Spanish"))) {
+                    premiumDubEpisodes.add(epi)
+                }
+                else if (isPremium) {
+                    premiumSubEpisodes.add(epi)
+                }
+                else if (seasonName != null && (seasonName.contains("Dub"))) {
+                    dubEpisodes.add(epi)
+                }
+                else {
                     subEpisodes.add(epi)
                 }
             }
         }
-        return AnimeLoadResponse(
-            title,
-            null,
-            title.toString(),
-            url,
-            this.name,
-            TvType.Anime,
-            poster,
-            year,
-            hashMapOf(DubStatus.Subbed to subEpisodes.reversed(), DubStatus.Dubbed to dubEpisodes.reversed(), DubStatus.Premium to premiumEpisodes.reversed()),
-            null,
-            description,
-            genres
-        )
+
+
+        val recommendations =
+            soup.select(".other-series > ul li")?.mapNotNull { element ->
+                val recTitle = element.select("span.ellipsis[dir=auto]").text() ?: return@mapNotNull null
+                val image = element.select("img")?.attr("src")
+                val recUrl = fixUrl(element.select("a").attr("href"))
+                AnimeSearchResponse(
+                    recTitle,
+                    fixUrl(recUrl),
+                    this.name,
+                    TvType.Anime,
+                    fixUrl(image!!),
+                    dubStatus =
+                    if (recTitle.contains("(DUB)") || recTitle.contains("Dub")) EnumSet.of(
+                        DubStatus.Dubbed
+                    ) else EnumSet.of(DubStatus.Subbed),
+                )
+            }
+
+
+        return newAnimeLoadResponse(title.toString(), url, TvType.Anime) {
+            this.posterUrl = posterU
+            this.engName = title
+            if (subEpisodes.isNotEmpty()) addEpisodes(DubStatus.Subbed, subEpisodes.reversed())
+            if (dubEpisodes.isNotEmpty()) addEpisodes(DubStatus.Dubbed, dubEpisodes.reversed())
+            if (premiumDubEpisodes.isNotEmpty()) addEpisodes(DubStatus.PremiumDub, premiumDubEpisodes.reversed())
+            if (premiumSubEpisodes.isNotEmpty()) addEpisodes(DubStatus.PremiumSub, premiumSubEpisodes.reversed())
+            this.plot = description
+            this.tags = genres
+            this.year = year
+            this.recommendations = recommendations
+        }
     }
 
     data class Subtitles (
@@ -332,35 +383,35 @@ class KrunchyProvider : MainAPI() {
                 }
             }
             streams.apmap { stream ->
-              if (stream.url.contains("m3u8") && stream.format!!.contains("adaptive") ) {
-                  hlsHelper.m3u8Generation(M3u8Helper.M3u8Stream(stream.url, null), false).apmap {
+                if (stream.url.contains("m3u8") && stream.format!!.contains("adaptive") ) {
+                    hlsHelper.m3u8Generation(M3u8Helper.M3u8Stream(stream.url, null), false).apmap {
+                        callback(
+                            ExtractorLink(
+                                "Crunchyroll",
+                                "Crunchy - ${stream.title} - ${it.quality}p",
+                                it.streamUrl,
+                                "",
+                                getQualityFromName(it.quality.toString()),
+                                true
+                            )
+                        )
+                    }
+                } else if (stream.format == "trailer_hls") {
+                    val premiumstream = stream.url
+                        .replace("\\/", "/")
+                        .replace(Regex("\\/clipFrom.*?index.m3u8"), "").replace("'_,'", "'_'")
+                        .replace(stream.url.split("/")[2], "fy.v.vrv.co")
                     callback(
                         ExtractorLink(
                             "Crunchyroll",
-                            "Crunchy - ${stream.title} - ${it.quality}p",
-                            it.streamUrl,
+                            "Crunchy - ${stream.title} ★",
+                            premiumstream,
                             "",
-                            getQualityFromName(it.quality.toString()),
-                            true
+                            Qualities.Unknown.value,
+                            false
                         )
                     )
-                }
-              } else if (stream.format == "trailer_hls") {
-                  val premiumstream = stream.url
-                      .replace("\\/", "/")
-                      .replace(Regex("\\/clipFrom.*?index.m3u8"), "").replace("'_,'", "'_'")
-                      .replace(stream.url.split("/")[2], "fy.v.vrv.co")
-                  callback(
-                  ExtractorLink(
-                      "Crunchyroll",
-                      "Crunchy - ${stream.title} ★",
-                      premiumstream,
-                      "",
-                      Qualities.Unknown.value,
-                      false
-                  )
-              )
-              } else null
+                } else null
             }
             json.subtitles.apmap {
                 val langclean = it.language.replace("esLA","Spanish")
