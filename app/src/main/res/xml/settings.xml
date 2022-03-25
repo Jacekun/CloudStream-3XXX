@@ -216,9 +216,9 @@
         <Preference
                 android:title="@string/github"
                 android:icon="@drawable/ic_github_logo"
-                app:summary="https://github.com/Jacekun/CloudStream-3XXX">
+                app:summary="https://github.com/KillerDogeEmpire/CloudStream-3XXX">
             <intent android:action="android.intent.action.VIEW"
-                    android:data="https://github.com/Jacekun/CloudStream-3XXX"/>
+                    android:data="https://github.com/KillerDogeEmpire/CloudStream-3XXX"/>
         </Preference>
 
         <Preference
