@@ -520,8 +520,10 @@ enum class ShowStatus {
 }
 
 enum class DubStatus {
-    Dubbed,
-    Subbed,
+    Subbed, 
+    PremiumSub, 
+    Dubbed, 
+    PremiumDub,
 }
 
 enum class TvType {
