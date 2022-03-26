@@ -47,7 +47,7 @@ class Javhdicu : MainAPI() {
                 val aa = it.selectFirst("div.item-img > a") ?: return@mapNotNull null
                 // Video details
                 val link = aa.attr("href") ?: return@mapNotNull null
-                var name = aa.attr("title") ?: ""
+                var name = aa.attr("title")?.cleanTitle() ?: ""
                 val image = aa.select("img")?.attr("src")
                 val year = null
                 //Log.i(this.name, "Result => (link) ${link}")
@@ -86,7 +86,7 @@ class Javhdicu : MainAPI() {
             //Log.i(this.name, "Result => $content")
             val link = fixUrlNull(content.attr("href")) ?: return@mapNotNull null
             val imgContent = content.select("img")
-            val title = imgContent?.attr("alt")?.trim()?.removeSurrounding("JAV HD") ?: ""
+            val title = imgContent?.attr("alt")?.cleanTitle() ?: ""
             val image = imgContent?.attr("src")?.trim('\'')
             val year = null
             //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
@@ -115,7 +115,7 @@ class Javhdicu : MainAPI() {
 
         // Video details
         val poster = innerDiv?.select("img")?.attr("src")
-        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.trim()?.removePrefix("JAV HD") ?: "<No Title>"
+        val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.cleanTitle() ?: "<No Title>"
         val descript = innerBody?.select("p")?.get(0)?.text()
         //Log.i(this.name, "Result => (innerDiv) ${innerDiv}")
 
@@ -143,7 +143,7 @@ class Javhdicu : MainAPI() {
 
         val recs = body?.select("div.latest-wrapper div.item.active > div")?.mapNotNull {
             val innerAImg = it?.select("div.item-img") ?: return@mapNotNull null
-            val aName = it.select("h3 > a")?.text()?.trim() ?: return@mapNotNull null
+            val aName = it.select("h3 > a")?.text()?.cleanTitle() ?: return@mapNotNull null
             val aImg = innerAImg.select("img")?.attr("src")
             val aUrl = innerAImg.select("a")?.get(0)?.attr("href") ?: return@mapNotNull null
             MovieSearchResponse(
@@ -248,5 +248,8 @@ class Javhdicu : MainAPI() {
 
     private fun List<String>.removeInvalidLinks(): String =
         this.filter { a -> a.isNotBlank() && !a.startsWith("https://a.realsrv.com") }.toJson()
+
+    private fun String.cleanTitle(): String =
+        this.trim().removeSurrounding("JAV HD")
 
 }

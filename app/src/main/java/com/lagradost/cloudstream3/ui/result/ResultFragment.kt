@@ -1122,6 +1122,11 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     result_play_movie?.text = it
                 }
 
+            //Hide play button if provider does not support streaming
+            if (!api.hasStreamSupport) {
+                result_play_movie?.visibility = GONE
+            }
+
             when (startAction) {
                 START_ACTION_RESUME_LATEST -> {
                     for (ep in episodeList) {

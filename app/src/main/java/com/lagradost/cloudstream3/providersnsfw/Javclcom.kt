@@ -10,6 +10,7 @@ class Javclcom : MainAPI() {
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = false
     override val hasQuickSearch: Boolean get() = false
+    override val hasStreamSupport = false
 
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/search/$query/"
