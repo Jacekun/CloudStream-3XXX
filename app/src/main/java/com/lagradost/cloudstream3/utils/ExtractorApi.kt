@@ -97,6 +97,8 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     Vidstreamz(),
     Vizcloud(),
     Vizcloud2(),
+    VizcloudOnline(),
+    VizcloudXyz(),
     Mp4Upload(),
     StreamTape(),
     MixDrop(),

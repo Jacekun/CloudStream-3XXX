@@ -82,6 +82,7 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 
 
 ***Sites used:***
+https://lagradost.github.io/CloudStream-3/
 <!-- Do not remove those two comments -->
 <!--SITE LIST START-->
 - [pelisplus.icu](https://pelisplus.icu) 
@@ -114,6 +115,7 @@ It merely scrapes 3rd-party websites that are publicly accessable via any regula
 - [mycima.tv](https://mycima.tv) 
 - [egy.best](https://egy.best) 
 - [hdm.to](https://hdm.to) 
+- [theflix.to](https://theflix.to) 
 - [v2.apimdb.net](https://v2.apimdb.net) 
 - [wcostream.com](https://www.wcostream.com) 
 - [gogoanime.film](https://gogoanime.film) 
