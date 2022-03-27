@@ -16,6 +16,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 + All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/ad2f2ec4127b77799d0dfa1263e7731446db33eb).
 + **NSFW** sites. *See below table*.
 + **Crunchyroll** site.
++ **Random** button on Homepage.
 
 ## NSFW Sites
 | Site | MainPage           | Search | Stream | Types | Remarks |

@@ -116,6 +116,7 @@ class Javhdicu : MainAPI() {
         // Video details
         val poster = innerDiv?.select("img")?.attr("src")
         val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.cleanTitle() ?: "<No Title>"
+        Log.i(this.name, "Result => (title) $title")
         val descript = innerBody?.select("p")?.get(0)?.text()
         //Log.i(this.name, "Result => (innerDiv) ${innerDiv}")
 
@@ -250,6 +251,6 @@ class Javhdicu : MainAPI() {
         this.filter { a -> a.isNotBlank() && !a.startsWith("https://a.realsrv.com") }.toJson()
 
     private fun String.cleanTitle(): String =
-        this.trim().removeSurrounding("JAV HD")
+        this.trim().removePrefix("JAV HD").trim()
 
 }
