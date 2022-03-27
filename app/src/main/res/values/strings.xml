@@ -435,6 +435,7 @@
     <string name="actor_background">Background</string>
 
     <string name="home_source">Source</string>
+    <string name="home_random">Random</string>
 
     <string name="coming_soon">Coming soon…</string>
     <string name="quality_cam">Cam</string>
