@@ -3,8 +3,8 @@ package com.lagradost.cloudstream3.providersnsfw
 import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.StreamSB
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
@@ -100,8 +100,7 @@ class JavFreeSh : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val doc = Jsoup.parse(response)
+        val doc = app.get(url).document
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[property=og:image]").firstOrNull()?.attr("content")
         val title = doc.select("meta[name=title]").firstOrNull()?.attr("content").toString()
@@ -114,17 +113,26 @@ class JavFreeSh : MainAPI() {
         //Log.i(this.name, "Result => (yearElem) ${yearElem}")
         val year = yearElem?.text()?.trim()?.takeLast(4)?.toIntOrNull()
 
-        var id = body
+        var streamUrl = body
             ?.select("div#page > div#content > div#primary > main > article > header > div > div > div > script")
             ?.toString() ?: ""
-        if (id != "") {
+        if (streamUrl.isNotEmpty()) {
             val startS = "<iframe src="
-            id = id.substring(id.indexOf(startS) + startS.length + 1)
+            streamUrl = streamUrl.substring(streamUrl.indexOf(startS) + startS.length + 1)
             //Log.i(this.name, "Result => (id) ${id}")
-            id = id.substring(0, id.indexOf("\""))
+            streamUrl = streamUrl.substring(0, streamUrl.indexOf("\""))
         }
         //Log.i(this.name, "Result => (id) ${id}")
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+        return MovieLoadResponse(
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.JAV,
+            dataUrl = streamUrl,
+            posterUrl = poster,
+            year = year,
+            plot = descript
+        )
     }
 
     override suspend fun loadLinks(
@@ -137,39 +145,20 @@ class JavFreeSh : MainAPI() {
         if (data.isEmpty()) return false
         var count = 0
         try {
-            // get request to: https://player.javfree.sh/stream/687234424271726c
+            // GET request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
-            val linkToGet = "https://player.javfree.sh/stream/${id}"
+            val linkToGet = "https://player.javfree.sh/stream/$id"
             val jsonres = app.get(linkToGet, referer = mainUrl).text
             //Log.i(this.name, "Result => (jsonres) ${jsonres}")
-            // Invoke sources
-            parseJson<ResponseJson?>(jsonres).let { it2 ->
-                val responseList = it2?.list ?: listOf()
-                if (responseList.isNotEmpty()) {
-                    val referer = "https://player.javfree.sh/embed.html"
-                    for (link in responseList) {
-                        var linkUrl = link.file ?: ""
-                        var server = link.server ?: this.name
-                        if (linkUrl.isNotEmpty()) {
-                            Log.i(this.name, "Result => (link url) ${linkUrl}")
-                            // identify server
-                            if (server.isNotEmpty()) {
-                                server = server.lowercase()
-                            }
-                            if (server.contains("streamsb")) {
-                                linkUrl = linkUrl.substring(0, linkUrl.indexOf("?poster"))
-                                    //.replace("streamsb.net", "sbplay.org")
-                                Log.i(this.name, "Result => (streamsb link) $linkUrl")
-                                val src = StreamSB().getUrl(linkUrl, referer = referer)
-                                src?.forEach { srcUrl ->
-                                    callback.invoke(srcUrl)
-                                    count++
-                                }
-                            } else {
-                                if (loadExtractor(linkUrl, referer, callback)) {
-                                    count++
-                                }
-                            }
+            parseJson<ResponseJson?>(jsonres).let { item ->
+                val referer = "https://player.javfree.sh/embed.html"
+                item?.list?.forEach { link ->
+                    val linkUrl = link.file ?: ""
+                    if (linkUrl.isNotEmpty()) {
+                        //Log.i(this.name, "ApiError => (link url) $linkUrl")
+                        if (loadExtractor(linkUrl, referer, callback)) {
+                            count++
+                            //Log.i(this.name, "ApiError => (link loaded) $linkUrl")
                         }
                     }
                 }
@@ -177,7 +166,7 @@ class JavFreeSh : MainAPI() {
             return count > 0
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.i(this.name, "Result => (e) ${e}")
+            logError(e)
         }
         return false
     }
