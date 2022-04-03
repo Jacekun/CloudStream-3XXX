@@ -17,7 +17,6 @@ class JavFreeSh : MainAPI() {
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
-    override val hasStreamSupport = false
 
     private data class ResponseJson(
         @JsonProperty("list") val list: List<ResponseData>?

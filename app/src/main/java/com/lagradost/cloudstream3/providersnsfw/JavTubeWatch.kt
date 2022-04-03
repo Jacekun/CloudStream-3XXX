@@ -12,7 +12,6 @@ class JavTubeWatch : MainAPI() {
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
-    override val hasStreamSupport = false
 
     override suspend fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
