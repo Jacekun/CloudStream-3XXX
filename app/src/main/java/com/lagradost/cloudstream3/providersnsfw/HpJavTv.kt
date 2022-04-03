@@ -94,8 +94,17 @@ class HpJavTv : MainAPI() {
         val year = null
 
         // Video link
-        val id = ""
-
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+        val streamUrl = ""
+        return MovieLoadResponse(
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.JAV,
+            dataUrl = streamUrl,
+            posterUrl = poster,
+            year = year,
+            plot = descript,
+            comingSoon = true
+        )
     }
 }

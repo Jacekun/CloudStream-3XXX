@@ -105,10 +105,20 @@ class JavGuru : MainAPI() {
             .select("img").attr("src")
         val title = body.select("h1.titl").text()
         val descript = body.select("div.wp-content").select("p").firstOrNull()?.text()
-        val id = ""
+        val streamUrl = ""
         val year = body.select("div.infometa > div.infoleft > ul > li")
             ?.get(1)?.text()?.takeLast(10)?.substring(0, 4)?.toIntOrNull()
 
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+        return MovieLoadResponse(
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.JAV,
+            dataUrl = streamUrl,
+            posterUrl = poster,
+            year = year,
+            plot = descript,
+            comingSoon = true
+        )
     }
 }

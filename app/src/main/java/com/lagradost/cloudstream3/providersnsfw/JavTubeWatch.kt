@@ -113,7 +113,17 @@ class JavTubeWatch : MainAPI() {
             Log.i(this.name, "Result => Exception (load) $e")
             ""
         }
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, streamUrl, poster, year, descript, null, null)
+        return MovieLoadResponse(
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.JAV,
+            dataUrl = streamUrl,
+            posterUrl = poster,
+            year = year,
+            plot = descript,
+            comingSoon = true
+        )
     }
 
     //TODO: LoadLinks

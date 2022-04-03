@@ -82,10 +82,10 @@ class JavMost : MainAPI() {
                 //Log.i(this.name, "Result => (titleContent) ${titleContent}")
                 val title = when (titleContent?.size) {
                     2 -> listOfNotNull(
-                        titleContent?.get(0)?.text(),
-                        titleContent?.get(1)?.text()
-                    )?.joinToString(" ")
-                    1 -> titleContent?.get(0)?.text()
+                        titleContent[0]?.text(),
+                        titleContent[1]?.text()
+                    ).joinToString(" ")
+                    1 -> titleContent[0]?.text()
                     else -> "<No Title found>"
                 } ?: "<No Title found>"
                 //Log.i(this.name, "Result => (title) ${title}")
@@ -134,9 +134,18 @@ class JavMost : MainAPI() {
         val title = body?.select("meta[property=og:title]")?.firstOrNull()?.attr("content") ?: "<No Title>"
         val descript = body?.select("meta[property=og:description]")?.firstOrNull()?.attr("content") ?: "<No Synopsis found>"
         //Log.i(this.name, "Result => ${descript}")
-        val id = ""
+        val streamUrl = ""
         val year = null
-
-        return MovieLoadResponse(title, url, this.name, TvType.JAV, id, poster, year, descript, null, null)
+        return MovieLoadResponse(
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.JAV,
+            dataUrl = streamUrl,
+            posterUrl = poster,
+            year = year,
+            plot = descript,
+            comingSoon = true
+        )
     }
 }
