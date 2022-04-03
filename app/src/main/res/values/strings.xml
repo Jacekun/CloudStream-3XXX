@@ -98,7 +98,7 @@
     <string name="type_dropped">Dropped</string>
     <string name="type_plan_to_watch">Plan to Watch</string>
     <string name="type_none">None</string>
-    <string name="type_re_watching">ReWatching</string>
+    <string name="type_re_watching">Rewatching</string>
 
     <string name="play_movie_button">Play Movie</string>
     <string name="play_torrent_button">Stream Torrent</string>
@@ -399,7 +399,10 @@
     <string name="add_sync">Add tracking</string>
     <string name="added_sync_format" formatted="true">Added %s</string>
     <string name="upload_sync">Sync</string>
-
+    <string name="sync_score">Rated</string>
+    <string name="sync_score_format" formatted="true">%d / 10</string>
+    <string name="sync_total_episodes_none">/??</string>
+    <string name="sync_total_episodes_some" formatted="true">/%d</string>
     <!-- ============ -->
     <string name="none">None</string>
     <string name="normal">Normal</string>
@@ -438,6 +441,7 @@
     <string name="home_random">Random</string>
 
     <string name="coming_soon">Coming soon…</string>
+
     <string name="quality_cam">Cam</string>
     <string name="quality_cam_rip">Cam</string>
     <string name="quality_cam_hd">Cam</string>
@@ -448,5 +452,12 @@
     <string name="quality_blueray">BlueRay</string>
     <string name="quality_workprint">WP</string>
     <string name="quality_dvd">DVD</string>
+    <string name="quality_4k">4K</string>
+    <string name="quality_sd">SD</string>
+    <string name="quality_uhd">UHD</string>
+    <string name="quality_hdr">HDR</string>
+    <string name="quality_sdr">SDR</string>
+    <string name="quality_webrip">Web</string>
+
     <string name="poster_image">Poster Image</string>
 </resources>

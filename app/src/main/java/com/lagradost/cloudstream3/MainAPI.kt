@@ -16,7 +16,9 @@ import com.lagradost.cloudstream3.movieproviders.*
 import com.lagradost.cloudstream3.providersnsfw.*
 import com.lagradost.cloudstream3.ui.player.SubtitleData
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import okhttp3.Interceptor
 import java.util.*
+import kotlin.math.absoluteValue
 
 const val USER_AGENT =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -418,6 +420,11 @@ abstract class MainAPI {
     ): Boolean {
         throw NotImplementedError()
     }
+
+    /** An okhttp interceptor for used in OkHttpDataSource */
+    open fun getVideoInterceptor(extractorLink: ExtractorLink) : Interceptor? {
+        return null
+    }
 }
 
 /** Might need a different implementation for desktop*/
@@ -583,8 +590,51 @@ enum class SearchQuality {
     Telecine, // TC
     HQ,
     HD,
+    HDR, // high dynamic range
     BlueRay,
     DVD,
+    SD,
+    FourK,
+    UHD,
+    SDR, // standard dynamic range
+    WebRip
+}
+
+/**Add anything to here if you find a site that uses some specific naming convention*/
+fun getQualityFromString(string: String?) : SearchQuality? {
+    val check = (string ?: return null).trim().lowercase().replace(" ","")
+
+    return when(check) {
+        "cam" -> SearchQuality.Cam
+        "camrip" -> SearchQuality.CamRip
+        "hdcam" -> SearchQuality.HdCam
+        "highquality" -> SearchQuality.HQ
+        "hq" -> SearchQuality.HQ
+        "highdefinition" -> SearchQuality.HD
+        "hdrip" -> SearchQuality.HD
+        "hd" -> SearchQuality.HD
+        "rip" -> SearchQuality.CamRip
+        "telecine" -> SearchQuality.Telecine
+        "tc" -> SearchQuality.Telecine
+        "telesync" -> SearchQuality.Telesync
+        "ts" -> SearchQuality.Telesync
+        "dvd" -> SearchQuality.DVD
+        "blueray" ->  SearchQuality.BlueRay
+        "bluray" -> SearchQuality.BlueRay
+        "br" -> SearchQuality.BlueRay
+        "standard" -> SearchQuality.SD
+        "sd" -> SearchQuality.SD
+        "4k" -> SearchQuality.FourK
+        "uhd" -> SearchQuality.UHD // may also be 4k or 8k
+        "blue" -> SearchQuality.BlueRay
+        "wp" -> SearchQuality.WorkPrint
+        "workprint" -> SearchQuality.WorkPrint
+        "webrip" -> SearchQuality.WebRip
+        "web" -> SearchQuality.WebRip
+        "hdr" -> SearchQuality.HDR
+        "sdr" -> SearchQuality.SDR
+        else -> null
+    }
 }
 
 interface SearchResponse {
@@ -673,13 +723,13 @@ interface LoadResponse {
     val url: String
     val apiName: String
     val type: TvType
-    val posterUrl: String?
+    var posterUrl: String?
     val year: Int?
-    val plot: String?
-    val rating: Int? // 1-1000
-    val tags: List<String>?
+    var plot: String?
+    var rating: Int? // 1-1000
+    var tags: List<String>?
     var duration: Int? // in minutes
-    val trailerUrl: String?
+    var trailerUrl: String?
     var recommendations: List<SearchResponse>?
     var actors: List<ActorData>?
     var comingSoon: Boolean
@@ -933,3 +983,6 @@ fun fetchUrls(text: String?): List<String> {
         Regex("""(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*))""")
     return linkRegex.findAll(text).map { it.value.trim().removeSurrounding("\"") }.toList()
 }
+
+fun String?.toRatingInt() : Int? =
+    this?.trim()?.toDoubleOrNull()?.absoluteValue?.times(1000f)?.toInt()

@@ -1,6 +1,6 @@
 package com.lagradost.cloudstream3.ui.result
 
-import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -44,8 +44,7 @@ class ResultViewModel : ViewModel() {
     private var repo: APIRepository? = null
     private var generator: IGenerator? = null
 
-
-    private val _resultResponse: MutableLiveData<Resource<Any?>> = MutableLiveData()
+    private val _resultResponse: MutableLiveData<Resource<LoadResponse>> = MutableLiveData()
     private val _episodes: MutableLiveData<List<ResultEpisode>> = MutableLiveData()
     private val episodeById: MutableLiveData<HashMap<Int, Int>> =
         MutableLiveData() // lookup by ID to get Index
@@ -57,7 +56,8 @@ class ResultViewModel : ViewModel() {
     private val selectedRangeInt: MutableLiveData<Int> = MutableLiveData()
     val rangeOptions: LiveData<List<String>> = _rangeOptions
 
-    val resultResponse: LiveData<Resource<Any?>> get() = _resultResponse
+    val result: LiveData<Resource<LoadResponse>> get() = _resultResponse
+
     val episodes: LiveData<List<ResultEpisode>> get() = _episodes
     val publicEpisodes: LiveData<Resource<List<ResultEpisode>>> get() = _publicEpisodes
     val publicEpisodesCount: LiveData<Int> get() = _publicEpisodesCount
@@ -79,9 +79,6 @@ class ResultViewModel : ViewModel() {
 
     private val _watchStatus: MutableLiveData<WatchType> = MutableLiveData()
     val watchStatus: LiveData<WatchType> get() = _watchStatus
-
-    private val _sync: MutableLiveData<List<Resource<SyncAPI.SyncResult?>>> = MutableLiveData()
-    val sync: LiveData<List<Resource<SyncAPI.SyncResult?>>> get() = _sync
 
     fun updateWatchStatus(status: WatchType) = viewModelScope.launch {
         val currentId = id.value ?: return@launch
@@ -108,6 +105,41 @@ class ResultViewModel : ViewModel() {
                     )
                 )
             }
+        }
+    }
+
+    companion object {
+        const val TAG = "RVM"
+    }
+
+    var lastMeta: SyncAPI.SyncResult? = null
+    private fun applyMeta(resp: LoadResponse, meta: SyncAPI.SyncResult?): LoadResponse {
+        if (meta == null) return resp
+        lastMeta = meta
+        return resp.apply {
+            Log.i(TAG, "applyMeta")
+
+            duration = duration ?: meta.duration
+            rating = rating ?: meta.publicScore
+            tags = tags ?: meta.genres
+            plot = if (plot.isNullOrBlank()) meta.synopsis else plot
+            trailerUrl = trailerUrl ?: meta.trailerUrl
+            posterUrl = posterUrl ?: meta.posterUrl ?: meta.backgroundPosterUrl
+            actors = actors ?: meta.actors?.map {
+                ActorData(
+                    Actor(
+                        name = it.name,
+                        image = it.posterUrl
+                    )
+                )
+            }
+        }
+    }
+
+    fun setMeta(meta: SyncAPI.SyncResult) {
+        Log.i(TAG, "setMeta")
+        (result.value as? Resource.Success<LoadResponse>?)?.value?.let { resp ->
+            _resultResponse.postValue(Resource.Success(applyMeta(resp, meta)))
         }
     }
 
@@ -190,7 +222,7 @@ class ResultViewModel : ViewModel() {
     }
 
     fun changeDubStatus(status: DubStatus?) {
-        if(status == null) return
+        if (status == null) return
         dubSubEpisodes.value?.get(status)?.let { episodes ->
             id.value?.let {
                 setDub(it, status)
@@ -220,7 +252,10 @@ class ResultViewModel : ViewModel() {
                 currentSubs.add(sub)
             })
 
-            return@safeApiCall Pair(currentLinks.toSet(), currentSubs.toSet()) as Pair<Set<ExtractorLink>, Set<SubtitleData>>
+            return@safeApiCall Pair(
+                currentLinks.toSet(),
+                currentSubs.toSet()
+            )
         }
     }
 
@@ -231,29 +266,20 @@ class ResultViewModel : ViewModel() {
         return generator
     }
 
-    fun updateSync(context: Context?, sync: List<Pair<SyncAPI, String>>) = viewModelScope.launch {
-        if (context == null) return@launch
-
-        val list = ArrayList<Resource<SyncAPI.SyncResult?>>()
-        for (s in sync) {
-            val result = safeApiCall { s.first.getResult(s.second) }
-            list.add(result)
-            _sync.postValue(list)
-        }
-    }
-
     private fun updateEpisodes(localId: Int?, list: List<ResultEpisode>, selection: Int?) {
         _episodes.postValue(list)
         generator = RepoLinkGenerator(list)
 
         val set = HashMap<Int, Int>()
+        val range = selectedRangeInt.value
 
         list.withIndex().forEach { set[it.value.id] = it.index }
         episodeById.postValue(set)
 
         filterEpisodes(
             list,
-            if (selection == -1) getResultSeason(localId ?: id.value ?: return) else selection, null
+            if (selection == -1) getResultSeason(localId ?: id.value ?: return) else selection,
+            range
         )
     }
 
@@ -300,7 +326,7 @@ class ResultViewModel : ViewModel() {
 
         when (data) {
             is Resource.Success -> {
-                val d = data.value
+                val d = applyMeta(data.value, lastMeta)
                 page.postValue(d)
                 val mainId = d.getId()
                 id.postValue(mainId)
@@ -330,9 +356,7 @@ class ResultViewModel : ViewModel() {
                         val status = getDub(mainId)
                         val statuses = d.episodes.map { it.key }
                         val dubStatus = if (statuses.contains(status)) status else statuses.first()
-                        _dubStatus.postValue(dubStatus)
 
-                        _dubSubSelections.postValue(d.episodes.keys)
                         val fillerEpisodes =
                             if (showFillers) safeApiCall { getFillerEpisodes(d.name) } else null
 
@@ -366,10 +390,14 @@ class ResultViewModel : ViewModel() {
 
                             Pair(ep.key, episodes)
                         }.toMap()
+
+                        // These posts needs to be in this order as to make the preferDub in ResultFragment work
                         _dubSubEpisodes.postValue(res)
                         res[dubStatus]?.let { episodes ->
                             updateEpisodes(mainId, episodes, -1)
                         }
+                        _dubStatus.postValue(dubStatus)
+                        _dubSubSelections.postValue(d.episodes.keys)
                     }
 
                     is TvSeriesLoadResponse -> {
