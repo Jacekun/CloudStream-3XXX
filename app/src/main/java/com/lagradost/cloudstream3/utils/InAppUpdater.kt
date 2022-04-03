@@ -25,6 +25,7 @@ import com.lagradost.cloudstream3.R
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.mvvm.normalSafeApiCall
+import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -83,52 +84,38 @@ class InAppUpdater {
         }
 
         private fun Activity.getReleaseUpdate(): Update {
+            val latestTagUrl = "https://raw.githubusercontent.com/Jacekun/CloudStream-3XXX/javdev/doc/last_tag.txt"
             val url = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases"
             val headers = mapOf("Accept" to "application/vnd.github.v3+json")
-            val response =
-                mapper.readValue<List<GithubRelease>>(runBlocking {
-                    app.get(
-                        url,
-                        headers = headers
-                    ).text
-                })
-
             val currentVersion = packageName?.let {
-                packageManager.getPackageInfo(
-                    it,
-                    0
-                )
+                packageManager.getPackageInfo(it,0)
             }
-            Log.i("d", "Result => (currentVersion) ${currentVersion?.versionCode}")
+            val currentVersionCode = currentVersion?.versionCode ?: 0
+            Log.i("d", "ApiError => (currentVersion) $currentVersionCode")
+            var latestVersionCode = 0
+            var shouldUpdate = false
+            var downloadUrl = ""
+            var downloadBody = ""
 
-            val versionRegex = Regex("""(?<=r\.)(.*\d+)(?=\.-release)""")
-            val found = response.filter { !it.prerelease }
-                .filter { it.assets.any { a -> a.content_type.equals("application/vnd.android.package-archive") } }
-                .toList()
-                .maxByOrNull { it.tag_name.replace("jav_r", "").trim().toInt() }
-            Log.i("d", "Result => (found) ${found?.toJson()}")
-
-            val foundAsset = found?.assets?.getOrNull(0)
-            foundAsset?.name?.let { assetName ->
-                val foundVersion = when (assetName.isNotEmpty()) {
-                    true -> {
-                        Log.i("d", "Result => (assetName) $assetName")
-                        val code = assetName.let { it1 ->
-                            versionRegex.find(
-                                it1
-                        )?.groupValues?.get(1) }
-                        code?.toIntOrNull()
+            runBlocking {
+                app.get(latestTagUrl).text.let { latestTag ->
+                    latestVersionCode = latestTag.replace("jav_r", "").trim().toIntOrNull() ?: 0
+                    shouldUpdate = latestVersionCode > currentVersionCode
+                    if (shouldUpdate) {
+                        val jsonText = app.get("$url/tags/${latestTag.trim()}", headers = headers).text
+                        parseJson<GithubRelease>(jsonText).let { response ->
+                            downloadBody = response.body
+                            val found = response.assets.filter { asset ->
+                                asset.content_type.equals("application/vnd.android.package-archive")
+                                    && asset.name.endsWith("release.apk")
+                            }
+                            downloadUrl = found[0].browser_download_url
+                            Log.i("d", "ApiError => (downloadUrl) $downloadUrl")
+                        }
                     }
-                    false -> null
-                }
-                Log.i("d", "Result => (foundVersion) ${foundVersion}")
-                if (foundVersion != null && currentVersion != null) {
-                    val shouldUpdate = foundVersion > currentVersion.versionCode
-                    Log.i("d", "Result => (update found shouldUpdate) ${shouldUpdate}")
-                    return Update(shouldUpdate, foundAsset.browser_download_url, foundVersion.toString(), found.body)
                 }
             }
-            return Update(false, null, null, null)
+            return Update(shouldUpdate, downloadUrl, latestVersionCode.toString(), downloadBody)
         }
 
         private fun Activity.getPreReleaseUpdate(): Update = runBlocking {
