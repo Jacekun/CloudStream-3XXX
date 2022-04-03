@@ -21,6 +21,8 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hippo.unifile.UniFile
 import com.lagradost.cloudstream3.APIHolder.apis
+import com.lagradost.cloudstream3.APIHolder.filterProviderByPreferredMedia
+import com.lagradost.cloudstream3.APIHolder.filterProviderChoicesByPreferredMedia
 import com.lagradost.cloudstream3.APIHolder.getApiDubstatusSettings
 import com.lagradost.cloudstream3.APIHolder.getApiProviderLangSettings
 import com.lagradost.cloudstream3.AcraApplication
@@ -497,16 +499,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     .apply()
 
                 // Change last saved active apis and types
-                val apiListAll = AppUtils.filterProviderByPreferredMedia(apis, prefValues[it], false)
-                val apiNames = apiListAll.map { a -> a.name }.toHashSet()
-                val activeTypes = AppUtils.filterProviderChoicesByPreferredMedia(prefValues[it])
-                    .map { b -> b.second }.flatten().map{ c -> c.name }.toSet()
-                settingsManager.edit()
-                    .putStringSet(getString(R.string.search_providers_list_key), apiNames)
-                    .apply()
-                settingsManager.edit()
-                    .putStringSet(getString(R.string.search_types_list_key), activeTypes)
-                    .apply()
+                val apiNames = context?.filterProviderByPreferredMedia(false)
+                    ?.map { a -> a.name }?.toHashSet()
+                val activeTypes = context?.filterProviderChoicesByPreferredMedia(prefValues[it])
+                    ?.map { b -> b.second }?.flatten()?.map{ c -> c.name }?.toSet()
+                if (!apiNames.isNullOrEmpty()) {
+                    settingsManager.edit()
+                        .putStringSet(getString(R.string.search_providers_list_key), apiNames)
+                        .apply()
+                }
+                if (!activeTypes.isNullOrEmpty()) {
+                    settingsManager.edit()
+                        .putStringSet(getString(R.string.search_types_list_key), activeTypes)
+                        .apply()
+                }
                 removeKey(HOMEPAGE_API)
                 (context ?: AcraApplication.context)?.let { ctx -> app.initClient(ctx) }
             }
