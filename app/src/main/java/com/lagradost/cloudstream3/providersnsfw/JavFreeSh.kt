@@ -11,7 +11,7 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavFreeSh : MainAPI() {
-    override var name = "JavFree.sh"
+    override var name = "JavFree"
     override var mainUrl = "https://javfree.sh"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = false

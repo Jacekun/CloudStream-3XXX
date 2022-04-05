@@ -12,7 +12,7 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
 class Javhdicu : MainAPI() {
-    override var name = "JAV HD"
+    override var name = "JavHD"
     override var mainUrl = "https://javhd.icu"
     override val supportedTypes: Set<TvType> get() = setOf(TvType.JAV)
     override val hasDownloadSupport: Boolean get() = true
