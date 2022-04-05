@@ -1,3 +1,16 @@
+# CloudStream-3XXX r1201
++ [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/4447196ebc1fa576017230ee4f550d77355affa6).
++ [Feature] Random button on Homepage.
++ Added premium sub and dubs on Krunchy [#25](https://github.com/Jacekun/CloudStream-3XXX/pull/25) (KillerDogeEmpire).
++ Fix: Preferred media for filtering.
++ JavFree: Fix stream
++ Better UI for non-streaming providers.
++ Fixed StreamSB extractor.
++ Better updater logic.
++ Updated gradle version
++ Updated scripts.
++ Various cleanups.
+
 # CloudStream-3XXX r1157
 + [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/ad2f2ec4127b77799d0dfa1263e7731446db33eb).
 + Fixed Krunchy provider [#21](https://github.com/Jacekun/CloudStream-3XXX/pull/21).
