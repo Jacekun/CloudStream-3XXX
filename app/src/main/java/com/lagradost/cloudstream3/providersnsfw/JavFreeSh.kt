@@ -27,6 +27,8 @@ class JavFreeSh : MainAPI() {
         @JsonProperty("active") val active: Int?
     )
 
+    fun String.cleanText() : String = this.trim().removePrefix("Watch JAV").trim()
+
     override suspend fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
@@ -103,8 +105,8 @@ class JavFreeSh : MainAPI() {
         val doc = app.get(url).document
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = doc.select("meta[property=og:image]").firstOrNull()?.attr("content")
-        val title = doc.select("meta[name=title]").firstOrNull()?.attr("content").toString()
-        val descript = doc.select("meta[name=description]").firstOrNull()?.attr("content")
+        val title = doc.select("meta[name=title]").firstOrNull()?.attr("content")?.toString()?.cleanText() ?: ""
+        val descript = doc.select("meta[name=description]").firstOrNull()?.attr("content")?.cleanText()
 
         val body = doc.getElementsByTag("body")
         val yearElem = body

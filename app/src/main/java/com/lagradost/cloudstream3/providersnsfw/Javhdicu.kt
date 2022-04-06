@@ -116,9 +116,9 @@ class Javhdicu : MainAPI() {
         // Video details
         val poster = innerDiv?.select("img")?.attr("src")
         val title = innerDiv?.selectFirst("p.wp-caption-text")?.text()?.cleanTitle() ?: "<No Title>"
-        Log.i(this.name, "Result => (title) $title")
-        val descript = innerBody?.select("p")?.get(0)?.text()
-        //Log.i(this.name, "Result => (innerDiv) ${innerDiv}")
+        //Log.i(this.name, "Result => (title) $title")
+        val descript = innerBody?.select("p")?.get(0)?.text()?.cleanTitle()
+        //Log.i(this.name, "ApiError => (innerDiv) ${innerBody?.select("p")}")
 
         val re = Regex("[^0-9]")
         var yearString = videoDetailsEl?.select("span.date")?.firstOrNull()?.text()
