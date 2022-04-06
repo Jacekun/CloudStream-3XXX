@@ -31,7 +31,7 @@ class CustomReportSender : ReportSender {
         val url =
             "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfEuN0Q5wO44Wk0pJUqrOGeqSacembKlw4i_WU94rTRyk3duA/formResponse"
         val data = mapOf(
-            "entry.134906550" to errorContent.toJSON()
+            "entry.945045571" to errorContent.toJSON()
         )
 
         thread { // to not run it on main thread
