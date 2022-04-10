@@ -84,38 +84,35 @@ class InAppUpdater {
         }
 
         private fun Activity.getReleaseUpdate(): Update {
-            val latestTagUrl = "https://raw.githubusercontent.com/Jacekun/CloudStream-3XXX/javdev/doc/last_tag.txt"
-            val url = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases"
+            val debugTAG = "ApiError"
+            val url = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases/latest"
             val headers = mapOf("Accept" to "application/vnd.github.v3+json")
             val currentVersion = packageName?.let {
                 packageManager.getPackageInfo(it,0)
             }
             val currentVersionCode = currentVersion?.versionCode ?: 0
-            Log.i("d", "ApiError => (currentVersion) $currentVersionCode")
+            Log.i(debugTAG, "(currentVersion) $currentVersionCode")
             var latestVersionCode = 0
             var shouldUpdate = false
             var downloadUrl = ""
             var downloadBody = ""
 
             runBlocking {
-                app.get(latestTagUrl).text.let { latestTag ->
-                    latestVersionCode = latestTag.replace("jav_r", "").trim().toIntOrNull() ?: 0
-                    shouldUpdate = latestVersionCode > currentVersionCode
-                    if (shouldUpdate) {
-                        val jsonText = app.get("$url/tags/${latestTag.trim()}", headers = headers).text
-                        parseJson<GithubRelease>(jsonText).let { response ->
-                            downloadBody = response.body
-                            val found = response.assets.filter { asset ->
-                                asset.content_type.equals("application/vnd.android.package-archive")
-                                    && asset.name.endsWith("release.apk")
-                            }
-                            downloadUrl = found[0].browser_download_url
-                            Log.i("d", "ApiError => (downloadUrl) $downloadUrl")
-                        }
+                app.get(url).text.let { jsonText ->
+                    parseJson<GithubRelease>(jsonText).let { response ->
+                        latestVersionCode = response.tag_name.replace("jav_r", "").trim().toIntOrNull() ?: 0
+                        shouldUpdate = latestVersionCode > currentVersionCode
+                        Log.i(debugTAG, "(latestVersionCode) $latestVersionCode")
+                        downloadBody = response.body
+                        downloadUrl = response.assets.filter { asset ->
+                            asset.content_type.equals("application/vnd.android.package-archive")
+                                && asset.name.endsWith(".apk")
+                        }[0].browser_download_url
+                        Log.i(debugTAG, "(downloadUrl) $downloadUrl")
                     }
                 }
             }
-            return Update(shouldUpdate, downloadUrl, latestVersionCode.toString(), downloadBody)
+            return Update(shouldUpdate, downloadUrl, "$latestVersionCode", downloadBody)
         }
 
         private fun Activity.getPreReleaseUpdate(): Update = runBlocking {

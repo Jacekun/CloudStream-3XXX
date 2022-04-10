@@ -53,7 +53,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        archivesBaseName = "${applicationId}-r(${versionCode})"
+        archivesBaseName = "${applicationId}-r${versionCode}"
 
         kapt {
             includeCompileClasspath = true
@@ -65,6 +65,7 @@ android {
             debuggable false
             minifyEnabled false
             shrinkResources false
+            versionNameSuffix ''
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
