@@ -38,7 +38,7 @@ class HentaiLa:MainAPI() {
                         title,
                         fixUrl(url),
                         this.name,
-                        TvType.Anime,
+                        TvType.Hentai,
                         fixUrl(poster),
                         null,
                         if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(
@@ -59,7 +59,7 @@ class HentaiLa:MainAPI() {
                         title,
                         fixUrl(it.selectFirst("a").attr("href")),
                         this.name,
-                        TvType.Anime,
+                        TvType.Hentai,
                         fixUrl(poster),
                         null,
                         if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
@@ -145,7 +145,7 @@ class HentaiLa:MainAPI() {
             "Finalizado" -> ShowStatus.Completed
             else -> null
         }
-        return newAnimeLoadResponse(title, url, TvType.Anime) {
+        return newAnimeLoadResponse(title, url, TvType.Hentai) {
             posterUrl = fixUrl(poster)
             addEpisodes(DubStatus.Subbed, episodes)
             showStatus = status

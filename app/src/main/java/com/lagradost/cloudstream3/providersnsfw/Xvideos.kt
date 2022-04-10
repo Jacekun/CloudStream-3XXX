@@ -97,7 +97,7 @@ class Xvideos:MainAPI() {
                     name = title,
                     url = url,
                     apiName = this.name,
-                    type = tvType,
+                    type = TvType.XXX,
                     episodes = episodes,
                     posterUrl = poster,
                     plot = description,

@@ -5,7 +5,6 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.module.kotlin.readValue
 import java.text.SimpleDateFormat
 import java.util.*
 import khttp.structures.cookie.CookieJar
@@ -20,8 +19,11 @@ class HahoMoe : MainAPI() {
         var cookie: CookieJar? = null
 
         fun getType(t: String): TvType {
+            return TvType.Hentai
+            /*
             return if (t.contains("OVA") || t.contains("Special")) TvType.OVA
             else if (t.contains("Movie")) TvType.AnimeMovie else TvType.Anime
+             */
         }
     }
 
@@ -57,7 +59,7 @@ class HahoMoe : MainAPI() {
                                     it.selectFirst(".thumb-title").text(),
                                     fixUrl(it.attr("href")),
                                     this.name,
-                                    TvType.Anime,
+                                    TvType.Hentai,
                                     it.selectFirst("img").attr("src"),
                                     null,
                                     EnumSet.of(DubStatus.Subbed),
@@ -76,7 +78,7 @@ class HahoMoe : MainAPI() {
                                 (it.selectFirst(".thumb-title").text() ?: null).toString(),
                                 fixUrl(it.attr("href")),
                                 this.name,
-                                TvType.Anime,
+                                TvType.Hentai,
                                 it.selectFirst("img").attr("src"),
                                 null,
                                 EnumSet.of(DubStatus.Subbed),
@@ -114,13 +116,13 @@ class HahoMoe : MainAPI() {
 
             returnValue.add(
                 if (getIsMovie(href, true)) {
-                    MovieSearchResponse(title, href, this.name, TvType.Movie, img, null)
+                    MovieSearchResponse(title, href, this.name, TvType.Hentai, img, null)
                 } else {
                     AnimeSearchResponse(
                         title,
                         href,
                         this.name,
-                        TvType.Anime,
+                        TvType.Hentai,
                         img,
                         null,
                         EnumSet.of(DubStatus.Subbed),
@@ -196,15 +198,17 @@ class HahoMoe : MainAPI() {
 
         val episodeNodes = document.select("li[class*=\"episode\"] > a")
 
-        val episodes = episodeNodes?.map {
-                Episode(
-                    data = it.attr("href"),
-                    name = it.selectFirst(".episode-title")?.text()?.trim(),
-                    posterUrl = it.selectFirst("img")?.attr("src"),
-                    description = it.attr("data-content").trim(),
-                    //date = dateParser(it.selectFirst(".episode-date").text().trim()),
-                )
-            } ?: listOf()
+        val episodes = episodeNodes?.mapNotNull {
+            val dataUrl = it?.attr("href") ?: return@mapNotNull null
+            val epi = Episode(
+                data = dataUrl,
+                name = it.selectFirst(".episode-title")?.text()?.trim(),
+                posterUrl = it.selectFirst("img")?.attr("src"),
+                description = it.attr("data-content").trim(),
+            )
+            epi.addDate(it.selectFirst(".episode-date").text().trim())
+            epi
+        } ?: listOf()
         val status =
             when (document.selectFirst("li.status > .value")?.text()?.trim()) {
                 "Ongoing" -> ShowStatus.Ongoing
