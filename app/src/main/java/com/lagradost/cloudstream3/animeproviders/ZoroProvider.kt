@@ -4,6 +4,8 @@ import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.LoadResponse.Companion.addAniListId
+import com.lagradost.cloudstream3.LoadResponse.Companion.addMalId
 import com.lagradost.cloudstream3.movieproviders.SflixProvider.Companion.extractRabbitStream
 import com.lagradost.cloudstream3.movieproviders.SflixProvider.Companion.runSflixExtractorVerifierJob
 import com.lagradost.cloudstream3.network.Requests.Companion.await
@@ -229,16 +231,10 @@ class ZoroProvider : MainAPI() {
                 ).text
             ).html
         ).select(".ss-list > a[href].ssl-item.ep-item").map {
-            val name = it?.attr("title")
-            AnimeEpisode(
-                fixUrl(it.attr("href")),
-                name,
-                null,
-                null,
-                null,
-                null,
-                it.selectFirst(".ssli-order")?.text()?.toIntOrNull()
-            )
+            newEpisode(it.attr("href")) {
+                this.name = it?.attr("title")
+                this.episode = it.selectFirst(".ssli-order")?.text()?.toIntOrNull()
+            }
         }
 
         val actors = document.select("div.block-actors-content > div.bac-list-wrap > div.bac-item")
@@ -291,8 +287,8 @@ class ZoroProvider : MainAPI() {
             this.tags = tags
             this.recommendations = recommendations
             this.actors = actors
-            this.malId = syncData?.malId?.toIntOrNull()
-            this.anilistId = syncData?.aniListId?.toIntOrNull()
+            addMalId(syncData?.malId?.toIntOrNull())
+            addAniListId(syncData?.aniListId?.toIntOrNull())
         }
     }
 

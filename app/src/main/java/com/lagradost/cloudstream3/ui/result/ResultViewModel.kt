@@ -10,6 +10,7 @@ import com.lagradost.cloudstream3.APIHolder.getApiFromNameNull
 import com.lagradost.cloudstream3.APIHolder.getApiFromUrlNull
 import com.lagradost.cloudstream3.APIHolder.getId
 import com.lagradost.cloudstream3.AcraApplication.Companion.setKey
+import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.mvvm.Resource
 import com.lagradost.cloudstream3.mvvm.safeApiCall
 import com.lagradost.cloudstream3.syncproviders.SyncAPI
@@ -123,16 +124,9 @@ class ResultViewModel : ViewModel() {
             rating = rating ?: meta.publicScore
             tags = tags ?: meta.genres
             plot = if (plot.isNullOrBlank()) meta.synopsis else plot
-            trailerUrl = trailerUrl ?: meta.trailerUrl
+            addTrailer(meta.trailerUrl)
             posterUrl = posterUrl ?: meta.posterUrl ?: meta.backgroundPosterUrl
-            actors = actors ?: meta.actors?.map {
-                ActorData(
-                    Actor(
-                        name = it.name,
-                        image = it.posterUrl
-                    )
-                )
-            }
+            actors = actors ?: meta.actors
         }
     }
 
@@ -371,8 +365,8 @@ class ResultViewModel : ViewModel() {
                                     filterName(i.name),
                                     i.posterUrl,
                                     episode,
-                                    null, // TODO FIX SEASON
-                                    i.url,
+                                    i.season,
+                                    i.data,
                                     apiName,
                                     mainId + index + 1 + idIndex * 100000,
                                     index,

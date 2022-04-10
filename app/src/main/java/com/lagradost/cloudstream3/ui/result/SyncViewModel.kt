@@ -1,9 +1,11 @@
 package com.lagradost.cloudstream3.ui.result
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lagradost.cloudstream3.apmap
 import com.lagradost.cloudstream3.mvvm.Resource
 import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.SyncApis
 import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.aniListApi
@@ -18,10 +20,14 @@ data class CurrentSynced(
     val idPrefix: String,
     val isSynced: Boolean,
     val hasAccount: Boolean,
-    val icon : Int,
+    val icon: Int,
 )
 
 class SyncViewModel : ViewModel() {
+    companion object {
+        const val TAG = "SYNCVM"
+    }
+
     private val repos = SyncApis
 
     private val _metaResponse: MutableLiveData<Resource<SyncAPI.SyncResult>> =
@@ -35,7 +41,10 @@ class SyncViewModel : ViewModel() {
     val userData: LiveData<Resource<SyncAPI.SyncStatus>?> get() = _userDataResponse
 
     // prefix, id
-    private val syncIds = hashMapOf<String, String>()
+    private var syncs = mutableMapOf<String, String>()
+    private val _syncIds: MutableLiveData<MutableMap<String, String>> =
+        MutableLiveData(mutableMapOf())
+    val syncIds: LiveData<MutableMap<String, String>> get() = _syncIds
 
     private val _currentSynced: MutableLiveData<List<CurrentSynced>> =
         MutableLiveData(getMissing())
@@ -48,43 +57,66 @@ class SyncViewModel : ViewModel() {
             CurrentSynced(
                 it.name,
                 it.idPrefix,
-                syncIds.containsKey(it.idPrefix),
+                syncs.containsKey(it.idPrefix),
                 it.hasAccount(),
                 it.icon,
             )
         }
     }
 
-    private fun updateSynced() {
+    fun updateSynced() {
+        Log.i(TAG, "updateSynced")
         _currentSynced.postValue(getMissing())
     }
 
-    fun setMalId(id: String?) {
-        syncIds[malApi.idPrefix] = id ?: return
-        updateSynced()
+    private fun addSync(idPrefix: String, id: String): Boolean {
+        if (syncs[idPrefix] == id) return false
+        Log.i(TAG, "addSync $idPrefix = $id")
+
+        syncs[idPrefix] = id
+        _syncIds.postValue(syncs)
+        return true
     }
 
-    fun setAniListId(id: String?) {
-        syncIds[aniListApi.idPrefix] = id ?: return
-        updateSynced()
+    fun addSyncs(map: Map<String, String>?): Boolean {
+        var isValid = false
+
+        map?.forEach { (prefix, id) ->
+            isValid = isValid || addSync(prefix, id)
+        }
+        return isValid
     }
 
-    var hasAddedFromUrl : HashSet<String> = hashSetOf()
+    fun setMalId(id: String?): Boolean {
+        return addSync(malApi.idPrefix, id ?: return false)
+    }
+
+    fun setAniListId(id: String?): Boolean {
+        return addSync(aniListApi.idPrefix, id ?: return false)
+    }
+
+    var hasAddedFromUrl: HashSet<String> = hashSetOf()
 
     fun addFromUrl(url: String?) = viewModelScope.launch {
-        if(url == null || hasAddedFromUrl.contains(url)) return@launch
+        Log.i(TAG, "addFromUrl = $url")
+
+        if (url == null || hasAddedFromUrl.contains(url)) return@launch
         SyncUtil.getIdsFromUrl(url)?.let { (malId, aniListId) ->
             hasAddedFromUrl.add(url)
 
             setMalId(malId)
             setAniListId(aniListId)
+            updateSynced()
             if (malId != null || aniListId != null) {
+                Log.i(TAG, "addFromUrl->updateMetaAndUser $malId $aniListId")
                 updateMetaAndUser()
             }
         }
     }
 
     fun setEpisodesDelta(delta: Int) {
+        Log.i(TAG, "setEpisodesDelta = $delta")
+
         val user = userData.value
         if (user is Resource.Success) {
             user.value.watchedEpisodes?.plus(
@@ -96,6 +128,8 @@ class SyncViewModel : ViewModel() {
     }
 
     fun setEpisodes(episodes: Int) {
+        Log.i(TAG, "setEpisodes = $episodes")
+
         if (episodes < 0) return
         val meta = metadata.value
         if (meta is Resource.Success) {
@@ -114,6 +148,7 @@ class SyncViewModel : ViewModel() {
     }
 
     fun setScore(score: Int) {
+        Log.i(TAG, "setScore = $score")
         val user = userData.value
         if (user is Resource.Success) {
             _userDataResponse.postValue(Resource.Success(user.value.copy(score = score)))
@@ -121,6 +156,7 @@ class SyncViewModel : ViewModel() {
     }
 
     fun setStatus(which: Int) {
+        Log.i(TAG, "setStatus = $which")
         if (which < -1 || which > 5) return // validate input
         val user = userData.value
         if (user is Resource.Success) {
@@ -129,26 +165,55 @@ class SyncViewModel : ViewModel() {
     }
 
     fun publishUserData() = viewModelScope.launch {
+        Log.i(TAG, "publishUserData")
         val user = userData.value
         if (user is Resource.Success) {
-            for ((prefix, id) in syncIds) {
+            syncs.forEach { (prefix, id) ->
                 repos.firstOrNull { it.idPrefix == prefix }?.score(id, user.value)
             }
         }
         updateUserData()
     }
 
-    private fun updateUserData() = viewModelScope.launch {
+    fun modifyMaxEpisode(episodeNum: Int) {
+        Log.i(TAG, "modifyMaxEpisode = $episodeNum")
+        modifyData { status ->
+            status.copy(watchedEpisodes = maxOf(episodeNum, status.watchedEpisodes ?: return@modifyData null))
+        }
+    }
+
+    /// modifies the current sync data, return null if you don't want to change it
+    private fun modifyData(update: ((SyncAPI.SyncStatus) -> (SyncAPI.SyncStatus?))) =
+        viewModelScope.launch {
+            syncs.apmap { (prefix, id) ->
+                repos.firstOrNull { it.idPrefix == prefix }?.let { repo ->
+                    if (repo.hasAccount()) {
+                        val result = repo.getStatus(id)
+                        if (result is Resource.Success) {
+                            update(result.value)?.let { newData ->
+                                Log.i(TAG, "modifyData ${repo.name} => $newData")
+                                repo.score(id, newData)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    fun updateUserData() = viewModelScope.launch {
+        Log.i(TAG, "updateUserData")
         _userDataResponse.postValue(Resource.Loading())
         var lastError: Resource<SyncAPI.SyncStatus> = Resource.Failure(false, null, null, "No data")
-        for ((prefix, id) in syncIds) {
-            repos.firstOrNull { it.idPrefix == prefix }?.let {
-                val result = it.getStatus(id)
-                if (result is Resource.Success) {
-                    _userDataResponse.postValue(result)
-                    return@launch
-                } else if (result is Resource.Failure) {
-                    lastError = result
+        syncs.forEach { (prefix, id) ->
+            repos.firstOrNull { it.idPrefix == prefix }?.let { repo ->
+                if (repo.hasAccount()) {
+                    val result = repo.getStatus(id)
+                    if (result is Resource.Success) {
+                        _userDataResponse.postValue(result)
+                        return@launch
+                    } else if (result is Resource.Failure) {
+                        lastError = result
+                    }
                 }
             }
         }
@@ -156,16 +221,20 @@ class SyncViewModel : ViewModel() {
     }
 
     private fun updateMetadata() = viewModelScope.launch {
+        Log.i(TAG, "updateMetadata")
+
         _metaResponse.postValue(Resource.Loading())
         var lastError: Resource<SyncAPI.SyncResult> = Resource.Failure(false, null, null, "No data")
-        for ((prefix, id) in syncIds) {
-            repos.firstOrNull { it.idPrefix == prefix }?.let {
-                val result = it.getResult(id)
-                if (result is Resource.Success) {
-                    _metaResponse.postValue(result)
-                    return@launch
-                } else if (result is Resource.Failure) {
-                    lastError = result
+        syncs.forEach { (prefix, id) ->
+            repos.firstOrNull { it.idPrefix == prefix }?.let { repo ->
+                if (repo.hasAccount()) {
+                    val result = repo.getResult(id)
+                    if (result is Resource.Success) {
+                        _metaResponse.postValue(result)
+                        return@launch
+                    } else if (result is Resource.Failure) {
+                        lastError = result
+                    }
                 }
             }
         }
@@ -174,6 +243,7 @@ class SyncViewModel : ViewModel() {
     }
 
     fun updateMetaAndUser() {
+        Log.i(TAG, "updateMetaAndUser")
         updateMetadata()
         updateUserData()
     }

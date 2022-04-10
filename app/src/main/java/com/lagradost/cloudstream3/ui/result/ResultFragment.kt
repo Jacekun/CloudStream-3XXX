@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.content.Intent.*
@@ -43,7 +44,6 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.APIHolder.getApiDubstatusSettings
 import com.lagradost.cloudstream3.APIHolder.getApiFromName
 import com.lagradost.cloudstream3.APIHolder.getId
-import com.lagradost.cloudstream3.AcraApplication.Companion.context
 import com.lagradost.cloudstream3.AcraApplication.Companion.setKey
 import com.lagradost.cloudstream3.CommonActivity.getCastSession
 import com.lagradost.cloudstream3.CommonActivity.showToast
@@ -70,6 +70,7 @@ import com.lagradost.cloudstream3.utils.AppUtils.isConnectedToChromecast
 import com.lagradost.cloudstream3.utils.AppUtils.loadCache
 import com.lagradost.cloudstream3.utils.AppUtils.openBrowser
 import com.lagradost.cloudstream3.utils.CastHelper.startCast
+import com.lagradost.cloudstream3.utils.Coroutines.ioSafe
 import com.lagradost.cloudstream3.utils.Coroutines.main
 import com.lagradost.cloudstream3.utils.DataStore.getFolderName
 import com.lagradost.cloudstream3.utils.DataStore.setKey
@@ -88,6 +89,7 @@ import com.lagradost.cloudstream3.utils.UIHelper.popupMenuNoIconsAndNoStringRes
 import com.lagradost.cloudstream3.utils.UIHelper.requestRW
 import com.lagradost.cloudstream3.utils.UIHelper.setImage
 import com.lagradost.cloudstream3.utils.UIHelper.setImageBlur
+import com.lagradost.cloudstream3.utils.VideoDownloadManager.getFileName
 import com.lagradost.cloudstream3.utils.VideoDownloadManager.sanitizeFilename
 import kotlinx.android.synthetic.main.fragment_result.*
 import kotlinx.android.synthetic.main.fragment_result_swipe.*
@@ -205,7 +207,80 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 
         private var updateUIListener: (() -> Unit)? = null
 
-        suspend fun startDownload(
+        private fun downloadSubtitle(
+            context: Context?,
+            link: SubtitleData,
+            meta: VideoDownloadManager.DownloadEpisodeMetadata,
+        ) {
+            context?.let { ctx ->
+                val fileName = getFileName(ctx, meta)
+                val folder = getFolder(meta.type ?: return, meta.mainName)
+                downloadSubtitle(
+                    ctx,
+                    ExtractorSubtitleLink(link.name, link.url, ""),
+                    fileName,
+                    folder
+                )
+            }
+        }
+
+        private fun downloadSubtitle(
+            context: Context?,
+            link: ExtractorSubtitleLink,
+            fileName: String,
+            folder: String
+        ) {
+            ioSafe {
+                VideoDownloadManager.downloadThing(
+                    context ?: return@ioSafe,
+                    link,
+                    "$fileName ${link.name}",
+                    folder,
+                    if (link.url.contains(".srt")) ".srt" else "vtt",
+                    false,
+                    null
+                ) {
+                    // no notification
+                }
+            }
+        }
+
+        private fun getMeta(
+            episode: ResultEpisode,
+            titleName: String,
+            apiName: String,
+            currentPoster: String,
+            currentIsMovie: Boolean,
+            tvType: TvType,
+        ): VideoDownloadManager.DownloadEpisodeMetadata {
+            return VideoDownloadManager.DownloadEpisodeMetadata(
+                episode.id,
+                sanitizeFilename(titleName),
+                apiName,
+                episode.poster ?: currentPoster,
+                episode.name,
+                if (currentIsMovie) null else episode.season,
+                if (currentIsMovie) null else episode.episode,
+                tvType,
+            )
+        }
+
+        private fun getFolder(currentType: TvType, titleName: String): String {
+            return when (currentType) {
+                TvType.Anime -> "Anime/$titleName"
+                TvType.Movie -> "Movies"
+                TvType.AnimeMovie -> "Movies"
+                TvType.TvSeries -> "TVSeries/$titleName"
+                TvType.OVA -> "OVA"
+                TvType.Cartoon -> "Cartoons/$titleName"
+                TvType.Torrent -> "Torrent"
+                TvType.Documentary -> "Documentaries"
+                TvType.AsianDrama -> "AsianDrama"
+            }
+        }
+
+        fun startDownload(
+            context: Context?,
             episode: ResultEpisode,
             currentIsMovie: Boolean,
             currentHeaderName: String,
@@ -217,111 +292,87 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             links: List<ExtractorLink>,
             subs: List<SubtitleData>?
         ) {
-            val titleName = sanitizeFilename(currentHeaderName)
+            try {
+                if (context == null) return
 
-            val meta = VideoDownloadManager.DownloadEpisodeMetadata(
-                episode.id,
-                titleName,
-                apiName,
-                episode.poster ?: currentPoster,
-                episode.name,
-                if (currentIsMovie) null else episode.season,
-                if (currentIsMovie) null else episode.episode
-            )
-
-            val folder = when (currentType) {
-                TvType.Anime -> "Anime/$titleName"
-                TvType.Movie -> "Movies"
-                TvType.AnimeMovie -> "Movies"
-                TvType.TvSeries -> "TVSeries/$titleName"
-                TvType.OVA -> "OVA"
-                TvType.Cartoon -> "Cartoons/$titleName"
-                TvType.Torrent -> "Torrent"
-                TvType.Documentary -> "Documentaries"
-                TvType.AsianDrama -> "AsianDrama"
-                else -> "NSFW"
-            }
-
-            val src = "$DOWNLOAD_NAVIGATE_TO/$parentId" // url ?: return@let
-
-            // SET VISUAL KEYS
-            setKey(
-                DOWNLOAD_HEADER_CACHE,
-                parentId.toString(),
-                VideoDownloadHelper.DownloadHeaderCached(
-                    apiName,
-                    url,
-                    currentType,
-                    currentHeaderName,
-                    currentPoster,
-                    parentId,
-                    System.currentTimeMillis(),
-                )
-            )
-
-            setKey(
-                getFolderName(
-                    DOWNLOAD_EPISODE_CACHE,
-                    parentId.toString()
-                ), // 3 deep folder for faster acess
-                episode.id.toString(),
-                VideoDownloadHelper.DownloadEpisodeCached(
-                    episode.name,
-                    episode.poster,
-                    episode.episode,
-                    episode.season,
-                    episode.id,
-                    parentId,
-                    episode.rating,
-                    episode.description,
-                    System.currentTimeMillis(),
-                )
-            )
-
-            // DOWNLOAD VIDEO
-            VideoDownloadManager.downloadEpisodeUsingWorker(
-                context ?: return,
-                src,//url ?: return,
-                folder,
-                meta,
-                links
-            )
-            // 1. Checks if the lang should be downloaded
-            // 2. Makes it into the download format
-            // 3. Downloads it as a .vtt file
-            val downloadList = getDownloadSubsLanguageISO639_1()
-            subs?.let { subsList ->
-                subsList.filter {
-                    downloadList.contains(
-                        SubtitleHelper.fromLanguageToTwoLetters(
-                            it.name,
-                            true
-                        )
+                val meta =
+                    getMeta(
+                        episode,
+                        currentHeaderName,
+                        apiName,
+                        currentPoster,
+                        currentIsMovie,
+                        currentType
                     )
-                }
-                    .map { ExtractorSubtitleLink(it.name, it.url, "") }
-                    .forEach { link ->
-                        val epName = meta.name
-                            ?: "${context?.getString(R.string.episode)} ${meta.episode}"
-                        val fileName =
-                            sanitizeFilename(epName + if (downloadList.size > 1) " ${link.name}" else "")
 
-                        withContext(Dispatchers.IO) {
-                            normalSafeApiCall {
-                                VideoDownloadManager.downloadThing(
-                                    context ?: return@normalSafeApiCall,
-                                    link,
-                                    fileName,
-                                    folder,
-                                    "vtt",
-                                    false,
-                                    null
-                                ) {
-                                    // no notification
-                                }
-                            }
-                        }
+                val folder = getFolder(currentType, currentHeaderName)
+
+                val src = "$DOWNLOAD_NAVIGATE_TO/$parentId" // url ?: return@let
+
+                // SET VISUAL KEYS
+                setKey(
+                    DOWNLOAD_HEADER_CACHE,
+                    parentId.toString(),
+                    VideoDownloadHelper.DownloadHeaderCached(
+                        apiName,
+                        url,
+                        currentType,
+                        currentHeaderName,
+                        currentPoster,
+                        parentId,
+                        System.currentTimeMillis(),
+                    )
+                )
+
+                setKey(
+                    getFolderName(
+                        DOWNLOAD_EPISODE_CACHE,
+                        parentId.toString()
+                    ), // 3 deep folder for faster acess
+                    episode.id.toString(),
+                    VideoDownloadHelper.DownloadEpisodeCached(
+                        episode.name,
+                        episode.poster,
+                        episode.episode,
+                        episode.season,
+                        episode.id,
+                        parentId,
+                        episode.rating,
+                        episode.description,
+                        System.currentTimeMillis(),
+                    )
+                )
+
+                // DOWNLOAD VIDEO
+                VideoDownloadManager.downloadEpisodeUsingWorker(
+                    context,
+                    src,//url ?: return,
+                    folder,
+                    meta,
+                    links
+                )
+
+                // 1. Checks if the lang should be downloaded
+                // 2. Makes it into the download format
+                // 3. Downloads it as a .vtt file
+                val downloadList = getDownloadSubsLanguageISO639_1()
+                subs?.let { subsList ->
+                    subsList.filter {
+                        downloadList.contains(
+                            SubtitleHelper.fromLanguageToTwoLetters(
+                                it.name,
+                                true
+                            )
+                        )
                     }
+                        .map { ExtractorSubtitleLink(it.name, it.url, "") }
+                        .forEach { link ->
+                            val fileName = getFileName(context, meta)
+                            downloadSubtitle(context, link, fileName, folder)
+                        }
+                }
+            } catch (e: Exception) {
+                logError(e)
             }
         }
 
@@ -354,6 +405,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 }
 
                 startDownload(
+                    activity,
                     episode,
                     currentIsMovie,
                     currentHeaderName,
@@ -376,7 +428,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
     private var currentHeaderName: String? = null
     private var currentType: TvType? = null
     private var currentEpisodes: List<ResultEpisode>? = null
-    var downloadButton: EasyDownloadButton? = null
+    private var downloadButton: EasyDownloadButton? = null
+    private var syncdata: Map<String, String>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -520,13 +573,11 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
     }
 
     private fun setMalSync(id: Int?): Boolean {
-        syncModel.setMalId(id?.toString() ?: return false)
-        return true
+        return syncModel.setMalId(id?.toString())
     }
 
     private fun setAniListSync(id: Int?): Boolean {
-        syncModel.setAniListId(id?.toString() ?: return false)
-        return true
+        return syncModel.setAniListId(id?.toString())
     }
 
     private fun setActors(actors: List<ActorData>?) {
@@ -556,13 +607,15 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         result_recommendations_btt?.isGone = isInvalid
         result_recommendations_btt?.setOnClickListener {
             if (result_overlapping_panels?.getSelectedPanel()?.ordinal == 1) {
+                result_recommendations_btt?.nextFocusDownId = R.id.result_recommendations
                 result_overlapping_panels?.openEndPanel()
             } else {
+                result_recommendations_btt?.nextFocusDownId = R.id.result_description
                 result_overlapping_panels?.closePanels()
             }
         }
         result_overlapping_panels?.setEndPanelLockState(if (isInvalid) OverlappingPanelsLayout.LockState.CLOSE else OverlappingPanelsLayout.LockState.UNLOCKED)
-        result_recommendations.post {
+        result_recommendations?.post {
             rec?.let { list ->
                 (result_recommendations?.adapter as SearchAdapter?)?.updateList(list)
             }
@@ -593,6 +646,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
     }
 
     private fun updateUI() {
+        syncModel.updateUserData()
         viewModel.reloadEpisodes()
     }
 
@@ -740,6 +794,21 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 builder.create().show()
             }
 
+            fun acquireSingleSubtitleLink(
+                links: List<SubtitleData>,
+                title: String,
+                callback: (SubtitleData) -> Unit
+            ) {
+                val builder = AlertDialog.Builder(requireContext(), R.style.AlertDialogCustom)
+
+                builder.setTitle(title)
+                builder.setItems(links.map { it.name }.toTypedArray()) { dia, which ->
+                    callback.invoke(links[which])
+                    dia?.dismiss()
+                }
+                builder.create().show()
+            }
+
             fun acquireSingeExtractorLink(title: String, callback: (ExtractorLink) -> Unit) {
                 acquireSingleExtractorLink(sortUrls(currentLinks ?: return), title, callback)
             }
@@ -842,6 +911,29 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     }
                 }
 
+                ACTION_DOWNLOAD_EPISODE_SUBTITLE -> {
+                    acquireSingleSubtitleLink(
+                        sortSubs(
+                            currentSubs ?: return@main
+                        ),//(currentLinks ?: return@main).filter { !it.isM3u8 },
+                        getString(R.string.episode_action_download_subtitle)
+                    ) { link ->
+                        downloadSubtitle(
+                            context,
+                            link,
+                            getMeta(
+                                episodeClick.data,
+                                currentHeaderName ?: return@acquireSingleSubtitleLink,
+                                apiName,
+                                currentPoster ?: return@acquireSingleSubtitleLink,
+                                currentIsMovie ?: return@acquireSingleSubtitleLink,
+                                currentType ?: return@acquireSingleSubtitleLink
+                            )
+                        )
+                        showToast(activity, R.string.download_started, Toast.LENGTH_SHORT)
+                    }
+                }
+
                 ACTION_SHOW_OPTIONS -> {
                     context?.let { ctx ->
                         val builder = AlertDialog.Builder(ctx, R.style.AlertDialogCustom)
@@ -865,6 +957,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                             val add = when (opv) {
                                 ACTION_CHROME_CAST_EPISODE -> isConnected
                                 ACTION_CHROME_CAST_MIRROR -> isConnected
+                                ACTION_DOWNLOAD_EPISODE_SUBTITLE -> !currentSubs.isNullOrEmpty()
                                 ACTION_DOWNLOAD_EPISODE -> hasDownloadSupport
                                 ACTION_DOWNLOAD_MIRROR -> hasDownloadSupport
                                 ACTION_PLAY_EPISODE_IN_VLC_PLAYER -> context?.isAppInstalled(
@@ -998,10 +1091,11 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 ACTION_PLAY_EPISODE_IN_PLAYER -> {
                     viewModel.getGenerator(episodeClick.data)
                         ?.let { generator ->
+                            println("LANUCJ:::: $syncdata")
                             activity?.navigate(
                                 R.id.global_to_navigation_player,
                                 GeneratorPlayer.newInstance(
-                                    generator
+                                    generator, syncdata?.let { HashMap(it) }
                                 )
                             )
                         }
@@ -1018,21 +1112,20 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         ),//(currentLinks ?: return@main).filter { !it.isM3u8 },
                         getString(R.string.episode_action_download_mirror)
                     ) { link ->
-                        main {
-                            startDownload(
-                                episodeClick.data,
-                                currentIsMovie ?: return@main,
-                                currentHeaderName ?: return@main,
-                                currentType ?: return@main,
-                                currentPoster ?: return@main,
-                                apiName,
-                                currentId ?: return@main,
-                                url ?: return@main,
-                                listOf(link),
-                                sortSubs(currentSubs ?: return@main)
-                            )
-                            showToast(activity, R.string.download_started, Toast.LENGTH_SHORT)
-                        }
+                        startDownload(
+                            context,
+                            episodeClick.data,
+                            currentIsMovie ?: return@acquireSingleExtractorLink,
+                            currentHeaderName ?: return@acquireSingleExtractorLink,
+                            currentType ?: return@acquireSingleExtractorLink,
+                            currentPoster ?: return@acquireSingleExtractorLink,
+                            apiName,
+                            currentId ?: return@acquireSingleExtractorLink,
+                            url ?: return@acquireSingleExtractorLink,
+                            listOf(link),
+                            sortSubs(currentSubs ?: return@acquireSingleExtractorLink),
+                        )
+                        showToast(activity, R.string.download_started, Toast.LENGTH_SHORT)
                     }
                 }
             }
@@ -1206,27 +1299,38 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 list.filter { it.isSynced && it.hasAccount }.joinToString { it.name }
 
             val newList = list.filter { it.isSynced }
+
             result_mini_sync?.isVisible = newList.isNotEmpty()
             (result_mini_sync?.adapter as? ImageAdapter?)?.updateList(newList.map { it.icon })
         }
 
+        observe(syncModel.syncIds) {
+            println("VALUES::: $it")
+            syncdata = it
+        }
+
         var currentSyncProgress = 0
+
+        fun setSyncMaxEpisodes(totalEpisodes: Int?) {
+            result_sync_episodes?.max = (totalEpisodes ?: 0) * 1000
+
+            normalSafeApiCall {
+                val ctx = result_sync_max_episodes?.context
+                result_sync_max_episodes?.text =
+                    totalEpisodes?.let { episodes ->
+                        ctx?.getString(R.string.sync_total_episodes_some)?.format(episodes)
+                    } ?: run {
+                        ctx?.getString(R.string.sync_total_episodes_none)
+                    }
+            }
+        }
+
         observe(syncModel.metadata) { meta ->
             when (meta) {
                 is Resource.Success -> {
                     val d = meta.value
-                    result_sync_episodes?.max = (d.totalEpisodes ?: 0) * 1000
                     result_sync_episodes?.progress = currentSyncProgress * 1000
-
-                    normalSafeApiCall {
-                        val ctx = result_sync_max_episodes?.context
-                        result_sync_max_episodes?.text =
-                            d.totalEpisodes?.let {
-                                ctx?.getString(R.string.sync_total_episodes_some)?.format(it)
-                            } ?: run {
-                                ctx?.getString(R.string.sync_total_episodes_none)
-                            }
-                    }
+                    setSyncMaxEpisodes(d.totalEpisodes)
                     viewModel.setMeta(d)
                 }
                 is Resource.Loading -> {
@@ -1244,6 +1348,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     result_sync_loading_shimmer?.stopShimmer()
                     result_sync_loading_shimmer?.isVisible = false
                     result_sync_holder?.isVisible = false
+                    closed = true
                 }
                 is Resource.Loading -> {
                     result_sync_loading_shimmer?.startShimmer()
@@ -1260,6 +1365,12 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     result_sync_check?.setItemChecked(d.status + 1, true)
                     val watchedEpisodes = d.watchedEpisodes ?: 0
                     currentSyncProgress = watchedEpisodes
+
+                    d.maxEpisodes?.let {
+                        // don't directly call it because we don't want to override metadata observe
+                        setSyncMaxEpisodes(it)
+                    }
+
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         result_sync_episodes?.setProgress(watchedEpisodes * 1000, true)
                     } else {
@@ -1321,6 +1432,10 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             }
 
             result_series_parent?.isVisible = isSeriesVisible
+            if (isSeriesVisible && activity?.currentFocus?.id == R.id.result_back && context?.isTrueTvSettings() == true) {
+                result_resume_series_button?.requestFocus()
+            }
+
             if (isSeriesVisible) {
                 val down = when {
                     result_season_button?.isVisible == true -> result_season_button
@@ -1535,18 +1650,14 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     setRecommendations(d.recommendations)
                     setActors(d.actors)
 
-                    if (SettingsFragment.accountEnabled)
-                        if (d is AnimeLoadResponse) {
-                            if (
-                                setMalSync(d.malId)
-                                ||
-                                setAniListSync(d.anilistId)
-                            ) {
-                                syncModel.updateMetaAndUser()
-                            } else {
-                                syncModel.addFromUrl(d.url)
-                            }
+                    if (SettingsFragment.accountEnabled) {
+                        if (syncModel.addSyncs(d.syncData)) {
+                            syncModel.updateMetaAndUser()
+                            syncModel.updateSynced()
+                        } else {
+                            syncModel.addFromUrl(d.url)
                         }
+                    }
 
                     result_meta_site?.text = d.apiName
 
@@ -1555,28 +1666,30 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         result_poster?.setImage(posterImageLink)
                         result_poster_blur?.setImageBlur(posterImageLink, 10, 3)
                         //Full screen view of Poster image
-                        result_poster_holder?.setOnClickListener {
-                            try {
-                                context?.let { ctx ->
-                                    val bitmap = result_poster.drawable.toBitmap()
-                                    val sourceBuilder = AlertDialog.Builder(ctx)
-                                    sourceBuilder.setView(R.layout.result_poster)
+                        if (context?.isTrueTvSettings() == false) // Poster not clickable on tv
+                            result_poster_holder?.setOnClickListener {
+                                try {
+                                    context?.let { ctx ->
+                                        val bitmap = result_poster.drawable.toBitmap()
+                                        val sourceBuilder = AlertDialog.Builder(ctx)
+                                        sourceBuilder.setView(R.layout.result_poster)
 
-                                    val sourceDialog = sourceBuilder.create()
-                                    sourceDialog.show()
+                                        val sourceDialog = sourceBuilder.create()
+                                        sourceDialog.show()
 
-                                    sourceDialog.findViewById<ImageView?>(R.id.imgPoster)
-                                        ?.apply {
-                                            setImageBitmap(bitmap)
-                                            setOnClickListener {
-                                                sourceDialog.dismissSafe()
+                                        sourceDialog.findViewById<ImageView?>(R.id.imgPoster)
+                                            ?.apply {
+                                                setImageBitmap(bitmap)
+                                                setOnClickListener {
+                                                    sourceDialog.dismissSafe()
+                                                }
                                             }
-                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    logError(e)
                                 }
-                            } catch (e: Exception) {
-                                logError(e)
                             }
-                        }
+
                     } else {
                         result_poster?.setImageResource(R.drawable.default_cover)
                         result_poster_blur?.setImageResource(R.drawable.default_cover)
@@ -1595,16 +1708,16 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         if (syno.length > MAX_SYNO_LENGH) {
                             syno = syno.substring(0, MAX_SYNO_LENGH) + "..."
                         }
-                        result_descript.setOnClickListener {
+                        result_description.setOnClickListener {
                             val builder: AlertDialog.Builder =
                                 AlertDialog.Builder(requireContext())
                             builder.setMessage(d.plot)
                                 .setTitle(if (d.type == TvType.Torrent) R.string.torrent_plot else R.string.result_plot)
                                 .show()
                         }
-                        result_descript.text = syno
+                        result_description.text = syno
                     } else {
-                        result_descript.text =
+                        result_description.text =
                             if (d.type == TvType.Torrent) getString(R.string.torrent_no_plot) else getString(
                                 R.string.normal_no_plot
                             )
@@ -1624,12 +1737,13 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         //result_tag_holder?.visibility = GONE
                     } else {
                         //result_tag_holder?.visibility = VISIBLE
-
+                        val isOnTv = context?.isTrueTvSettings() == true
                         for ((index, tag) in tags.withIndex()) {
                             val viewBtt = layoutInflater.inflate(R.layout.result_tag, null)
                             val btt = viewBtt.findViewById<MaterialButton>(R.id.result_tag_card)
                             btt.text = tag
-
+                            btt.isFocusable = !isOnTv
+                            btt.isClickable = !isOnTv
                             result_tag?.addView(viewBtt, index)
                         }
                     }
@@ -1880,8 +1994,14 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     }
                 }
 
-                result_meta_site?.setOnClickListener {
-                    it.context?.openBrowser(tempUrl)
+                // bloats the navigation on tv
+                if (context?.isTrueTvSettings() == false) {
+                    result_meta_site?.setOnClickListener {
+                        it.context?.openBrowser(tempUrl)
+                    }
+                    result_meta_site?.isFocusable = true
+                } else {
+                    result_meta_site?.isFocusable = false
                 }
 
                 if (restart || viewModel.result.value == null) {

@@ -20,7 +20,6 @@ import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.secondsToRea
 import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.unixTime
 import com.lagradost.cloudstream3.syncproviders.SyncAPI
 import com.lagradost.cloudstream3.utils.AppUtils.splitQuery
-import com.lagradost.cloudstream3.utils.Coroutines.ioSafe
 import com.lagradost.cloudstream3.utils.DataStore.toKotlinObject
 import java.net.URL
 import java.security.SecureRandom
@@ -195,7 +194,7 @@ class MALApi(index: Int) : AccountManager(index), SyncAPI {
                 id = malAnime.id?.toString()!!,
                 totalEpisodes = malAnime.numEpisodes,
                 title = malAnime.title,
-                publicScore = malAnime.mean?.toFloat()?.times(100)?.toInt(),
+                publicScore = malAnime.mean?.toFloat()?.times(1000)?.toInt(),
                 duration = malAnime.averageEpisodeDuration,
                 synopsis = malAnime.synopsis,
                 airStatus = when (malAnime.status) {
@@ -220,7 +219,6 @@ class MALApi(index: Int) : AccountManager(index), SyncAPI {
                     return@firstOrNull it.relationType == "prequel"
                 }?.let { toSearchResult(it.node) },
                 actors = null,
-                characters = null,
             )
         }
     }
@@ -250,37 +248,32 @@ class MALApi(index: Int) : AccountManager(index), SyncAPI {
         const val MAL_TOKEN_KEY: String = "mal_token" // anilist token for api
     }
 
-    override fun handleRedirect(url: String) {
+    override suspend fun handleRedirect(url: String): Boolean {
         val sanitizer =
             splitQuery(URL(url.replace(appString, "https").replace("/#", "?"))) // FIX ERROR
         val state = sanitizer["state"]!!
         if (state == "RequestID$requestId") {
             val currentCode = sanitizer["code"]!!
-            ioSafe {
-                var res = ""
-                try {
-                    //println("cc::::: " + codeVerifier)
-                    res = app.post(
-                        "https://myanimelist.net/v1/oauth2/token",
-                        data = mapOf(
-                            "client_id" to key,
-                            "code" to currentCode,
-                            "code_verifier" to codeVerifier,
-                            "grant_type" to "authorization_code"
-                        )
-                    ).text
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
 
-                if (res != "") {
-                    switchToNewAccount()
-                    storeToken(res)
-                    getMalUser()
-                    setKey(MAL_SHOULD_UPDATE_LIST, true)
-                }
+            val res = app.post(
+                "https://myanimelist.net/v1/oauth2/token",
+                data = mapOf(
+                    "client_id" to key,
+                    "code" to currentCode,
+                    "code_verifier" to codeVerifier,
+                    "grant_type" to "authorization_code"
+                )
+            ).text
+
+            if (res.isNotBlank()) {
+                switchToNewAccount()
+                storeToken(res)
+                val user = getMalUser()
+                setKey(MAL_SHOULD_UPDATE_LIST, true)
+                return user != null
             }
         }
+        return false
     }
 
     override fun authenticate() {
