@@ -27,7 +27,7 @@ class JavFreeSh : MainAPI() {
         @JsonProperty("active") val active: Int?
     )
 
-    fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free").trim()
+    fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free").removeSuffix("HD Free Online on JAVFree.SH").trim()
 
     override suspend fun getMainPage(): HomePageResponse {
         val html = app.get(mainUrl).text
