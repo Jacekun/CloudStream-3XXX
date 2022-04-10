@@ -75,8 +75,8 @@ class JKHentai:MainAPI() {
         val poster = doc.selectFirst(".datos img").attr("src")
         val episodes = doc.select("div#cssmenu ul li.has-sub.open ul li").map { li ->
             val href = fixUrl(li.selectFirst("a").attr("href"))
-            AnimeEpisode(
-                fixUrl(href),
+            Episode(
+                data = fixUrl(href),
             )
         }.reversed()
         val genre = doc.select(".xcsd strong a")

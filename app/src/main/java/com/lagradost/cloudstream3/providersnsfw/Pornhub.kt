@@ -74,17 +74,14 @@ class Pornhub:MainAPI() {
         val tags = soup.select("div.categoriesWrapper a")
             .map { it?.text()?.trim().toString().replace(", ","") }
         return MovieLoadResponse(
-            title,
-            url,
-            this.name,
-            TvType.XXX,
-            url,
-            poster,
-            null,
-            description,
-            null,
-            null,
-            tags
+            name = title,
+            url = url,
+            apiName = this.name,
+            type = TvType.XXX,
+            dataUrl = url,
+            posterUrl = poster,
+            tags = tags,
+            plot = description
         )
     }
     override suspend fun loadLinks(

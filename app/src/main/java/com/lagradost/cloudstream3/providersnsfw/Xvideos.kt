@@ -80,49 +80,41 @@ class Xvideos:MainAPI() {
             soup.selectFirst("head meta[property=og:image]").attr("content")
         val tags = soup.select(".video-tags-list li a")
             .map { it?.text()?.trim().toString().replace(", ","") }
-        val episodes = soup.select("div.thumb-block").map {
-            val href = it.selectFirst("a").attr("href")
+        val episodes = soup.select("div.thumb-block")?.mapNotNull {
+            val href = it?.selectFirst("a")?.attr("href") ?: return@mapNotNull null
             val name = it.selectFirst("p.title a").text() ?: null
             val epthumb = it.selectFirst("div.thumb a img").attr("data-src")
-            TvSeriesEpisode(
-                name,
-                null,
-                null,
-                fixUrl(href),
-                epthumb,
+            Episode(
+                name = name,
+                data = href,
+                posterUrl = epthumb,
             )
-        }
+        } ?: listOf()
         val tvType = if (url.contains("channels") || url.contains("pornstars")) TvType.TvSeries else TvType.XXX
         return when (tvType) {
             TvType.TvSeries -> {
                 TvSeriesLoadResponse(
-                    title,
-                    url,
-                    this.name,
-                    tvType,
-                    episodes,
-                    poster,
-                    null,
-                    description,
-                    ShowStatus.Ongoing,
-                    null,
-                    null,
-                    tags,
+                    name = title,
+                    url = url,
+                    apiName = this.name,
+                    type = tvType,
+                    episodes = episodes,
+                    posterUrl = poster,
+                    plot = description,
+                    showStatus = ShowStatus.Ongoing,
+                    tags = tags,
                 )
             }
             TvType.XXX -> {
                 MovieLoadResponse(
-                    title,
-                    url,
-                    this.name,
-                    tvType,
-                    url,
-                    poster,
-                    null,
-                    description,
-                    null,
-                    null,
-                    tags,
+                    name = title,
+                    url = url,
+                    apiName = this.name,
+                    type = tvType,
+                    dataUrl = url,
+                    posterUrl = poster,
+                    plot = description,
+                    tags = tags,
                 )
             }
             else -> null

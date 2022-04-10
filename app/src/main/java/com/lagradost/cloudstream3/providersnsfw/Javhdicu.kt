@@ -167,7 +167,7 @@ class Javhdicu : MainAPI() {
             val sceneCount = innerA.text().toIntOrNull()
             val viddoc = app.get(vidlink).document.getElementsByTag("body")?.get(0)
             val streamEpLink = viddoc?.getValidLinks()?.removeInvalidLinks() ?: ""
-            TvSeriesEpisode(
+            Episode(
                 name = "Scene $sceneCount",
                 season = null,
                 episode = sceneCount,
@@ -196,7 +196,7 @@ class Javhdicu : MainAPI() {
             url = url,
             apiName = this.name,
             type = TvType.JAV,
-            dataUrl = videoLinks ,
+            dataUrl = videoLinks,
             posterUrl = poster,
             year = year,
             plot = descript,

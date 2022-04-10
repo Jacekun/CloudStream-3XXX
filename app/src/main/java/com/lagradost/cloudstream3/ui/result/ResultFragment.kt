@@ -276,6 +276,9 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 TvType.Torrent -> "Torrent"
                 TvType.Documentary -> "Documentaries"
                 TvType.AsianDrama -> "AsianDrama"
+                TvType.XXX -> "NSFW"
+                TvType.JAV -> "NSFW/JAV"
+                TvType.Hentai -> "NSFW/Hentai"
             }
         }
 

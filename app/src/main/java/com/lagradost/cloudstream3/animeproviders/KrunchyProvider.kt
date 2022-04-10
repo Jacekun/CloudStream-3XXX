@@ -244,10 +244,10 @@ class KrunchyProvider : MainAPI() {
         val year = genres.filter { it.toIntOrNull() != null }.map { it.toInt() }.sortedBy { it }
             .getOrNull(0)
 
-        val subEpisodes = ArrayList<AnimeEpisode>()
-        val dubEpisodes = ArrayList<AnimeEpisode>()
-        val premiumSubEpisodes = ArrayList<AnimeEpisode>()
-        val premiumDubEpisodes = ArrayList<AnimeEpisode>()
+        val subEpisodes = mutableListOf<Episode>()
+        val dubEpisodes = mutableListOf<Episode>()
+        val premiumSubEpisodes = mutableListOf<Episode>()
+        val premiumDubEpisodes = mutableListOf<Episode>()
         soup.select(".season").forEach {
             val seasonName = it.selectFirst("a.season-dropdown")?.text()?.trim()
             it.select(".episode").forEach { ep ->
@@ -269,14 +269,11 @@ class KrunchyProvider : MainAPI() {
                     epDesc = "★ $epDesc ★"
                 }
 
-                val epi = AnimeEpisode(
+                val epi = Episode(
                     fixUrl(ep.attr("href")),
                     "$epTitle",
-                    poster?.replace("widestar", "full")?.replace("wide", "full"),
-                    null,
-                    null,
-                    epDesc,
-                    null
+                    posterUrl = poster?.replace("widestar", "full")?.replace("wide", "full"),
+                    description = epDesc
                 )
                 if (isPremium && seasonName != null && (seasonName.contains("Dub") || seasonName.contains(
                         "Russian"

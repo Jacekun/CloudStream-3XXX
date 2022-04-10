@@ -129,11 +129,11 @@ class HentaiLa:MainAPI() {
         val description = doc.selectFirst(".h-content > p").text().replace("Sinopsis: ","")
         val poster = doc.selectFirst("div.h-thumb:nth-child(2) > figure:nth-child(1) > img").attr("src")
         val episodes = doc.select(".episodes-list article").map { li ->
-            val href = fixUrl(li.selectFirst("a").attr("href"))
+            val href = fixUrlNull(li?.selectFirst("a")?.attr("href")) ?: ""
             val epthumb = li.selectFirst("img").attr("src")
-            AnimeEpisode(
-                fixUrl(href),
-                li.selectFirst(".h-title").text().replace(title,""),
+            Episode(
+                data = href,
+                name = li.selectFirst(".h-title").text().replace(title,""),
                 posterUrl = fixUrl(epthumb)
             )
         }.reversed()

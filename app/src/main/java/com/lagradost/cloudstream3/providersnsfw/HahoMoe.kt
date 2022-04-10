@@ -180,7 +180,7 @@ class HahoMoe : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val document = app.get(url, timeout = 120, cookies = mapOf("loop-view" to "thumb")).document
+        val document = app.get(url, cookies = mapOf("loop-view" to "thumb")).document
 
         val englishTitle =
             document.selectFirst("span.value > span[title=\"English\"]")
@@ -196,20 +196,15 @@ class HahoMoe : MainAPI() {
 
         val episodeNodes = document.select("li[class*=\"episode\"] > a")
 
-        val episodes =
-            ArrayList(
-                episodeNodes?.map {
-                    AnimeEpisode(
-                        it.attr("href"),
-                        it.selectFirst(".episode-title")?.text()?.trim(),
-                        it.selectFirst("img")?.attr("src"),
-                        dateParser(it.selectFirst(".episode-date").text().trim()),
-                        null,
-                        it.attr("data-content").trim(),
-                    )
-                }
-                    ?: ArrayList<AnimeEpisode>()
-            )
+        val episodes = episodeNodes?.map {
+                Episode(
+                    data = it.attr("href"),
+                    name = it.selectFirst(".episode-title")?.text()?.trim(),
+                    posterUrl = it.selectFirst("img")?.attr("src"),
+                    description = it.attr("data-content").trim(),
+                    //date = dateParser(it.selectFirst(".episode-date").text().trim()),
+                )
+            } ?: listOf()
         val status =
             when (document.selectFirst("li.status > .value")?.text()?.trim()) {
                 "Ongoing" -> ShowStatus.Ongoing

@@ -220,10 +220,10 @@ class Hanime : MainAPI() {
         val tags = data.hentaiTags.map { it.text }
 
         val episodes = data.hentaiFranchiseHentaiVideos.map {
-            AnimeEpisode(
-                "$mainUrl/api/v8/video?id=${it.id}&",
-                it.name,
-                it.posterUrl
+            Episode(
+                data = "$mainUrl/api/v8/video?id=${it.id}&",
+                name = it.name,
+                posterUrl = it.posterUrl
             )
         }
 
