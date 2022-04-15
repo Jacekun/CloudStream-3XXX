@@ -8,6 +8,7 @@ import com.lagradost.cloudstream3.utils.getQualityFromName
 import org.jsoup.Jsoup
 
 class VMoveeProvider : MainAPI() {
+    override val lang = "en"
     override var name = "VMovee"
     override var mainUrl = "https://www.vmovee.watch"
 
