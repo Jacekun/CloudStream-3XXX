@@ -229,11 +229,6 @@
         "url": "https://tenshi.moe",
         "status": 1
     },
-    "TrailersTwoProvider": {
-        "name": "Trailers.to",
-        "url": "https://trailers.to",
-        "status": 1
-    },
     "TheFlixToProvider": {
         "name": "TheFlix.to",
         "url": "https://theflix.to",
