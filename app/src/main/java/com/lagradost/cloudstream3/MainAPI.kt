@@ -73,7 +73,6 @@ object APIHolder {
             PinoyMoviePediaProvider(),
             PinoyHDXyzProvider(),
             PinoyMoviesEsProvider(),
-            TrailersTwoProvider(),
             TwoEmbedProvider(),
             DramaSeeProvider(),
             WatchAsianProvider(),
