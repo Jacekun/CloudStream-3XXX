@@ -63,9 +63,6 @@ class HahoMoe : MainAPI() {
                                     it.selectFirst("img").attr("src"),
                                     null,
                                     EnumSet.of(DubStatus.Subbed),
-                                    null,
-                                    null,
-                                    null
                                 )
                             }
                         items.add(HomePageList(title, anime))
@@ -80,11 +77,8 @@ class HahoMoe : MainAPI() {
                                 this.name,
                                 TvType.Hentai,
                                 it.selectFirst("img").attr("src"),
-                                null,
-                                EnumSet.of(DubStatus.Subbed),
-                                null,
-                                null,
-                                null
+                                year = null,
+                                dubStatus = EnumSet.of(DubStatus.Subbed),
                             )
                         }
                     items.add(HomePageList(title, anime))
@@ -126,9 +120,6 @@ class HahoMoe : MainAPI() {
                         img,
                         null,
                         EnumSet.of(DubStatus.Subbed),
-                        null,
-                        null,
-                        null
                     )
                 }
             )

@@ -34,6 +34,8 @@ class HentaiLa:MainAPI() {
                     val url = it.selectFirst("a").attr("href").replace(epRegex,"")
                         .replace("/ver/","/hentai-")
                     val epNum = it.selectFirst(".num-episode").text().replace("Episodio ","").toIntOrNull()
+                    val episodesMap = mutableMapOf<DubStatus, Int>()
+                    episodesMap[DubStatus.Subbed] = epNum ?: 0
                     AnimeSearchResponse(
                         title,
                         fixUrl(url),
@@ -44,8 +46,7 @@ class HentaiLa:MainAPI() {
                         if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(
                             DubStatus.Dubbed
                         ) else EnumSet.of(DubStatus.Subbed),
-                        subEpisodes = epNum,
-                        dubEpisodes = epNum,
+                        episodes = episodesMap
                     )
                 })
         )

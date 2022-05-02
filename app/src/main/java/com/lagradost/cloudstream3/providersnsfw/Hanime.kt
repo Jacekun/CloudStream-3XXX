@@ -105,9 +105,6 @@ class Hanime : MainAPI() {
                             hentai.coverUrl,
                             null,
                             EnumSet.of(DubStatus.Subbed),
-                            "",
-                            null,
-                            null
                         )
                     } else {
                         null
@@ -153,9 +150,6 @@ class Hanime : MainAPI() {
                         unixToYear(it.releasedAt),
                         EnumSet.of(DubStatus.Subbed),
                         it.titles?.get(0),
-                        null,
-                        null,
-                        null
                     )
                 )
             }

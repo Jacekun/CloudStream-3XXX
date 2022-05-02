@@ -98,6 +98,7 @@ class InAppUpdater {
             var shouldUpdate = false
             var downloadUrl = ""
             var downloadBody = ""
+            var nodeId = ""
 
             runBlocking {
                 app.get(url).text.let { jsonText ->
@@ -105,6 +106,7 @@ class InAppUpdater {
                         latestVersionCode = response.tag_name.replace("jav_r", "").trim().toIntOrNull() ?: 0
                         shouldUpdate = latestVersionCode > currentVersionCode
                         Log.i(debugTAG, "(latestVersionCode) $latestVersionCode")
+                        nodeId = response.node_id
                         downloadBody = response.body
                         downloadUrl = response.assets.filter { asset ->
                             asset.content_type.equals("application/vnd.android.package-archive")
@@ -114,7 +116,7 @@ class InAppUpdater {
                     }
                 }
             }
-            return Update(shouldUpdate, downloadUrl, "$latestVersionCode", downloadBody)
+            return Update(shouldUpdate, downloadUrl, "$latestVersionCode", downloadBody, nodeId)
         }
 
         private fun Activity.getPreReleaseUpdate(): Update = runBlocking {

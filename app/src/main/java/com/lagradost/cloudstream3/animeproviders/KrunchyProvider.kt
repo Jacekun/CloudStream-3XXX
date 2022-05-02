@@ -107,7 +107,6 @@ class KrunchyProvider : MainAPI() {
                 null,
                 EnumSet.of(DubStatus.Subbed),
                 null,
-                null
             )
         }
         val recent = doc.select("div.welcome-countdown-day:contains(Now Showing) li")?.mapNotNull {
@@ -117,7 +116,10 @@ class KrunchyProvider : MainAPI() {
             val dubstat = if (name.contains("Dub)", true)) EnumSet.of(DubStatus.Dubbed) else
                 EnumSet.of(DubStatus.Subbed)
             val details = it.selectFirst("span.welcome-countdown-details").text()
-            val epnum = episodeNumRegex.find(details)?.value?.replace("Episode ", "") ?: ""
+            val epnum = episodeNumRegex.find(details)?.value?.replace("Episode ", "") ?: "0"
+            val episodesMap = mutableMapOf<DubStatus, Int>()
+            episodesMap[DubStatus.Subbed] = epnum.toInt()
+            episodesMap[DubStatus.Dubbed] = epnum.toInt()
             AnimeSearchResponse(
                 "★ $name ★",
                 link.replace(Regex("(\\/episode.*)"), ""),
@@ -126,8 +128,7 @@ class KrunchyProvider : MainAPI() {
                 fixUrl(img),
                 null,
                 dubstat,
-                subEpisodes = epnum.toIntOrNull(),
-                dubEpisodes = epnum.toIntOrNull()
+                episodes = episodesMap
             )
         }
         if (!recent.isNullOrEmpty()) {
@@ -149,7 +150,6 @@ class KrunchyProvider : MainAPI() {
                     null,
                     EnumSet.of(DubStatus.Subbed),
                     null,
-                    null
                 )
             }
             items.add(HomePageList(name, episodes))
@@ -218,7 +218,6 @@ class KrunchyProvider : MainAPI() {
                         null,
                         dubstat,
                         null,
-                        null
                     )
                 )
                 ++count
