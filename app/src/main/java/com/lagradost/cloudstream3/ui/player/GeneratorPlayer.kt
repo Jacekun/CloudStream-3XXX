@@ -265,7 +265,8 @@ class GeneratorPlayer : FullScreenPlayer() {
                         ArrayAdapter<String>(ctx, R.layout.sort_bottom_single_choice)
 
                     sourcesArrayAdapter.addAll(sortedUrls.map {
-                        it.first?.name ?: it.second?.name ?: "NULL"
+                        val name = it.first?.name ?: it.second?.name ?: "NULL"
+                        "$name ${Qualities.getStringByInt(it.first?.quality)}"
                     })
 
                     providerList.choiceMode = AbsListView.CHOICE_MODE_SINGLE
@@ -387,10 +388,11 @@ class GeneratorPlayer : FullScreenPlayer() {
         super.onDestroy()
     }
 
+    var maxEpisodeSet: Int? = null
+
     override fun playerPositionChanged(posDur: Pair<Long, Long>) {
         val (position, duration) = posDur
         viewModel.getId()?.let {
-            println("SET VIEW ID: $it ($position/$duration)")
             DataStoreHelper.setViewPos(it, position, duration)
         }
         val percentage = position * 100L / duration
@@ -434,7 +436,9 @@ class GeneratorPlayer : FullScreenPlayer() {
         var isOpVisible = false
         when (val meta = currentMeta) {
             is ResultEpisode -> {
-                if (percentage >= UPDATE_SYNC_PROGRESS_PERCENTAGE) {
+                if (percentage >= UPDATE_SYNC_PROGRESS_PERCENTAGE && (maxEpisodeSet
+                        ?: -1) < meta.episode
+                ) {
                     context?.let { ctx ->
                         val settingsManager = PreferenceManager.getDefaultSharedPreferences(ctx)
                         if (settingsManager.getBoolean(
@@ -442,7 +446,8 @@ class GeneratorPlayer : FullScreenPlayer() {
                                 true
                             )
                         )
-                            sync.modifyMaxEpisode(meta.episode)
+                            maxEpisodeSet = meta.episode
+                        sync.modifyMaxEpisode(meta.episode)
                     }
                 }
 
@@ -545,10 +550,14 @@ class GeneratorPlayer : FullScreenPlayer() {
                 tvType = meta.tvType
             }
         }
-
-        player_episode_filler_holder?.isVisible = isFiller ?: false
-
-        player_video_title?.text = if (headerName != null) {
+        //Get limit of characters on Video Title
+        var limitTitle = 0
+        context?.let {
+            val settingsManager = PreferenceManager.getDefaultSharedPreferences(it)
+            limitTitle = settingsManager.getInt(getString(R.string.prefer_limit_title_key), 0)
+        }
+        //Generate video title
+        var playerVideoTitle = if (headerName != null) {
             (headerName +
                     if (tvType.isEpisodeBased() && episode != null)
                         if (season == null)
@@ -559,6 +568,21 @@ class GeneratorPlayer : FullScreenPlayer() {
         } else {
             ""
         }
+
+        //Hide title, if set in setting
+        if (limitTitle < 0) {
+            player_video_title?.visibility = View.GONE
+        } else {
+            //Truncate video title if it exceeds limit
+            val differenceInLength = playerVideoTitle.length - limitTitle
+            val margin = 3 //If the difference is smaller than or equal to this value, ignore it
+            if (limitTitle > 0 && differenceInLength > margin) {
+                playerVideoTitle = playerVideoTitle.substring(0, limitTitle-1) + "..."
+            }
+        }
+
+        player_episode_filler_holder?.isVisible = isFiller ?: false
+        player_video_title?.text = playerVideoTitle
     }
 
     @SuppressLint("SetTextI18n")

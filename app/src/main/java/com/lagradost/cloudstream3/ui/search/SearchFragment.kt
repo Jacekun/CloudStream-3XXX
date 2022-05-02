@@ -52,7 +52,8 @@ class SearchFragment : Fragment() {
         fun List<SearchResponse>.filterSearchResponse(): List<SearchResponse> {
             return this.filter { response ->
                 if (response is AnimeSearchResponse) {
-                    (response.dubStatus.isNullOrEmpty()) || (response.dubStatus.any {
+                    val status = response.dubStatus
+                    (status.isNullOrEmpty()) || (status.any {
                         APIRepository.dubStatusActive.contains(it)
                     })
                 } else {
@@ -133,10 +134,10 @@ class SearchFragment : Fragment() {
 
         val searchExitIcon =
             main_search.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
-        val searchMagIcon =
-            main_search.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
-        searchMagIcon.scaleX = 0.65f
-        searchMagIcon.scaleY = 0.65f
+        // val searchMagIcon =
+        //    main_search.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
+        //searchMagIcon.scaleX = 0.65f
+        //searchMagIcon.scaleY = 0.65f
 
         context?.let { ctx ->
             val validAPIs = ctx.filterProviderByPreferredMedia()
@@ -225,11 +226,13 @@ class SearchFragment : Fragment() {
                             }
                         }.sortedBy { it.name.lowercase() }
 
-                        val names = currentValidApis.map {  if(isMultiLang) "${
-                            SubtitleHelper.getFlagFromIso(
-                                it.lang
-                            )?.plus(" ") ?: ""
-                        }${it.name}" else it.name }
+                        val names = currentValidApis.map {
+                            if (isMultiLang) "${
+                                SubtitleHelper.getFlagFromIso(
+                                    it.lang
+                                )?.plus(" ") ?: ""
+                            }${it.name}" else it.name
+                        }
                         for ((index, api) in currentValidApis.map { it.name }.withIndex()) {
                             listView?.setItemChecked(index, currentSelectedApis.contains(api))
                         }

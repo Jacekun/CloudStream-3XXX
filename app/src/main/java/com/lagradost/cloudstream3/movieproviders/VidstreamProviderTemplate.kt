@@ -20,8 +20,61 @@ open class VidstreamProviderTemplate : MainAPI() {
      *  Try keys from other providers before cracking
      *  one yourself.
      * */
-    open val iv: ByteArray? = null
-    open val secretKey: ByteArray? = null
+    // Userscript to get the keys:
+
+    /*
+    // ==UserScript==
+    // @name        Easy keys
+    // @namespace   Violentmonkey Scripts
+    // @match       https://*/streaming.php*
+    // @grant       none
+    // @version     1.0
+    // @author      LagradOst
+    // @description 4/16/2022, 2:05:31 PM
+    // ==/UserScript==
+
+    let encrypt = CryptoJS.AES.encrypt;
+    CryptoJS.AES.encrypt = (message, key, cfg) => {
+        let realKey = CryptoJS.enc.Utf8.stringify(key);
+        let realIv = CryptoJS.enc.Utf8.stringify(cfg.iv);
+
+        var result = encrypt(message, key, cfg);
+        let realResult = CryptoJS.enc.Utf8.stringify(result);
+
+        popup = "Encrypt key: " + realKey + "\n\nIV: " + realIv + "\n\nMessage: " + message + "\n\nResult: " + realResult;
+        alert(popup);
+
+        return result;
+    };
+
+    let decrypt = CryptoJS.AES.decrypt;
+    CryptoJS.AES.decrypt = (message, key, cfg) => {
+        let realKey = CryptoJS.enc.Utf8.stringify(key);
+        let realIv = CryptoJS.enc.Utf8.stringify(cfg.iv);
+
+        let result = decrypt(message, key, cfg);
+        let realResult = CryptoJS.enc.Utf8.stringify(result);
+
+        popup = "Decrypt key: " + realKey + "\n\nIV: " + realIv + "\n\nMessage: " + message + "\n\nResult: " + realResult;
+        alert(popup);
+
+        return result;
+    };
+
+     */
+     */
+
+    open val iv: String? = null
+    open val secretKey: String? = null
+    open val secretDecryptKey: String? = null
+    /** Generated the key from IV and ID */
+    open val isUsingAdaptiveKeys: Boolean = false
+    /**
+     * Generate data for the encrypt-ajax automatically (only on supported sites)
+     * See $("script[data-name='episode']")[0].dataset.value
+     * */
+    open val isUsingAdaptiveData: Boolean = false
+
 
 //    // mainUrl is good to have as a holder for the url to make future changes easier.
 //    override val mainUrl: String
@@ -85,7 +138,7 @@ open class VidstreamProviderTemplate : MainAPI() {
 
         val description = soup.selectFirst(".post-entry")?.text()?.trim()
         var poster: String? = null
-        var year : Int? = null
+        var year: Int? = null
 
         val episodes =
             soup.select(".listing.items.lists > .video-block").withIndex().map { (_, li) ->
@@ -105,7 +158,7 @@ open class VidstreamProviderTemplate : MainAPI() {
 
                 val epNum = Regex("""Episode (\d+)""").find(epTitle)?.destructured?.component1()
                     ?.toIntOrNull()
-                if(year == null) {
+                if (year == null) {
                     year = epDate?.split("-")?.get(0)?.toIntOrNull()
                 }
                 newEpisode(li.selectFirst("a").attr("href")) {
@@ -173,25 +226,13 @@ open class VidstreamProviderTemplate : MainAPI() {
                     val isSeries = (name.contains("Season") || name.contains("Episode"))
 
                     if (isSeries) {
-                        TvSeriesSearchResponse(
-                            name,
-                            link,
-                            this.name,
-                            TvType.TvSeries,
-                            image,
-                            null,
-                            null,
-                        )
+                        newTvSeriesSearchResponse(name, link) {
+                            posterUrl = image
+                        }
                     } else {
-                        MovieSearchResponse(
-                            name,
-                            link,
-                            this.name,
-                            TvType.Movie,
-                            image,
-                            null,
-                            null,
-                        )
+                        newMovieSearchResponse(name, link) {
+                            posterUrl = image
+                        }
                     }
                 }
 
@@ -219,7 +260,7 @@ open class VidstreamProviderTemplate : MainAPI() {
         val iframeLink =
             Jsoup.parse(app.get(data).text).selectFirst("iframe")?.attr("src") ?: return false
 
-        extractVidstream(iframeLink, this.name, callback, iv, secretKey)
+        extractVidstream(iframeLink, this.name, callback, iv, secretKey, secretDecryptKey, isUsingAdaptiveKeys, isUsingAdaptiveData)
         // In this case the video player is a vidstream clone and can be handled by the vidstream extractor.
         // This case is a both unorthodox and you normally do not call extractors as they detect the url returned and does the rest.
         val vidstreamObject = Vidstream(vidstreamExtractorUrl ?: mainUrl)

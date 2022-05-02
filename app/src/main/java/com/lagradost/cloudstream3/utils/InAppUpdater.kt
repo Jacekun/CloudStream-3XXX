@@ -47,6 +47,7 @@ class InAppUpdater {
             @JsonProperty("assets") val assets: List<GithubAsset>,
             @JsonProperty("target_commitish") val target_commitish: String, // branch
             @JsonProperty("prerelease") val prerelease: Boolean,
+            @JsonProperty("node_id") val node_id: String //Node Id
         )
 
         data class GithubObject(
@@ -64,6 +65,7 @@ class InAppUpdater {
             @JsonProperty("updateURL") val updateURL: String?,
             @JsonProperty("updateVersion") val updateVersion: String?,
             @JsonProperty("changelog") val changelog: String?,
+            @JsonProperty("updateNodeId") val updateNodeId: String?
         )
 
         private val mapper = JsonMapper.builder().addModule(KotlinModule())
@@ -79,7 +81,7 @@ class InAppUpdater {
                 }
             } catch (e: Exception) {
                 println(e)
-                Update(false, null, null, null)
+                Update(false, null, null, null, null)
             }
         }
 
@@ -139,10 +141,11 @@ class InAppUpdater {
                     shouldUpdate,
                     foundAsset.browser_download_url,
                     tagResponse.github_object.sha,
-                    found.body
+                    found.body,
+                    found.node_id
                 )
             } else {
-                Update(false, null, null, null)
+                Update(false, null, null, null, null)
             }
         }
 
@@ -234,6 +237,11 @@ class InAppUpdater {
             ) {
                 val update = getAppUpdate()
                 if (update.shouldUpdate && update.updateURL != null) {
+                    //Check if update should be skipped
+                    val updateNodeId = settingsManager.getString(getString(R.string.skip_update_key), "")
+                    if (update.updateNodeId.equals(updateNodeId)) {
+                        return false
+                    }
                     runOnUiThread {
                         try {
                             val currentVersion = packageName?.let {
@@ -275,8 +283,8 @@ class InAppUpdater {
                                 setNegativeButton(R.string.cancel) { _, _ -> }
 
                                 if (checkAutoUpdate) {
-                                    setNeutralButton(R.string.dont_show_again) { _, _ ->
-                                        settingsManager.edit().putBoolean("auto_update", false)
+                                    setNeutralButton(R.string.skip_update) { _, _ ->
+                                        settingsManager.edit().putString(getString(R.string.skip_update_key), update.updateNodeId ?: "")
                                             .apply()
                                     }
                                 }

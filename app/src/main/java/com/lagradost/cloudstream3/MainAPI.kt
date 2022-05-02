@@ -84,6 +84,8 @@ object APIHolder {
             SoaptwoDayProvider(),
             HDMProvider(),// disabled due to cloudflare
             TheFlixToProvider(),
+            StreamingcommunityProvider(),
+            TantifilmProvider(),
 
             // Metadata providers
             //TmdbProvider(),
@@ -108,6 +110,7 @@ object APIHolder {
             MonoschinosProvider(),
             KawaiifuProvider(), // disabled due to cloudflare
             //MultiAnimeProvider(),
+            NginxProvider(),
 
             // Additional providers
             KrunchyProvider(),
@@ -135,6 +138,12 @@ object APIHolder {
     }
 
     var apis: List<MainAPI> = arrayListOf()
+    private var apiMap: Map<String, Int>? = null
+
+    private fun initMap() {
+        if (apiMap == null)
+            apiMap = apis.mapIndexed { index, api -> api.name to index }.toMap()
+    }
 
     fun getApiFromName(apiName: String?): MainAPI {
         return getApiFromNameNull(apiName) ?: apis[defProvider]
@@ -142,11 +151,9 @@ object APIHolder {
 
     fun getApiFromNameNull(apiName: String?): MainAPI? {
         if (apiName == null) return null
-        for (api in allProviders) {
-            if (apiName == api.name)
-                return api
-        }
-        return null
+        initMap()
+
+        return apiMap?.get(apiName)?.let { apis.getOrNull(it) }
     }
 
     fun getApiFromUrlNull(url: String?): MainAPI? {
@@ -359,6 +366,7 @@ const val PROVIDER_STATUS_DOWN = 0
 data class ProvidersInfoJson(
     @JsonProperty("name") var name: String,
     @JsonProperty("url") var url: String,
+    @JsonProperty("credentials") var credentials: String? = null,
     @JsonProperty("status") var status: Int,
 )
 
@@ -371,6 +379,7 @@ abstract class MainAPI {
     fun overrideWithNewData(data: ProvidersInfoJson) {
         this.name = data.name
         this.mainUrl = data.url
+	    this.storedCredentials = data.credentials
     }
 
     init {
@@ -381,6 +390,7 @@ abstract class MainAPI {
 
     open var name = "NONE"
     open var mainUrl = "NONE"
+    open var storedCredentials: String? = null
 
     //open val uniqueId : Int by lazy { this.name.hashCode() } // in case of duplicate providers you can have a shared id
 
@@ -577,11 +587,11 @@ enum class ShowStatus {
     Ongoing,
 }
 
-enum class DubStatus {
-    Dubbed,
-    Subbed,
-    PremiumDub,
-    PremiumSub
+enum class DubStatus(val id: Int) {
+    Dubbed(1),
+    Subbed(0),
+    PremiumDub(99),
+    PremiumSub(98)
 }
 
 enum class TvType {
@@ -648,17 +658,22 @@ fun getQualityFromString(string: String?): SearchQuality? {
         "cam" -> SearchQuality.Cam
         "camrip" -> SearchQuality.CamRip
         "hdcam" -> SearchQuality.HdCam
+        "hdtc" -> SearchQuality.HdCam
+        "hdts" -> SearchQuality.HdCam
         "highquality" -> SearchQuality.HQ
         "hq" -> SearchQuality.HQ
         "highdefinition" -> SearchQuality.HD
         "hdrip" -> SearchQuality.HD
         "hd" -> SearchQuality.HD
+        "hdtv" -> SearchQuality.HD
         "rip" -> SearchQuality.CamRip
         "telecine" -> SearchQuality.Telecine
         "tc" -> SearchQuality.Telecine
         "telesync" -> SearchQuality.Telesync
         "ts" -> SearchQuality.Telesync
         "dvd" -> SearchQuality.DVD
+        "dvdrip" -> SearchQuality.DVD
+        "dvdscr" -> SearchQuality.DVD
         "blueray" -> SearchQuality.BlueRay
         "bluray" -> SearchQuality.BlueRay
         "br" -> SearchQuality.BlueRay
@@ -670,6 +685,7 @@ fun getQualityFromString(string: String?): SearchQuality? {
         "wp" -> SearchQuality.WorkPrint
         "workprint" -> SearchQuality.WorkPrint
         "webrip" -> SearchQuality.WebRip
+        "webdl" -> SearchQuality.WebRip
         "web" -> SearchQuality.WebRip
         "hdr" -> SearchQuality.HDR
         "sdr" -> SearchQuality.SDR
@@ -683,8 +699,63 @@ interface SearchResponse {
     val apiName: String
     var type: TvType?
     var posterUrl: String?
+    var posterHeaders: Map<String, String>?
     var id: Int?
     var quality: SearchQuality?
+}
+
+fun MainAPI.newMovieSearchResponse(
+    name: String,
+    url: String,
+    type: TvType = TvType.Movie,
+    fix: Boolean = true,
+    initializer: MovieSearchResponse.() -> Unit = { },
+): MovieSearchResponse {
+    val builder = MovieSearchResponse(name, if (fix) fixUrl(url) else url, this.name, type)
+    builder.initializer()
+
+    return builder
+}
+
+fun MainAPI.newTvSeriesSearchResponse(
+    name: String,
+    url: String,
+    type: TvType = TvType.TvSeries,
+    fix: Boolean = true,
+    initializer: TvSeriesSearchResponse.() -> Unit = { },
+): TvSeriesSearchResponse {
+    val builder = TvSeriesSearchResponse(name, if (fix) fixUrl(url) else url, this.name, type)
+    builder.initializer()
+
+    return builder
+}
+
+
+fun MainAPI.newAnimeSearchResponse(
+    name: String,
+    url: String,
+    type: TvType = TvType.Anime,
+    fix: Boolean = true,
+    initializer: AnimeSearchResponse.() -> Unit = { },
+): AnimeSearchResponse {
+    val builder = AnimeSearchResponse(name, if (fix) fixUrl(url) else url, this.name, type)
+    builder.initializer()
+
+    return builder
+}
+
+fun SearchResponse.addQuality(quality: String) {
+    this.quality = getQualityFromString(quality)
+}
+
+fun SearchResponse.addPoster(url: String?, headers: Map<String, String>? = null) {
+    this.posterUrl = url
+    this.posterHeaders = headers
+}
+
+fun LoadResponse.addPoster(url: String?, headers: Map<String, String>? = null) {
+    this.posterUrl = url
+    this.posterHeaders = headers
 }
 
 enum class ActorRole {
@@ -709,18 +780,61 @@ data class AnimeSearchResponse(
     override val name: String,
     override val url: String,
     override val apiName: String,
-    override var type: TvType?,
+    override var type: TvType? = null,
 
-    override var posterUrl: String?,
-    val year: Int? = null,
-    val dubStatus: EnumSet<DubStatus>? = null,
+    override var posterUrl: String? = null,
+    var year: Int? = null,
+    var dubStatus: EnumSet<DubStatus>? = null,
 
-    val otherName: String? = null,
-    val dubEpisodes: Int? = null,
-    val subEpisodes: Int? = null,
+    var otherName: String? = null,
+    var episodes: MutableMap<DubStatus, Int> = mutableMapOf(),
+
     override var id: Int? = null,
     override var quality: SearchQuality? = null,
+    override var posterHeaders: Map<String, String>? = null,
 ) : SearchResponse
+
+fun AnimeSearchResponse.addDubStatus(status: DubStatus, episodes: Int? = null) {
+    this.dubStatus = dubStatus?.also { it.add(status) } ?: EnumSet.of(status)
+    if (this.type?.isMovieType() != true)
+        if (episodes != null && episodes > 0)
+            this.episodes[status] = episodes
+}
+
+fun AnimeSearchResponse.addDubStatus(isDub: Boolean, episodes: Int? = null) {
+    addDubStatus(if (isDub) DubStatus.Dubbed else DubStatus.Subbed, episodes)
+}
+
+fun AnimeSearchResponse.addDub(episodes: Int?) {
+    if(episodes == null || episodes <= 0) return
+    addDubStatus(DubStatus.Dubbed, episodes)
+}
+
+fun AnimeSearchResponse.addSub(episodes: Int?) {
+    if(episodes == null || episodes <= 0) return
+    addDubStatus(DubStatus.Subbed, episodes)
+}
+
+fun AnimeSearchResponse.addDubStatus(
+    dubExist: Boolean,
+    subExist: Boolean,
+    dubEpisodes: Int? = null,
+    subEpisodes: Int? = null
+) {
+    if (dubExist)
+        addDubStatus(DubStatus.Dubbed, dubEpisodes)
+
+    if (subExist)
+        addDubStatus(DubStatus.Subbed, subEpisodes)
+}
+
+fun AnimeSearchResponse.addDubStatus(status: String, episodes: Int? = null) {
+    if (status.contains("(dub)", ignoreCase = true)) {
+        addDubStatus(DubStatus.Dubbed)
+    } else if (status.contains("(sub)", ignoreCase = true)) {
+        addDubStatus(DubStatus.Subbed)
+    }
+}
 
 data class TorrentSearchResponse(
     override val name: String,
@@ -731,31 +845,34 @@ data class TorrentSearchResponse(
     override var posterUrl: String?,
     override var id: Int? = null,
     override var quality: SearchQuality? = null,
+    override var posterHeaders: Map<String, String>? = null,
 ) : SearchResponse
 
 data class MovieSearchResponse(
     override val name: String,
     override val url: String,
     override val apiName: String,
-    override var type: TvType?,
+    override var type: TvType? = null,
 
-    override var posterUrl: String?,
+    override var posterUrl: String? = null,
     val year: Int? = null,
     override var id: Int? = null,
     override var quality: SearchQuality? = null,
+    override var posterHeaders: Map<String, String>? = null,
 ) : SearchResponse
 
 data class TvSeriesSearchResponse(
     override val name: String,
     override val url: String,
     override val apiName: String,
-    override var type: TvType?,
+    override var type: TvType? = null,
 
-    override var posterUrl: String?,
-    val year: Int?,
-    val episodes: Int?,
+    override var posterUrl: String? = null,
+    val year: Int? = null,
+    val episodes: Int? = null,
     override var id: Int? = null,
     override var quality: SearchQuality? = null,
+    override var posterHeaders: Map<String, String>? = null,
 ) : SearchResponse
 
 interface LoadResponse {
@@ -774,6 +891,7 @@ interface LoadResponse {
     var actors: List<ActorData>?
     var comingSoon: Boolean
     var syncData: MutableMap<String, String>
+    var posterHeaders: Map<String, String>?
 
     companion object {
         private val malIdPrefix = malApi.idPrefix
@@ -905,6 +1023,7 @@ data class TorrentLoadResponse(
     override var actors: List<ActorData>? = null,
     override var comingSoon: Boolean = false,
     override var syncData: MutableMap<String, String> = mutableMapOf(),
+    override var posterHeaders: Map<String, String>? = null,
 ) : LoadResponse
 
 data class AnimeLoadResponse(
@@ -932,6 +1051,7 @@ data class AnimeLoadResponse(
     override var actors: List<ActorData>? = null,
     override var comingSoon: Boolean = false,
     override var syncData: MutableMap<String, String> = mutableMapOf(),
+    override var posterHeaders: Map<String, String>? = null,
 ) : LoadResponse
 
 fun AnimeLoadResponse.addEpisodes(status: DubStatus, episodes: List<Episode>?) {
@@ -943,7 +1063,7 @@ fun MainAPI.newAnimeLoadResponse(
     name: String,
     url: String,
     type: TvType,
-    comingSoonIfNone: Boolean,
+    comingSoonIfNone: Boolean = true,
     initializer: AnimeLoadResponse.() -> Unit = { },
 ): AnimeLoadResponse {
     val builder = AnimeLoadResponse(name = name, url = url, apiName = this.name, type = type)
@@ -957,15 +1077,6 @@ fun MainAPI.newAnimeLoadResponse(
             }
     }
     return builder
-}
-
-fun MainAPI.newAnimeLoadResponse(
-    name: String,
-    url: String,
-    type: TvType,
-    initializer: AnimeLoadResponse.() -> Unit = { },
-): AnimeLoadResponse {
-    return newAnimeLoadResponse(name, url, type, true, initializer)
 }
 
 data class MovieLoadResponse(
@@ -987,6 +1098,7 @@ data class MovieLoadResponse(
     override var actors: List<ActorData>? = null,
     override var comingSoon: Boolean = false,
     override var syncData: MutableMap<String, String> = mutableMapOf(),
+    override var posterHeaders: Map<String, String>? = null,
 ) : LoadResponse
 
 fun <T> MainAPI.newMovieLoadResponse(
@@ -1107,6 +1219,7 @@ data class TvSeriesLoadResponse(
     override var actors: List<ActorData>? = null,
     override var comingSoon: Boolean = false,
     override var syncData: MutableMap<String, String> = mutableMapOf(),
+    override var posterHeaders: Map<String, String>? = null,
 ) : LoadResponse
 
 fun MainAPI.newTvSeriesLoadResponse(

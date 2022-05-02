@@ -20,6 +20,10 @@
                 android:key="@string/quality_pref_key"
                 android:title="@string/watch_quality_pref"
                 android:icon="@drawable/ic_baseline_hd_24" />
+        <Preference
+            android:key="@string/prefer_limit_title_key"
+            android:title="@string/limit_title"
+            android:icon="@drawable/ic_baseline_text_format_24" />
 
         <SwitchPreference
                 android:icon="@drawable/ic_baseline_picture_in_picture_alt_24"
@@ -107,6 +111,12 @@
             android:key="general"
             android:title="@string/general"
             app:isPreferenceVisible="true">
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_play_arrow_24"
+            app:key="@string/random_button_key"
+            android:title="@string/random_button_settings"
+            android:summary="@string/random_button_settings_desc"
+            app:defaultValue="false" />
         <Preference
                 android:icon="@drawable/ic_baseline_language_24"
                 android:key="@string/provider_lang_key"
@@ -149,6 +159,13 @@
                 android:icon="@drawable/ic_baseline_color_lens_24"
                 android:key="@string/app_theme_key"
                 android:title="@string/app_theme_settings" />
+
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/baseline_grid_view_24"
+                android:key="@string/bottom_title_key"
+                android:summary="@string/bottom_title_settings_des"
+                android:title="@string/bottom_title_settings" />
     </PreferenceCategory>
     <PreferenceCategory
             android:key="search"
@@ -160,6 +177,31 @@
                 android:title="@string/advanced_search"
                 android:summary="@string/advanced_search_des"
                 app:defaultValue="true" />
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:key="@string/nginx_category"
+        android:title="@string/nginx_category"
+        app:isPreferenceVisible="true">
+        <Preference
+            android:key="@string/nginx_url_key"
+            android:title="@string/nginx_url_pref"
+            android:icon="@drawable/ic_baseline_play_arrow_24" />
+        <Preference
+            android:key="@string/nginx_credentials"
+            android:title="@string/nginx_credentials_title"
+            android:icon="@drawable/video_locked"
+            android:summary="@string/nginx_credentials_summary"/>
+        <Preference
+            android:key="@string/nginx_info"
+            android:title="@string/nginx_info_title"
+            android:icon="@drawable/ic_baseline_play_arrow_24"
+	        android:summary="@string/nginx_info_summary" >
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://www.sarlays.com/use-nginx-with-cloudstream/" />
+        </Preference>
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -205,6 +247,18 @@
                 android:icon="@drawable/baseline_restore_page_24"
                 android:key="@string/restore_key"
                 android:title="@string/restore_settings" />
+
+        <Preference
+                android:key="@string/show_logcat_key"
+                android:title="@string/show_log_cat"
+                android:icon="@drawable/baseline_description_24" />
+
+        <!--<SwitchPreference
+                android:defaultValue="false"
+                android:key="@string/log_enabled_key"
+                android:title="@string/toggle_logcat"
+                android:summary="@string/toggle_logcat_des"
+                android:icon="@drawable/baseline_description_24" />-->
 
         <SwitchPreference
                 android:icon="@drawable/netflix_download"

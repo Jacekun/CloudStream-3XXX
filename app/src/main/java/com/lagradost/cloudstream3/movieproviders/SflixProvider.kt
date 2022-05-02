@@ -23,16 +23,6 @@ import org.jsoup.nodes.Element
 import java.net.URI
 import kotlin.system.measureTimeMillis
 
-class DopeboxProvider : SflixProvider() {
-    override var mainUrl = "https://dopebox.to"
-    override var name = "Dopebox"
-}
-
-class SolarmovieProvider : SflixProvider() {
-    override var mainUrl = "https://solarmovie.pe"
-    override var name = "Solarmovie"
-}
-
 open class SflixProvider : MainAPI() {
     override var mainUrl = "https://sflix.to"
     override var name = "Sflix.to"
@@ -605,14 +595,12 @@ open class SflixProvider : MainAPI() {
                     M3u8Helper().m3u8Generation(M3u8Helper.M3u8Stream(this.file, null), true)
                         .map { stream ->
                             //println("stream: ${stream.quality} at ${stream.streamUrl}")
-                            val qualityString = if ((stream.quality ?: 0) == 0) label
-                                ?: "" else "${stream.quality}p"
                             ExtractorLink(
                                 caller.name,
-                                "${caller.name} $qualityString $name",
+                                "${caller.name} $name",
                                 stream.streamUrl,
                                 caller.mainUrl,
-                                getQualityFromName(stream.quality.toString()),
+                                getQualityFromName(stream.quality?.toString()),
                                 true,
                                 extractorData = extractorData
                             )

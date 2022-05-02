@@ -8,11 +8,11 @@ import org.jsoup.nodes.Element
 
 class EgyBestProvider : MainAPI() {
     override val lang = "ar"
-    override var mainUrl = "https://egy.best"
+    override var mainUrl = "https://www.egy.best"
     override var name = "EgyBest"
     override val usesWebView = false
     override val hasMainPage = true
-    override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie)
+    override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.Anime)
 
     private fun String.getIntFromText(): Int? {
         return Regex("""\d+""").find(this)?.groupValues?.firstOrNull()?.toIntOrNull()
@@ -26,6 +26,7 @@ class EgyBestProvider : MainAPI() {
         val isMovie = Regex(".*/movie/.*|.*/masrahiya/.*").matches(url)
         val tvType = if (isMovie) TvType.Movie else TvType.TvSeries
         title = if (year !== null) title else title.split(" (")[0].trim()
+        val quality = select("span.ribbon span").text().replace("-", "")
         // If you need to differentiate use the url.
         return MovieSearchResponse(
             title,
@@ -35,18 +36,22 @@ class EgyBestProvider : MainAPI() {
             posterUrl,
             year,
             null,
+            quality = getQualityFromString(quality)
         )
     }
 
     override suspend fun getMainPage(): HomePageResponse {
         // url, title
         val doc = app.get(mainUrl).document
-        val pages = doc.select("#mainLoad div.mbox").apmap {
+        val pages = arrayListOf<HomePageList>()
+        doc.select("#mainLoad div.mbox").apmap {
             val name = it.select(".bdb.pda > strong").text()
-            val list = it.select(".movie").mapNotNull { element ->
-                element.toSearchResponse()
+            if (it.select(".movie").first().attr("href").contains("season-(.....)|ep-(.....)".toRegex())) return@apmap
+            val list = arrayListOf<SearchResponse>()
+            it.select(".movie").map { element ->
+                list.add(element.toSearchResponse()!!)
             }
-            HomePageList(name, list)
+            pages.add(HomePageList(name, list))
         }
         return HomePageResponse(pages)
     }
@@ -72,7 +77,7 @@ class EgyBestProvider : MainAPI() {
         val isMovie = Regex(".*/movie/.*|.*/masrahiya/.*").matches(url)
         val posterUrl = doc.select("div.movie_img a img")?.attr("src")
         val year = doc.select("div.movie_title h1 a")?.text()?.toIntOrNull()
-        val title = doc.select("div.movie_title h1 span[itemprop=\"name\"]").text()
+        val title = doc.select("div.movie_title h1 span").text()
 
         val synopsis = doc.select("div.mbox").firstOrNull {
             it.text().contains("القصة")
@@ -115,16 +120,31 @@ class EgyBestProvider : MainAPI() {
             }.apmap {
                 val d = app.get(it).document
                 val season = Regex("season-(.....)").find(it)?.groupValues?.getOrNull(1)?.getIntFromText()
-                d.select("#mainLoad > div:nth-child(3) > div.movies_small a").map { eit ->
-                    val ep = Regex("ep-(.....)").find(eit.attr("href"))?.groupValues?.getOrNull(1)?.getIntFromText()
-                    episodes.add(
-                        Episode(
-                            eit.attr("href"),
-                            eit.select("span.title").text(),
-                            season,
-                            ep,
+                if(d.select("tr.published").isNotEmpty()) {
+                    d.select("tr.published").map { element ->
+                        val ep = Regex("ep-(.....)").find(element.select(".ep_title a").attr("href"))?.groupValues?.getOrNull(1)?.getIntFromText()
+                        episodes.add(
+                            Episode(
+                                element.select(".ep_title a").attr("href"),
+                                name = element.select("td.ep_title").html().replace(".*</span>|</a>".toRegex(), ""),
+                                season,
+                                ep,
+                                rating = element.select("td.tam:not(.date, .ep_len)").text().getIntFromText()
+                            )
                         )
-                    )
+                    }
+                } else {
+                    d.select("#mainLoad > div:nth-child(3) > div.movies_small a").map { eit ->
+                        val ep = Regex("ep-(.....)").find(eit.attr("href"))?.groupValues?.getOrNull(1)?.getIntFromText()
+                        episodes.add(
+                            Episode(
+                                eit.attr("href"),
+                                eit.select("span.title").text(),
+                                season,
+                                ep,
+                            )
+                        )
+                    }
                 }
             }
             newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes.distinct().sortedBy { it.episode }) {
@@ -146,21 +166,21 @@ class EgyBestProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val requestJSON = app.get("https://zawmedia-api.herokuapp.com/egybest?url=$data").text
+        val requestJSON = app.get("https://api.zr5.repl.co/egybest?url=$data").text
         val jsonArray = parseJson<List<Sources>>(requestJSON)
         for (i in jsonArray) {
             val quality = i.quality
             val link = i.link
-                callback.invoke(
-                    ExtractorLink(
-                        this.name,
-                        this.name + " ${quality}p",
-                        link,
-                        this.mainUrl,
-                        2,
-                        true
-                    )
+            callback.invoke(
+                ExtractorLink(
+                    this.name,
+                    this.name,
+                    link,
+                    this.mainUrl,
+                    quality!!,
+                    true
                 )
+            )
         }
         return true
     }

@@ -82,16 +82,16 @@ class SyncViewModel : ViewModel() {
         var isValid = false
 
         map?.forEach { (prefix, id) ->
-            isValid = isValid || addSync(prefix, id)
+            isValid = addSync(prefix, id) || isValid
         }
         return isValid
     }
 
-    fun setMalId(id: String?): Boolean {
+    private fun setMalId(id: String?): Boolean {
         return addSync(malApi.idPrefix, id ?: return false)
     }
 
-    fun setAniListId(id: String?): Boolean {
+    private fun setAniListId(id: String?): Boolean {
         return addSync(aniListApi.idPrefix, id ?: return false)
     }
 
@@ -194,6 +194,8 @@ class SyncViewModel : ViewModel() {
                                 Log.i(TAG, "modifyData ${repo.name} => $newData")
                                 repo.score(id, newData)
                             }
+                        } else if (result is Resource.Failure){
+                            Log.e(TAG, "modifyData getStatus error ${result.errorString}")
                         }
                     }
                 }
@@ -212,6 +214,7 @@ class SyncViewModel : ViewModel() {
                         _userDataResponse.postValue(result)
                         return@launch
                     } else if (result is Resource.Failure) {
+                        Log.e(TAG, "updateUserData error ${result.errorString}")
                         lastError = result
                     }
                 }
@@ -233,6 +236,7 @@ class SyncViewModel : ViewModel() {
                         _metaResponse.postValue(result)
                         return@launch
                     } else if (result is Resource.Failure) {
+                        Log.e(TAG, "updateMetadata error ${result.errorString}")
                         lastError = result
                     }
                 }

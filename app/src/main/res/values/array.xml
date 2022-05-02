@@ -14,25 +14,8 @@
         <item>@id/cast_button_type_forward_30_seconds</item>
     </array>
 
-    <array name="quality_pref">
-        <item>2160p</item>
-        <item>1440p</item>
-        <item>1080p</item>
-        <item>720p</item>
-        <item>480p</item>
-        <item>360p</item>
-    </array>
-    <array name="quality_pref_values">
-        <item>4</item>
-        <item>3</item>
-        <item>2</item>
-        <item>1</item>
-        <item>-1</item>
-        <item>-2</item>
-    </array>
-
     <array name="dns_pref">
-        <item>None</item>
+        <item>@string/none</item>
         <item>Google</item>
         <item>Cloudflare</item>
         <!--        <item>OpenDns</item>-->
@@ -59,6 +42,23 @@
         <item>2</item>
         <item>3</item>
         <item>4</item>
+    </array>
+
+    <array name="limit_title_pref_names">
+        <item>@string/none</item>
+        <item>16 characters</item>
+        <item>32 characters</item>
+        <item>64 characters</item>
+        <item>128 characters</item>
+        <item>Hide Title</item>
+    </array>
+    <array name="limit_title_pref_values">
+        <item>0</item>
+        <item>16</item>
+        <item>32</item>
+        <item>64</item>
+        <item>128</item>
+        <item>-1</item>
     </array>
 
     <array name="video_buffer_length_names">

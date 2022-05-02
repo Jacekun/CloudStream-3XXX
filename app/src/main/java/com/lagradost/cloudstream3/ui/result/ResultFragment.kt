@@ -93,6 +93,7 @@ import com.lagradost.cloudstream3.utils.VideoDownloadManager.getFileName
 import com.lagradost.cloudstream3.utils.VideoDownloadManager.sanitizeFilename
 import kotlinx.android.synthetic.main.fragment_result.*
 import kotlinx.android.synthetic.main.fragment_result_swipe.*
+import kotlinx.android.synthetic.main.result_recommendations.*
 import kotlinx.android.synthetic.main.result_sync.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -144,17 +145,17 @@ fun ResultEpisode.getDisplayPosition(): Long {
 
 fun buildResultEpisode(
     headerName: String,
-    name: String?,
-    poster: String?,
+    name: String? = null,
+    poster: String? = null,
     episode: Int,
-    season: Int?,
+    season: Int? = null,
     data: String,
     apiName: String,
     id: Int,
     index: Int,
-    rating: Int?,
-    description: String?,
-    isFiller: Boolean?,
+    rating: Int? = null,
+    description: String? = null,
+    isFiller: Boolean? = null,
     tvType: TvType,
     parentId: Int,
 ): ResultEpisode {
@@ -266,13 +267,14 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         }
 
         private fun getFolder(currentType: TvType, titleName: String): String {
+            val sanitizedFileName = sanitizeFilename(titleName)
             return when (currentType) {
-                TvType.Anime -> "Anime/$titleName"
+                TvType.Anime -> "Anime/$sanitizedFileName"
                 TvType.Movie -> "Movies"
                 TvType.AnimeMovie -> "Movies"
-                TvType.TvSeries -> "TVSeries/$titleName"
+                TvType.TvSeries -> "TVSeries/$sanitizedFileName"
                 TvType.OVA -> "OVA"
-                TvType.Cartoon -> "Cartoons/$titleName"
+                TvType.Cartoon -> "Cartoons/$sanitizedFileName"
                 TvType.Torrent -> "Torrent"
                 TvType.Documentary -> "Documentaries"
                 TvType.AsianDrama -> "AsianDrama"
@@ -575,14 +577,6 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         setFormatText(result_meta_rating, R.string.rating_format, rating?.div(1000f))
     }
 
-    private fun setMalSync(id: Int?): Boolean {
-        return syncModel.setMalId(id?.toString())
-    }
-
-    private fun setAniListSync(id: Int?): Boolean {
-        return syncModel.setAniListId(id?.toString())
-    }
-
     private fun setActors(actors: List<ActorData>?) {
         if (actors.isNullOrEmpty()) {
             result_cast_text?.isVisible = false
@@ -604,23 +598,47 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         }
     }
 
-    private fun setRecommendations(rec: List<SearchResponse>?) {
+    private fun setRecommendations(rec: List<SearchResponse>?, validApiName: String?) {
         val isInvalid = rec.isNullOrEmpty()
         result_recommendations?.isGone = isInvalid
         result_recommendations_btt?.isGone = isInvalid
         result_recommendations_btt?.setOnClickListener {
-            if (result_overlapping_panels?.getSelectedPanel()?.ordinal == 1) {
-                result_recommendations_btt?.nextFocusDownId = R.id.result_recommendations
+            val nextFocusDown = if (result_overlapping_panels?.getSelectedPanel()?.ordinal == 1) {
                 result_overlapping_panels?.openEndPanel()
+                R.id.result_recommendations
             } else {
-                result_recommendations_btt?.nextFocusDownId = R.id.result_description
                 result_overlapping_panels?.closePanels()
+                R.id.result_description
             }
+
+            result_recommendations_btt?.nextFocusDownId = nextFocusDown
+            result_search?.nextFocusDownId = nextFocusDown
+            result_open_in_browser?.nextFocusDownId = nextFocusDown
+            result_share?.nextFocusDownId = nextFocusDown
         }
         result_overlapping_panels?.setEndPanelLockState(if (isInvalid) OverlappingPanelsLayout.LockState.CLOSE else OverlappingPanelsLayout.LockState.UNLOCKED)
+
+        val matchAgainst = validApiName ?: rec?.firstOrNull()?.apiName
+        rec?.map { it.apiName }?.distinct()?.let { apiNames ->
+            // very dirty selection
+            result_recommendations_filter_button?.isVisible = apiNames.size > 1
+            result_recommendations_filter_button?.text = matchAgainst
+            result_recommendations_filter_button?.setOnClickListener { _ ->
+                activity?.showBottomDialog(
+                    apiNames,
+                    apiNames.indexOf(matchAgainst),
+                    getString(R.string.home_change_provider_img_des), false, {}
+                ) {
+                    setRecommendations(rec, apiNames[it])
+                }
+            }
+        } ?: run {
+            result_recommendations_filter_button?.isVisible = false
+        }
+
         result_recommendations?.post {
             rec?.let { list ->
-                (result_recommendations?.adapter as SearchAdapter?)?.updateList(list)
+                (result_recommendations?.adapter as SearchAdapter?)?.updateList(list.filter { it.apiName == matchAgainst })
             }
         }
     }
@@ -659,7 +677,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         result_cast_items?.let {
             PanelsChildGestureRegionObserver.Provider.get().register(it)
         }
-        result_cast_items?.adapter = ActorAdaptor(mutableListOf())
+        result_cast_items?.adapter = ActorAdaptor()
         fixGrid()
         result_recommendations?.spanCount = 3
         result_overlapping_panels?.setStartPanelLockState(OverlappingPanelsLayout.LockState.CLOSE)
@@ -702,27 +720,22 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 
             media_route_button?.alpha = if (chromecastSupport) 1f else 0.3f
             if (!chromecastSupport) {
-                media_route_button.setOnClickListener {
+                media_route_button?.setOnClickListener {
                     showToast(activity, R.string.no_chromecast_support_toast, Toast.LENGTH_LONG)
                 }
             }
 
-            activity?.let {
-                if (it.isCastApiAvailable()) {
+            activity?.let { act ->
+                if (act.isCastApiAvailable()) {
                     try {
-                        CastButtonFactory.setUpMediaRouteButton(it, media_route_button)
-                        val castContext = CastContext.getSharedInstance(it.applicationContext)
+                        CastButtonFactory.setUpMediaRouteButton(act, media_route_button)
+                        val castContext = CastContext.getSharedInstance(act.applicationContext)
 
-                        if (castContext.castState != CastState.NO_DEVICES_AVAILABLE) media_route_button.visibility =
-                            VISIBLE
+                        media_route_button?.isGone =
+                            castContext.castState == CastState.NO_DEVICES_AVAILABLE
+
                         castContext.addCastStateListener { state ->
-                            if (media_route_button != null) {
-                                if (state == CastState.NO_DEVICES_AVAILABLE) media_route_button.visibility =
-                                    GONE else {
-                                    if (media_route_button.visibility == GONE) media_route_button.visibility =
-                                        VISIBLE
-                                }
-                            }
+                            media_route_button?.isGone = state == CastState.NO_DEVICES_AVAILABLE
                         }
                     } catch (e: Exception) {
                         logError(e)
@@ -790,7 +803,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 val builder = AlertDialog.Builder(requireContext(), R.style.AlertDialogCustom)
 
                 builder.setTitle(title)
-                builder.setItems(links.map { it.name }.toTypedArray()) { dia, which ->
+                builder.setItems(links.map { "${it.name} ${Qualities.getStringByInt(it.quality)}" }
+                    .toTypedArray()) { dia, which ->
                     callback.invoke(links[which])
                     dia?.dismiss()
                 }
@@ -1094,7 +1108,6 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 ACTION_PLAY_EPISODE_IN_PLAYER -> {
                     viewModel.getGenerator(episodeClick.data)
                         ?.let { generator ->
-                            println("LANUCJ:::: $syncdata")
                             activity?.navigate(
                                 R.id.global_to_navigation_player,
                                 GeneratorPlayer.newInstance(
@@ -1294,21 +1307,31 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 }
             }
         }
-        val imgAdapter = ImageAdapter(R.layout.result_mini_image)
+        val imgAdapter = ImageAdapter(
+            R.layout.result_mini_image,
+            nextFocusDown = R.id.result_sync_set_score,
+            clickCallback = { action ->
+                if (action == IMAGE_CLICK || action == IMAGE_LONG_CLICK) {
+                    if (result_overlapping_panels?.getSelectedPanel()?.ordinal == 1) {
+                        result_overlapping_panels?.openStartPanel()
+                    } else {
+                        result_overlapping_panels?.closePanels()
+                    }
+                }
+            })
         result_mini_sync?.adapter = imgAdapter
 
         observe(syncModel.synced) { list ->
             result_sync_names?.text =
                 list.filter { it.isSynced && it.hasAccount }.joinToString { it.name }
 
-            val newList = list.filter { it.isSynced }
+            val newList = list.filter { it.isSynced && it.hasAccount }
 
             result_mini_sync?.isVisible = newList.isNotEmpty()
             (result_mini_sync?.adapter as? ImageAdapter?)?.updateList(newList.map { it.icon })
         }
 
         observe(syncModel.syncIds) {
-            println("VALUES::: $it")
             syncdata = it
         }
 
@@ -1459,6 +1482,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             when (startAction) {
                 START_ACTION_RESUME_LATEST -> {
                     for (ep in episodeList) {
+                        println("WATCH STATUS::: S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
                         if (ep.getWatchProgress() > 0.90f) { // watched too much
                             continue
                         }
@@ -1469,6 +1493,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 START_ACTION_LOAD_EP -> {
                     for (ep in episodeList) {
                         if (ep.id == startValue) { // watched too much
+                            println("WATCH STATUS::: START_ACTION_LOAD_EP S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
                             handleAction(EpisodeClickEvent(ACTION_PLAY_EPISODE_IN_PLAYER, ep))
                             break
                         }
@@ -1650,7 +1675,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     setDuration(d.duration)
                     setYear(d.year)
                     setRating(d.rating)
-                    setRecommendations(d.recommendations)
+                    setRecommendations(d.recommendations, null)
                     setActors(d.actors)
 
                     if (SettingsFragment.accountEnabled) {
@@ -1666,8 +1691,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 
                     val posterImageLink = d.posterUrl
                     if (!posterImageLink.isNullOrEmpty()) {
-                        result_poster?.setImage(posterImageLink)
-                        result_poster_blur?.setImageBlur(posterImageLink, 10, 3)
+                        result_poster?.setImage(posterImageLink, d.posterHeaders)
+                        result_poster_blur?.setImageBlur(posterImageLink, 10, 3, d.posterHeaders)
                         //Full screen view of Poster image
                         if (context?.isTrueTvSettings() == false) // Poster not clickable on tv
                             result_poster_holder?.setOnClickListener {
@@ -1962,7 +1987,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             }
         }
 
-        result_recommendations.adapter = recAdapter
+        result_recommendations?.adapter = recAdapter
 
         context?.let { ctx ->
             result_bookmark_button?.isVisible = ctx.isTvSettings()

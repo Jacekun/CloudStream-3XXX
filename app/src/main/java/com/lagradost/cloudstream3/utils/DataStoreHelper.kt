@@ -14,7 +14,7 @@ import com.lagradost.cloudstream3.ui.WatchType
 const val VIDEO_POS_DUR = "video_pos_dur"
 const val RESULT_WATCH_STATE = "result_watch_state"
 const val RESULT_WATCH_STATE_DATA = "result_watch_state_data"
-const val RESULT_RESUME_WATCHING = "result_resume_watching"
+const val RESULT_RESUME_WATCHING = "result_resume_watching_2" // changed due to id changes
 const val RESULT_SEASON = "result_season"
 const val RESULT_DUB = "result_dub"
 
@@ -43,7 +43,8 @@ object DataStoreHelper {
         @JsonProperty("type") override var type: TvType? = null,
         @JsonProperty("posterUrl") override var posterUrl: String?,
         @JsonProperty("year") val year: Int?,
-        @JsonProperty("quality") override var quality: SearchQuality? = null
+        @JsonProperty("quality") override var quality: SearchQuality? = null,
+        @JsonProperty("posterHeaders") override var posterHeaders: Map<String, String>? = null,
     ) : SearchResponse
 
     data class ResumeWatchingResult(
@@ -60,7 +61,8 @@ object DataStoreHelper {
         @JsonProperty("episode") val episode: Int?,
         @JsonProperty("season") val season: Int?,
         @JsonProperty("isFromDownload") val isFromDownload: Boolean,
-        @JsonProperty("quality") override var quality: SearchQuality? = null
+        @JsonProperty("quality") override var quality: SearchQuality? = null,
+        @JsonProperty("posterHeaders") override var posterHeaders: Map<String, String>? = null,
     ) : SearchResponse
 
     var currentAccount: String = "0" //TODO ACCOUNT IMPLEMENTATION

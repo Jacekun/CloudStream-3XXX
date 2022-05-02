@@ -19,8 +19,8 @@ import android.widget.ListAdapter
 import android.widget.ListView
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
-import androidx.annotation.RequiresApi
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.PopupMenu
@@ -101,10 +101,10 @@ object UIHelper {
     }
 
     fun Activity?.getSpanCount(): Int? {
-        val compactView = this?.getGridIsCompact() ?: return null
+        val compactView = false
         val spanCountLandscape = if (compactView) 2 else 6
         val spanCountPortrait = if (compactView) 1 else 3
-        val orientation = this.resources?.configuration?.orientation ?: return null
+        val orientation = this?.resources?.configuration?.orientation ?: return null
 
         return if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             spanCountLandscape
@@ -149,14 +149,24 @@ object UIHelper {
         return color
     }
 
-    fun ImageView?.setImage(url: String?): Boolean {
+    fun ImageView?.setImage(
+        url: String?,
+        headers: Map<String, String>? = null,
+        @DrawableRes
+        errorImageDrawable: Int? = null
+    ): Boolean {
         if (this == null || url.isNullOrBlank()) return false
         return try {
-            GlideApp.with(this.context)
-                .load(GlideUrl(url)).transition(
+            val builder = GlideApp.with(this.context)
+                .load(GlideUrl(url) { headers ?: emptyMap() }).transition(
                     DrawableTransitionOptions.withCrossFade()
                 )
-                .into(this)
+
+            if (errorImageDrawable != null)
+                builder.error(errorImageDrawable).into(this)
+            else
+                builder.into(this)
+
             true
         } catch (e: Exception) {
             logError(e)
@@ -164,11 +174,17 @@ object UIHelper {
         }
     }
 
-    fun ImageView?.setImageBlur(url: String?, radius: Int, sample: Int = 3) {
+    fun ImageView?.setImageBlur(
+        url: String?,
+        radius: Int,
+        sample: Int = 3,
+        headers: Map<String, String>? = null
+    ) {
         if (this == null || url.isNullOrBlank()) return
         try {
             GlideApp.with(this.context)
-                .load(GlideUrl(url)).apply(bitmapTransform(BlurTransformation(radius, sample)))
+                .load(GlideUrl(url) { headers ?: emptyMap() })
+                .apply(bitmapTransform(BlurTransformation(radius, sample)))
                 .transition(
                     DrawableTransitionOptions.withCrossFade()
                 )
@@ -310,21 +326,10 @@ object UIHelper {
         return result
     }
 
-    private fun Context.getGridFormat(): String {
+    fun Context?.IsBottomLayout(): Boolean {
+        if (this == null) return true
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
-        return settingsManager.getString(getString(R.string.grid_format_key), "grid")!!
-    }
-
-    fun Context.getGridFormatId(): Int {
-        return when (getGridFormat()) {
-            "list" -> R.layout.search_result_compact
-            "compact_list" -> R.layout.search_result_super_compact
-            else -> R.layout.search_result_grid
-        }
-    }
-
-    fun Context.getGridIsCompact(): Boolean {
-        return getGridFormat() != "grid"
+        return settingsManager.getBoolean(getString(R.string.bottom_title_key), true)
     }
 
     fun Activity.changeStatusBarState(hide: Boolean): Int {
@@ -365,18 +370,23 @@ object UIHelper {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun Context.hasPIPPermission(): Boolean {
         val appOps =
             getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        return appOps.checkOpNoThrow(
-            AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-            android.os.Process.myUid(),
-            packageName
-        ) == AppOpsManager.MODE_ALLOWED
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
+                android.os.Process.myUid(),
+                packageName
+            ) == AppOpsManager.MODE_ALLOWED
+        } else {
+            return true
+        }
     }
 
-    fun hideKeyboard(view: View) {
+    fun hideKeyboard(view: View?) {
+        if(view == null) return
+
         val inputMethodManager =
             view.context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager?
         inputMethodManager?.hideSoftInputFromWindow(view.windowToken, 0)
