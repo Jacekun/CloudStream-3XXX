@@ -13,7 +13,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 [**View release history**](doc/version_log.md)
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/4447196ebc1fa576017230ee4f550d77355affa6).
++ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/LagradOst/CloudStream-3/tree/e64a8755439a0e4fb6401549a64f79431794fbab).
 + **NSFW** sites. *See below table*.
 + **Crunchyroll** site.
 + **Random** button on Homepage.
