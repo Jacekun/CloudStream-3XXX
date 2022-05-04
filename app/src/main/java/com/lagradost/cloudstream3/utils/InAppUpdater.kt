@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
+import androidx.core.content.pm.PackageInfoCompat.getLongVersionCode
 import androidx.preference.PreferenceManager
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -88,17 +89,19 @@ class InAppUpdater {
         private fun Activity.getReleaseUpdate(): Update {
             val debugTAG = "ApiError"
             val url = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases/latest"
-            val headers = mapOf("Accept" to "application/vnd.github.v3+json")
-            val currentVersion = packageName?.let {
-                packageManager.getPackageInfo(it,0)
-            }
-            val currentVersionCode = currentVersion?.versionCode ?: 0
-            Log.i(debugTAG, "(currentVersion) $currentVersionCode")
+            var currentVersionCode = 0L
             var latestVersionCode = 0
             var shouldUpdate = false
             var downloadUrl = ""
             var downloadBody = ""
             var nodeId = ""
+
+            packageName?.let {
+                packageManager.getPackageInfo(it,0)?.let { pInfo ->
+                    currentVersionCode = getLongVersionCode(pInfo)
+                }
+            }
+            Log.i(debugTAG, "(currentVersion) $currentVersionCode")
 
             runBlocking {
                 app.get(url).text.let { jsonText ->

@@ -17,6 +17,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.pm.PackageInfoCompat.getLongVersionCode
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -791,10 +792,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
         //Append versionCode to app_version on Manual update pref
         getPref(R.string.manual_check_update_key)?.let {
-            var currentVersion = 0
+            var currentVersion = 0L
             context?.let { ctx ->
                 ctx.packageName?.let { pkg ->
-                    currentVersion = ctx.packageManager?.getPackageInfo(pkg,0)?.versionCode ?: 0
+                    ctx.packageManager?.getPackageInfo(pkg,0)?.let { pinfo ->
+                        currentVersion = getLongVersionCode(pinfo)
+                    }
                 }
             }
             it.summary = "${getString(R.string.app_version)} r${currentVersion}"
