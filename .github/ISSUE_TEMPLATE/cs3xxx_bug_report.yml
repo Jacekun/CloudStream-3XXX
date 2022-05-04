@@ -19,6 +19,30 @@ body:
           required: true
         - label: If related to a provider, I have checked the site and it works, but not the app.
           required: true
+
+  - type: textarea
+    id: bug-desc
+    attributes:
+      label: Description
+      description: Describe the Bug / Error
+      placeholder: |
+        A clear and concise description of what the bug is.
+        Explain how it happens, and why it happens, if possible.
+        Also, any other info goes in here.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: Expected Behaviour
+      description: Describe how it should be behaving.
+      placeholder: |
+        A clear and concise description of what you expected to happen.
+        Explain if it works on earlier versions.
+    validations:
+      required: true
+
   - type: textarea
     id: reproduce-steps
     attributes:
@@ -31,13 +55,34 @@ body:
           3. See error
     validations:
       required: true
+
   - type: input
-    id: cloudstream-version
+    id: ver-android
+    attributes:
+      label: Android version
+      description: |
+        Find it on your Phone Settings -> About Phone. Include the API number, if possible.
+      placeholder: Android 11 API 30
+    validations:
+      required: true
+
+  - type: input
+    id: ver-cs3xxx
     attributes:
       label: Cloudstream version
       description: |
         You can find your Cloudstream version in **Settings** -> **Check for Update**.
-      placeholder: |
-        Example: "2.9.22"
+      placeholder: 2.9.22
+    validations:
+      required: true
+
+  - type: textarea
+    id: ver-provider
+    attributes:
+      label: Name and Url of provider
+      description: |
+        If bug is related to provider, specify what provider. Also provide link of not working on App.
+        If not provider-related, input "N/A" / "-" / etc..
+      placeholder: JavHD
     validations:
       required: true
