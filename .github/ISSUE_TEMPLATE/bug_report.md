@@ -5,14 +5,28 @@ title: "[Bug] Short Title"
 labels: bug
 assignees: ''
 
+body:
+
+  - type: checkboxes
+    id: guidelines
+    attributes:
+      label: Guidelines
+      description: Make sure all the following are correct.
+      options:
+        - label: It **is not** a duplicate issue.
+          required: true
+          
+        - label: It **does not** exist on [Cloudstream 3](https://github.com/LagradOst/CloudStream-3) Issues tab.
+          required: true
+          
+        - label: If provider bug, **it is exclusively** on this Fork.
+          required: true
+          
+        - label: If related to a provider, I have checked the site and it works, but not the app.
+          required: true
+          
 ---
-
-**Guidelines:**
-- [x] It **is not** a duplicate issue.
-- [x] It **does not** exist on [Cloudstream 3](https://github.com/LagradOst/CloudStream-3) Issues tab.
-- [x] If provider bug, **it is exclusively** on this Fork.
-- [x] If related to a provider, I have checked the site and it works, but not the app.
-
+   
 **Describe the bug** <br>
 A clear and concise description of what the bug is.
 
