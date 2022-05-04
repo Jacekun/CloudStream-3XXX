@@ -1,9 +1,10 @@
+
+
 name: App bug report
 description: Report any bugs or errors found on App.
 labels: bug
-title: [Bug] ChangeThisTitle
+title: "[Bug] ChangeThisTitle"
 body:
-
   - type: checkboxes
     id: guidelines
     attributes:
@@ -18,8 +19,7 @@ body:
           required: true
         - label: If related to a provider, I have checked the site and it works, but not the app.
           required: true
-          
- - type: textarea
+  - type: textarea
     id: reproduce-steps
     attributes:
       label: Steps to reproduce
@@ -31,8 +31,7 @@ body:
           3. See error
     validations:
       required: true
-      
- - type: input
+  - type: input
     id: cloudstream-version
     attributes:
       label: Cloudstream version
