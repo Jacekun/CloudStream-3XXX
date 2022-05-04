@@ -1,6 +1,7 @@
 name: App bug report
-about: Report any bugs or errors found on App.
+description: Report any bugs or errors found on App.
 labels: bug
+title: [Bug] ChangeThisTitle
 body:
 
   - type: checkboxes
