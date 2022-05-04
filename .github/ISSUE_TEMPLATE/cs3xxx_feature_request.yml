@@ -17,7 +17,7 @@ body:
           required: true
         - label: It **is not** requested, nor is a planned feature on [Cloudstream 3](https://github.com/LagradOst/CloudStream-3).
           required: true
-        - label: It **is not** a request to add a website. Use [specific template](https://github.com/Jacekun/CloudStream-3XXX/issues/new?labels=provider&template=cs3xxx_provider_request.yml) for this.
+        - label: It **is not** a request to add a website. Use [specific template](https://github.com/Jacekun/CloudStream-3XXX/issues/new?labels=provider&template=cs3xxx_provider_request.yml&title=%5BProvider%5D+ChangeThisTitle) for this.
           required: true
 
   - type: dropdown
