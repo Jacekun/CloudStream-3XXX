@@ -1,0 +1,65 @@
+
+
+name: Feature request
+description: Suggest enhancement for the App.
+labels: enhancement
+title: "[Feature] ChangeThisTitle"
+body:
+  - type: checkboxes
+    id: guidelines
+    attributes:
+      label: Guidelines
+      description: Make sure all the following are correct.
+      options:
+        - label: It **is not** a duplicate issue.
+          required: true
+        - label: It **does not** exist on [Cloudstream 3](https://github.com/LagradOst/CloudStream-3) Issues tab.
+          required: true
+        - label: It **is not** requested, nor is a planned feature on [Cloudstream 3](https://github.com/LagradOst/CloudStream-3).
+          required: true
+        - label: It **is not** a request to add a website. Use [specific template](https://github.com/Jacekun/CloudStream-3XXX/issues/new?labels=provider&template=cs3xxx_provider_request.yml) for this.
+          required: true
+
+  - type: dropdown
+    id: req-type-1
+    attributes:
+      label: Type of feature (Primary)
+      description: Choose one of the following types.
+      options:
+        - UI/UX
+        - Site Extractor
+        - Others
+    validations:
+      required: true
+
+  - type: dropdown
+    id: req-type-2
+    attributes:
+      label: Type of feature (Secondary)
+      description: If the request applies to another type, choose one. Otherwise, ignore this.
+      options:
+        - UI/UX
+        - Site Extractor
+        - Others
+    validations:
+      required: false
+
+  - type: textarea
+    id: req-desc
+    attributes:
+      label: Request Descrption
+      description: Explain your request here in as much detail as possible.
+      placeholder: |
+        - How it works.
+        - Issues it solves.
+        - Why it is needed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: req-other
+    attributes:
+      label: Other info
+      description: Other info related to the request.
+    validations:
+      required: false
