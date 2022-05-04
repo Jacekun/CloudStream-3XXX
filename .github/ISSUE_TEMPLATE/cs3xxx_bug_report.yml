@@ -43,21 +43,3 @@ body:
         Example: "2.9.22"
     validations:
       required: true
-
-**Describe the bug** <br>
-A clear and concise description of what the bug is.
-
-**Expected behavior** <br>
-A clear and concise description of what you expected to happen.
-
-**Screenshots** <br>
-If applicable, add screenshots to help explain your problem.
-
-**Device (please complete the following information):**
- - Android Version: [e.g. Android 11 API 30]
- - App Version: [e.g. r1026]
- - Provider: [e.g. JAV HD]
- - Link: [Actual link copied to clipboard from the App]
-
-**Additional context** <br>
-Add any other context about the problem here.
