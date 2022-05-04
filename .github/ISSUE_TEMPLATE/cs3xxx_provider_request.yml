@@ -1,0 +1,55 @@
+name: Provider request
+description: Request to add new provider website to App.
+labels: provider
+title: "[Provider] ChangeThisTitle"
+body:
+  - type: checkboxes
+    id: guidelines
+    attributes:
+      label: Guidelines
+      description: Make sure all the following are correct.
+      options:
+        - label: It **is not** a duplicate issue.
+          required: true
+        - label: It **does not** exist on [Cloudstream 3](https://github.com/LagradOst/CloudStream-3) Issues tab.
+          required: true
+        - label: It **is exclusively** an adult site.
+          required: true
+        - label: It **does not** have reCaptcha, CloudFare protection, or any annoying web protections.
+          required: true
+
+  - type: input
+    id: ver-name
+    attributes:
+      label: Provider name
+      description: Name of the website, or any name you can distinguish it from others.
+      placeholder: SiteName
+    validations:
+      required: true
+
+  - type: input
+    id: ver-link
+    attributes:
+      label: Link
+      description: Home url of the provider website.
+      placeholder: http://sample.com
+    validations:
+      required: true
+
+  - type: input
+    id: ver-lang
+    attributes:
+      label: Language
+      description: Main language of contents.
+      placeholder: en, English
+    validations:
+      required: true
+  
+  - type: textarea
+    id: ver-desc
+    attributes:
+      label: Other Info
+      description: Other related information regarding to the provider.
+      placeholder: Description of website and other info.
+    validations:
+      required: true
