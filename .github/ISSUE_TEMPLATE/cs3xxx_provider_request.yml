@@ -52,4 +52,4 @@ body:
       description: Other related information regarding to the provider.
       placeholder: Description of website and other info.
     validations:
-      required: true
+      required: false
