@@ -789,7 +789,16 @@ class SettingsFragment : PreferenceFragmentCompat() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
+        //Append versionCode to app_version on Manual update pref
+        getPref(R.string.manual_check_update_key)?.let {
+            var currentVersion = 0
+            context?.let { ctx ->
+                ctx.packageName?.let { pkg ->
+                    currentVersion = ctx.packageManager?.getPackageInfo(pkg,0)?.versionCode ?: 0
+                }
+            }
+            it.summary = "${getString(R.string.app_version)} r${currentVersion}"
+        }
         getPref(R.string.manual_check_update_key)?.setOnPreferenceClickListener {
             thread {
                 if (!requireActivity().runAutoUpdate(false)) {
