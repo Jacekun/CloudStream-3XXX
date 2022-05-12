@@ -37,6 +37,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 |[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
 |[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
 |[Javcl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|JAV|-|
+|[Txxx](http://www.txxx.com)|:x:|:x:|:x:|JAV, Hentai, XXX|-|
 |[Javgg](https://javgg.net/)|:x:|:x:|:x:|JAV|-|
 |[VJav](https://vjav.com)|:x:|:x:|:x:|JAV|-|
 |[JavRave Club](https://javrave.club)|:x:|:x:|:x:|JAV|-|
