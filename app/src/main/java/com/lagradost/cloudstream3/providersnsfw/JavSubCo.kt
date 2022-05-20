@@ -26,29 +26,30 @@ class JavSubCo : MainAPI() {
     override suspend fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
 
-        return HomePageResponse(document.select("div#content").select("div")?.first()
-            ?.select("main > section")
-            ?.get(0)?.getElementsByTag("div")?.map { it2 ->
+        return HomePageResponse(
+        document.select("main#main-content")
+            ?.map { it2 ->
                 val title = "Homepage"
-                val inner = it2?.select("article") ?: return@map null
+                val inner = it2?.select("article > div.post-item-wrap") ?: return@map null
+                //Log.i(this.name, "inner => $inner")
                 val elements: List<SearchResponse> = inner.mapNotNull {
                     //Log.i(this.name, "Inner content => $innerArticle")
-                    val aa = it.selectFirst("div")?.selectFirst("figure") ?: return@mapNotNull null
-                    val link = fixUrlNull(it.select("a")?.attr("href")) ?: return@mapNotNull null
+                    val innerA = it.selectFirst("div.blog-pic-wrap > a")?: return@mapNotNull null
+                    val link = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
 
-                    val imgArticle = aa.select("img")
-                    val name = imgArticle?.attr("alt") ?: "<No Title>"
-                    val image = imgArticle?.attr("src")
+                    val imgArticle = innerA.selectFirst("img")
+                    val name = innerA.attr("title") ?: imgArticle?.attr("alt") ?: "<No Title>"
+                    val image = imgArticle?.attr("data-src")
                     val year = null
+                    //Log.i(this.name, "image => $image")
 
                     MovieSearchResponse(
-                        name,
-                        link,
-                        this.name,
-                        TvType.JAV,
-                        image,
-                        year,
-                        null,
+                        name = name,
+                        url = link,
+                        apiName = this.name,
+                        type = TvType.JAV,
+                        posterUrl = image,
+                        year = year
                     )
                 }.distinctBy { a -> a.url }
                 HomePageList(
@@ -60,25 +61,25 @@ class JavSubCo : MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
         val document = app.get(url).document.getElementsByTag("body")
-            .select("div#content > div > main > section > div")
-            .select("article")
+            .select("main#main-content")?.select("article")
 
         return document?.mapNotNull {
-            if (it == null) {
-                return@mapNotNull null
-            }
-            val linkUrl = fixUrlNull(it.select("a")?.attr("href")) ?: return@mapNotNull null
-            val title = it.select("header > h2")?.text() ?: ""
-            val image = it.select("div > figure").select("img")?.attr("src")?.trim('\'')
+            if (it == null) { return@mapNotNull null }
+            val innerA = it.selectFirst("div.blog-pic-wrap > a")?: return@mapNotNull null
+            val link = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
+
+            val imgArticle = innerA.selectFirst("img")
+            val title = innerA.attr("title") ?: imgArticle?.attr("alt") ?: "<No Title>"
+            val image = imgArticle?.attr("data-src")
             val year = null
 
             MovieSearchResponse(
-                title,
-                linkUrl,
-                this.name,
-                TvType.JAV,
-                image,
-                year
+                name = title,
+                url = link,
+                apiName = this.name,
+                type = TvType.JAV,
+                posterUrl = image,
+                year = year
             )
         }?.distinctBy { b -> b.url } ?: listOf()
     }
