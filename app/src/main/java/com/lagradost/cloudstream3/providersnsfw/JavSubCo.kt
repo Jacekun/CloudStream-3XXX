@@ -2,10 +2,8 @@ package com.lagradost.cloudstream3.providersnsfw
 
 import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.FEmbed
-import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -20,8 +18,12 @@ class JavSubCo : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    data class Response(
-        @JsonProperty("player") val player: List<String>?
+    data class ResponseMovieDetails(
+        @JsonProperty("name") val name: String?,
+        @JsonProperty("description") val description: String?,
+        @JsonProperty("thumbnailUrl") val thumbnailUrl: String?,
+        @JsonProperty("uploadDate") val uploadDate: String?,
+        @JsonProperty("contentUrl") val contentUrl: String?
     )
 
     override suspend fun getMainPage(): HomePageResponse {
@@ -89,73 +91,40 @@ class JavSubCo : MainAPI() {
         val document = app.get(url).document
         val body = document.getElementsByTag("body")
 
-        // Video details
-        val contentmain = body?.select("div#content")
-        val content = contentmain?.select("div")
-        val title = content?.select("nav > p > span")?.text() ?: ""
+        // Default values
+        val streamLinks = mutableListOf<String>()
+        var title = ""
+        var poster : String? = null
+        var year : Int? = null
+        var descript : String? = null
 
-        val descript = content?.select("main > article > div > div")
-            ?.lastOrNull()?.select("div")?.text()
-        //Log.i(this.name, "Result => ${descript}")
-        // Year
-        val re = Regex("[^0-9]")
-        val yearString = try {
-            content?.select("main > article > div > div")?.last()
-                ?.select("p")?.filter { it.text()?.contains("Release Date") == true }
-                ?.get(0)?.text()?.split(":")?.get(1)?.trim() ?: ""
-        } catch (e: Exception) {
-            Log.i(this.name, "Result => Exception (load year string) $e")
-            ""
-        }
-        val year = try  {
-            re.replace(yearString, "").takeLast(4).toIntOrNull()
-        } catch (e: Exception) {
-            Log.i(this.name, "Result => Exception (load year) $e")
-            null
-        }
-        //Log.i(this.name, "Result => (year) ${year} / (string) ${yearString}")
-        // Poster Image
-        var posterElement = body.select("script.yoast-schema-graph")?.toString() ?: ""
-        val posterId = "\"contentUrl\":"
-        val poster = when (posterElement.isNotBlank()) {
-            true -> {
-                try {
-                    posterElement = posterElement.substring(posterElement.indexOf(url.trimEnd('/') + "/#primaryimage"))
-                    posterElement = posterElement.substring(0, posterElement.indexOf("}"))
-                    posterElement =
-                        posterElement.substring(posterElement.indexOf(posterId) + posterId.length + 1)
-                    posterElement.substring(0, posterElement.indexOf("\","))
-                } catch (e: Exception) {
-                    null
+        // Video details
+        var scriptJson = ""
+        run breaking@{
+            body.select("script")?.forEach {
+                val scrAttr = it?.attr("type") ?: return@forEach
+                if (scrAttr.equals("application/ld+json", ignoreCase = true)) {
+                    scriptJson = it.html() ?: ""
+                    return@breaking
                 }
             }
-            false -> null
         }
-        //Log.i(this.name, "Result => (poster) ${poster}")
+        //Log.i(this.name, "Result => (scriptJson) $scriptJson")
 
-        val tags = content?.select("article.vdeo-single > header a")?.mapNotNull {
-            //Log.i(this.name, "Result => (tag) $it")
-            it?.text()?.trim() ?: return@mapNotNull null
-        }
+        tryParseJson<ResponseMovieDetails>(scriptJson)?.let {
+            val contentUrl = it.contentUrl
+            title = it.name ?: ""
+            poster = it.thumbnailUrl
+            year = it.uploadDate?.take(4)?.toIntOrNull()
+            descript = it.description
 
-        val recs = contentmain?.select("section article")?.mapNotNull {
-            if (it == null) { return@mapNotNull null }
-            val aUrl = it.selectFirst("a")?.attr("href") ?: return@mapNotNull null
-            val aName = it.select("header > h2")?.text()?.trim() ?: return@mapNotNull null
-            val aImgMain = it.select("img")
-            val aImg = aImgMain?.attr("src") ?: aImgMain?.attr("data-lazy-src")
-            MovieSearchResponse(
-                url = aUrl,
-                name = aName,
-                type = TvType.JAV,
-                posterUrl = aImg,
-                year = null,
-                apiName = this.name
-            )
+            if (!contentUrl.isNullOrBlank()) {
+                streamLinks.add(contentUrl)
+            }
+            Log.i(this.name, "Result => (contentUrl) $contentUrl")
         }
 
         // Video stream
-        val streamLinks = mutableListOf<String>()
         val playerIframes: List<String> = try {
             //Note: Fetch all multi-link urls
             document.selectFirst("div.series-listing")?.select("a")?.mapNotNull {
@@ -166,8 +135,24 @@ class JavSubCo : MainAPI() {
             listOf()
         }
         Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")
+        playerIframes.forEach {
+            val innerDoc = app.get(it).document.selectFirst("script#beeteam368_obj_wes-js-extra")
+            var innerText = innerDoc?.html() ?: ""
+            if (innerText.isNotBlank()) {
+                "(?<=single_video_url\":)(.*)(?=,)".toRegex().find(innerText)
+                    ?.groupValues?.get(0)?.let { iframe ->
+                    innerText = iframe.trim().trim('"')
+                }
+                Jsoup.parse(innerText)?.selectFirst("iframe")?.attr("src")?.let { server ->
+                    val serverLink = server.replace("\\", "").replace("\"", "")
+                    streamLinks.add(serverLink)
+                    Log.i(this.name, "Result => (streamLink add) $serverLink")
+                }
+            }
+            //Log.i(this.name, "Result => (innerText final) $innerText")
+        }
 
-        //Log.i(this.name, "Result => (streamUrl) $streamUrl")
+        Log.i(this.name, "Result => (streamLinks) ${streamLinks.toJson()}")
         return MovieLoadResponse(
             name = title,
             url = url,
@@ -176,9 +161,7 @@ class JavSubCo : MainAPI() {
             dataUrl = streamLinks.toJson(),
             posterUrl = poster,
             year = year,
-            plot = descript,
-            tags = tags,
-            recommendations = recs
+            plot = descript
         )
     }
 
