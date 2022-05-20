@@ -7,6 +7,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
+import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
@@ -98,12 +99,20 @@ class JavSubCo : MainAPI() {
         //Log.i(this.name, "Result => ${descript}")
         // Year
         val re = Regex("[^0-9]")
-        var yearString = content?.select("main > article > div > div")?.last()
-            ?.select("p")?.filter { it.text()?.contains("Release Date") == true }
-            ?.get(0)?.text()
-        yearString = yearString?.split(":")?.get(1)?.trim() ?: ""
-        yearString = re.replace(yearString, "")
-        val year = yearString.takeLast(4).toIntOrNull()
+        val yearString = try {
+            content?.select("main > article > div > div")?.last()
+                ?.select("p")?.filter { it.text()?.contains("Release Date") == true }
+                ?.get(0)?.text()?.split(":")?.get(1)?.trim() ?: ""
+        } catch (e: Exception) {
+            Log.i(this.name, "Result => Exception (load year string) $e")
+            ""
+        }
+        val year = try  {
+            re.replace(yearString, "").takeLast(4).toIntOrNull()
+        } catch (e: Exception) {
+            Log.i(this.name, "Result => Exception (load year) $e")
+            null
+        }
         //Log.i(this.name, "Result => (year) ${year} / (string) ${yearString}")
         // Poster Image
         var posterElement = body.select("script.yoast-schema-graph")?.toString() ?: ""
@@ -146,30 +155,25 @@ class JavSubCo : MainAPI() {
         }
 
         // Video stream
-        val playerIframes: String =  try {
-            //Note: Parse as JSON and fetch 'player' property
-            val startString = "var torotube_Public = {"
-            val streamdataStart = body?.toString()?.indexOf(startString) ?: 0
-            val streamdata = body?.toString()?.substring(streamdataStart) ?: ""
-            streamdata.substring(startString.length-1, streamdata.indexOf("};")+1)
+        val streamLinks = mutableListOf<String>()
+        val playerIframes: List<String> = try {
+            //Note: Fetch all multi-link urls
+            document.selectFirst("div.series-listing")?.select("a")?.mapNotNull {
+                it?.attr("href") ?: return@mapNotNull null
+            } ?: listOf()
         } catch (e: Exception) {
             Log.i(this.name, "Result => Exception (load) $e")
-            ""
+            listOf()
         }
-        var streamUrl = ""
-        mapper.readValue<Response>(playerIframes).let {
-            streamUrl = it.player?.mapNotNull { iframe ->
-                Jsoup.parse(iframe)?.selectFirst("iframe")
-                    ?.attr("src")?.trim() ?: return@mapNotNull null
-            }?.toJson() ?: ""
-        }
+        Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")
+
         //Log.i(this.name, "Result => (streamUrl) $streamUrl")
         return MovieLoadResponse(
             name = title,
             url = url,
             apiName = this.name,
             type = TvType.JAV,
-            dataUrl = streamUrl,
+            dataUrl = streamLinks.toJson(),
             posterUrl = poster,
             year = year,
             plot = descript,
@@ -184,12 +188,12 @@ class JavSubCo : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data.isEmpty()) return false
+        if (data.isBlank()) return false
         if (data == "[]") return false
         if (data == "about:blank") return false
 
         var count = 0
-        mapper.readValue<List<String>>(data).forEach { link->
+        tryParseJson<List<String>>(data)?.forEach { link->
             Log.i(this.name, "Result => (link) $link")
             if (link.isNotBlank()) {
                 when {
