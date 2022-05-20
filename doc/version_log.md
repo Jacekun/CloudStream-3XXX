@@ -1,3 +1,9 @@
+# CloudStream-3XXX r1344
++ Fix: JavSub homepage and search.
++ Upgrade gradle to 7.1.3
++ Replace deprecated versionCode call to getLongVersionCode()
++ Append version code to app version on settings check update preference.
+
 # CloudStream-3XXX r1323
 + [CloudStream-3 base update](https://github.com/LagradOst/CloudStream-3/tree/e64a8755439a0e4fb6401549a64f79431794fbab).
 + Fixed issues after merging upstream.
