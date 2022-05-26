@@ -29,9 +29,9 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 |[JavSub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some ``dood`` servers not loaded.|
 |[JKhentai](https://jkhentai.net)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|Spanish provider.|
 |[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some links not loaded.|
-|[PHub](https://www.pornhub.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|Might need VPN.|
-|[Xvideos](https://www.xvideos.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|-|
-|[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Vietnamese subbed. CloudFare issues on some areas.|
+|[PHub](https://www.pornhub.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV, Hentai, XXX|Might need VPN.|
+|[Xvideos](https://www.xvideos.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV, Hentai, XXX|-|
+|[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|Vietnamese subbed. CloudFare issues on some areas.|
 |[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
 |[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
 |[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
