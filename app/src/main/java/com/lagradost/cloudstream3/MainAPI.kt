@@ -126,6 +126,7 @@ object APIHolder {
             JKHentai(),
             Hanime(),
             HahoMoe(),
+	    Pandamovie(),
         
             // No stream links fetched
             JavTubeWatch(),
