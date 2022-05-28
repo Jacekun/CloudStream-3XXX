@@ -10,6 +10,7 @@ import com.lagradost.cloudstream3.network.DdosGuardKiller
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
+import com.lagradost.nicehttp.NiceResponse
 import java.lang.Exception
 
 class Vlxx : MainAPI() {
@@ -21,7 +22,7 @@ class Vlxx : MainAPI() {
     override val hasQuickSearch: Boolean get() = false
     private val ddosGuardKiller = DdosGuardKiller(true)
 
-    private suspend fun getPage(url: String, referer: String): AppResponse {
+    private suspend fun getPage(url: String, referer: String): NiceResponse {
         var count = 0
         var resp = app.get(url, referer = referer, interceptor = ddosGuardKiller)
         while (resp.code != 200) {
@@ -41,15 +42,15 @@ class Vlxx : MainAPI() {
         val elements = document.select("div#container > div.box > li.video-list")?.mapNotNull {
             val link = fixUrlNull(it.select("a")?.attr("href")) ?: return@mapNotNull null
             val imgArticle = it.select("img.video-image").attr("src")
-            val name = it.selectFirst("div.video-name").text()
+            val name = it.selectFirst("div.video-name")?.text() ?: ""
             val year = null
             MovieSearchResponse(
-                name,
-                link,
-                this.name,
-                TvType.JAV,
-                imgArticle,
-                year
+                name = name,
+                url = link,
+                apiName = this.name,
+                type = TvType.JAV,
+                posterUrl = imgArticle,
+                year = year
             )
         }?.distinctBy { it.url } ?: listOf()
         if (elements.isNotEmpty()) {

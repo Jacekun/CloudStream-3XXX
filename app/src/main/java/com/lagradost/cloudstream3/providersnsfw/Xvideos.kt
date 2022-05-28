@@ -49,52 +49,47 @@ class Xvideos:MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl?k=${query}"
         val document = app.get(url).document
-        return document.select("div.thumb-block").map {
-            val title = try {
-                it.selectFirst("p.title a").text()
-            } catch (e:Exception) {
-                it.selectFirst("p.profile-name a").text()
-            } catch (e:Exception) {
-                ""
-            }
-            val href = it.selectFirst("div.thumb a").attr("href")
-            val image = if (href.contains("channels") || href.contains("pornstars")) null else it.selectFirst("div.thumb-inside a img").attr("data-src")
+        return document.select("div.thumb-block").mapNotNull {
+            val title = it.selectFirst("p.title a")?.text()
+                ?: it.selectFirst("p.profile-name a")?.text()
+                ?: ""
+            val href = fixUrlNull(it.selectFirst("div.thumb a")?.attr("href")) ?: return@mapNotNull null
+            val image = if (href.contains("channels") || href.contains("pornstars")) null else it.selectFirst("div.thumb-inside a img")?.attr("data-src")
             val finaltitle = if (href.contains("channels") || href.contains("pornstars")) "" else title
             MovieSearchResponse(
-                finaltitle,
-                fixUrl(href),
-                this.name,
-                TvType.XXX,
-                image,
-                null
+                name = finaltitle,
+                url = href,
+                apiName = this.name,
+                type = TvType.XXX,
+                posterUrl = image
             )
 
         }.toList()
     }
     override suspend fun load(url: String): LoadResponse? {
         val soup = app.get(url).document
-        val title = if (url.contains("channels")||url.contains("pornstars")) soup.selectFirst("html.xv-responsive.is-desktop head title").text() else
-            soup.selectFirst(".page-title").text()
-        val description = title ?: null
-        val poster: String? = if (url.contains("channels") || url.contains("pornstars")) soup.selectFirst(".profile-pic img").attr("data-src") else
-            soup.selectFirst("head meta[property=og:image]").attr("content")
+        val title = if (url.contains("channels")||url.contains("pornstars")) soup.selectFirst("html.xv-responsive.is-desktop head title")?.text() else
+            soup.selectFirst(".page-title")?.text()
+        val description = title
+        val poster: String? = if (url.contains("channels") || url.contains("pornstars")) soup.selectFirst(".profile-pic img")?.attr("data-src") else
+            soup.selectFirst("head meta[property=og:image]")?.attr("content")
         val tags = soup.select(".video-tags-list li a")
             .map { it?.text()?.trim().toString().replace(", ","") }
-        val episodes = soup.select("div.thumb-block")?.mapNotNull {
+        val episodes = soup.select("div.thumb-block").mapNotNull {
             val href = it?.selectFirst("a")?.attr("href") ?: return@mapNotNull null
-            val name = it.selectFirst("p.title a").text() ?: null
-            val epthumb = it.selectFirst("div.thumb a img").attr("data-src")
+            val name = it.selectFirst("p.title a")?.text() ?: ""
+            val epthumb = it.selectFirst("div.thumb a img")?.attr("data-src")
             Episode(
                 name = name,
                 data = href,
                 posterUrl = epthumb,
             )
-        } ?: listOf()
+        }
         val tvType = if (url.contains("channels") || url.contains("pornstars")) TvType.TvSeries else TvType.XXX
         return when (tvType) {
             TvType.TvSeries -> {
                 TvSeriesLoadResponse(
-                    name = title,
+                    name = title ?: "",
                     url = url,
                     apiName = this.name,
                     type = TvType.XXX,
@@ -107,7 +102,7 @@ class Xvideos:MainAPI() {
             }
             TvType.XXX -> {
                 MovieLoadResponse(
-                    name = title,
+                    name = title ?: "",
                     url = url,
                     apiName = this.name,
                     type = tvType,

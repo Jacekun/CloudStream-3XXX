@@ -1,4 +1,4 @@
-package com.lagradost.cloudstream3.animeproviders
+package com.lagradost.cloudstream3.providersnsfw
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
@@ -24,17 +24,17 @@ class JKHentai:MainAPI() {
         for (i in urls) {
             try {
                 val doc = app.get(i.first).document
-                val home = doc.select("div#box_movies .movie").map {
-                    val title = it.selectFirst("h2").text()
-                    val poster = it.selectFirst("img").attr("src")
+                val home = doc.select("div#box_movies .movie").mapNotNull {
+                    val url = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+                    val title = it.selectFirst("h2")?.text() ?: ""
+                    val poster = it.selectFirst("img")?.attr("src")
                     AnimeSearchResponse(
-                        title,
-                        fixUrl(it.selectFirst("a").attr("href")),
-                        this.name,
-                        TvType.Hentai,
-                        fixUrl(poster),
-                        null,
-                        if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
+                        name = title,
+                        url = url,
+                        apiName = this.name,
+                        type = TvType.Hentai,
+                        posterUrl = fixUrlNull(poster),
+                        dubStatus = if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
                     )
                 }
 
@@ -48,21 +48,19 @@ class JKHentai:MainAPI() {
     }
 
     override suspend fun search(query: String): ArrayList<SearchResponse> {
-
         val url = "${mainUrl}/buscador.php?search=${query}"
         val doc = app.get(url).document
-        val episodes = doc.select("div#box_movies .movie").map {
-            val title = it.selectFirst("h2").text()
-            val href = it.selectFirst("a").attr("href")
-            val image = it.selectFirst("img").attr("src")
+        val episodes = doc.select("div#box_movies .movie").mapNotNull {
+            val href = it.selectFirst("a")?.attr("href") ?: return@mapNotNull null
+            val title = it.selectFirst("h2")?.text() ?: ""
+            val image = it.selectFirst("img")?.attr("src")
             AnimeSearchResponse(
-                title,
-                href,
-                this.name,
-                TvType.Hentai,
-                fixUrl(image),
-                null,
-                if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
+                name = title,
+                url = href,
+                apiName = this.name,
+                type = TvType.Hentai,
+                posterUrl = fixUrlNull(image),
+                dubStatus = if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
             )
         }
         return ArrayList(episodes)
@@ -70,11 +68,12 @@ class JKHentai:MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
-        val title = doc.selectFirst(".dataplus h1").text()
-        val description = doc.selectFirst("div.dataplus div#dato-2.data-content.tsll p").text().replace("Sinopsis: ","")
-        val poster = doc.selectFirst(".datos img").attr("src")
-        val episodes = doc.select("div#cssmenu ul li.has-sub.open ul li").map { li ->
-            val href = fixUrl(li.selectFirst("a").attr("href"))
+        val title = doc.selectFirst(".dataplus h1")?.text() ?: ""
+        val description = doc.selectFirst("div.dataplus div#dato-2.data-content.tsll p")?.text()
+            ?.replace("Sinopsis: ","")
+        val poster = doc.selectFirst(".datos img")?.attr("src")
+        val episodes = doc.select("div#cssmenu ul li.has-sub.open ul li").mapNotNull { li ->
+            val href = fixUrlNull(li.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
             Episode(
                 data = fixUrl(href),
             )
@@ -89,7 +88,7 @@ class JKHentai:MainAPI() {
         }
 
         return newAnimeLoadResponse(title, url, TvType.Hentai) {
-            posterUrl = fixUrl(poster)
+            posterUrl = fixUrlNull(poster)
             addEpisodes(DubStatus.Subbed, episodes)
             showStatus = status
             plot = description
@@ -106,8 +105,8 @@ class JKHentai:MainAPI() {
             val url = it.attr("src")
             for (extractor in extractorApis) {
                 if (url.startsWith(extractor.mainUrl)) {
-                    extractor.getSafeUrl(url, data)?.apmap {
-                        callback(it)
+                    extractor.getSafeUrl(url, data)?.apmap { link ->
+                        callback(link)
                     }
                 }
             }

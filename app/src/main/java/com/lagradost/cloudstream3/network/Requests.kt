@@ -85,16 +85,17 @@ fun Headers.getCookies(cookieKey: String): Map<String, String> {
     }?.filter { it.key.isNotBlank() && it.value.isNotBlank() } ?: mapOf()
 }
 
+
 val Response.cookies: Map<String, String>
     get() {
         return this.headers.getCookies("set-cookie")
     }
-
+/*
 val Request.cookies: Map<String, String>
     get() {
         return this.headers.getCookies("Cookie")
     }
-
+*/
 class AppResponse(
     val response: Response
 ) {

@@ -28,8 +28,8 @@ class Pornhub:MainAPI() {
                 val soup = app.get(i.first).document
                 val home = soup.select("div.sectionWrapper div.wrap").mapNotNull {
                     if (it == null) { return@mapNotNull null }
-                    val title = it.selectFirst("span.title a").text()
-                    val link = fixUrlNull(it.selectFirst("a").attr("href")) ?: return@mapNotNull null
+                    val title = it.selectFirst("span.title a")?.text() ?: ""
+                    val link = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
                     val img = fetchImgUrl(it.selectFirst("img"))
                     MovieSearchResponse(
                         name = title,
@@ -51,10 +51,10 @@ class Pornhub:MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/video/search?search=${query}"
         val document = app.get(url).document
-        return document.select("div.sectionWrapper div.wrap")?.mapNotNull {
+        return document.select("div.sectionWrapper div.wrap").mapNotNull {
             if (it == null) { return@mapNotNull null }
             val title = it.selectFirst("span.title a")?.text() ?: return@mapNotNull null
-            val link = fixUrlNull(it.selectFirst("a").attr("href")) ?: return@mapNotNull null
+            val link = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
             val image = fetchImgUrl(it.selectFirst("img"))
             MovieSearchResponse(
                 name = title,
@@ -63,14 +63,14 @@ class Pornhub:MainAPI() {
                 type = TvType.XXX,
                 posterUrl = image
             )
-        }?.distinctBy { it.url } ?: listOf()
+        }.distinctBy { it.url }
     }
     override suspend fun load(url: String): LoadResponse {
         val soup = app.get(url).document
         val title = soup.selectFirst(".title span")?.text() ?: ""
         val description = title
-        val poster: String? = soup.selectFirst("div.video-wrapper .mainPlayerDiv img").attr("src") ?:
-            soup.selectFirst("head meta[property=og:image]").attr("content")
+        val poster: String? = soup.selectFirst("div.video-wrapper .mainPlayerDiv img")?.attr("src") ?:
+            soup.selectFirst("head meta[property=og:image]")?.attr("content")
         val tags = soup.select("div.categoriesWrapper a")
             .map { it?.text()?.trim().toString().replace(", ","") }
         return MovieLoadResponse(

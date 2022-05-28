@@ -181,8 +181,8 @@
 
 
     <PreferenceCategory
-        android:key="@string/nginx_category"
-        android:title="@string/nginx_category"
+        android:key="@string/category_nginx"
+        android:title="@string/category_nginx"
         app:isPreferenceVisible="true">
         <Preference
             android:key="@string/nginx_url_key"

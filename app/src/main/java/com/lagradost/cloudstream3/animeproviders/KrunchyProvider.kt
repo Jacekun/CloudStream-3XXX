@@ -17,6 +17,7 @@ private fun String.toAscii() = this.map { it.toInt() }.joinToString()
  * https://github.com/Jacekun/CloudStream-3XXX/pull/25/
  * with diff: files#diff-5439c189bbe28bfd02516e422673e90a9cbbc467bf47d1a579af67211bd149be
  * author: https://github.com/KillerDogeEmpire
+ * Added various cleanups and formatting on code.
  **/
 class KrunchyGeoBypasser {
     companion object {
@@ -97,41 +98,42 @@ class KrunchyProvider : MainAPI() {
 
         val doc = Jsoup.parse(crUnblock.geoBypassRequest(mainUrl).text)
         val items = ArrayList<HomePageList>()
-        val featured = doc.select(".js-featured-show-list > li").map { anime ->
+        val featured = doc.select(".js-featured-show-list > li").mapNotNull { anime ->
+            val url = fixUrlNull(anime?.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+            val imgEl = anime.selectFirst("img")
+            val name = imgEl?.attr("alt") ?: ""
+            val posterUrl = imgEl?.attr("src")?.replace("small", "full")
             AnimeSearchResponse(
-                anime.selectFirst("img").attr("alt"),
-                fixUrl(anime.selectFirst("a").attr("href")),
-                this.name,
-                TvType.Anime,
-                anime.selectFirst("img").attr("src").replace("small", "full"),
-                null,
-                EnumSet.of(DubStatus.Subbed),
-                null,
+                name = name,
+                url = url,
+                apiName = this.name,
+                type = TvType.Anime,
+                posterUrl = posterUrl,
+                dubStatus = EnumSet.of(DubStatus.Subbed)
             )
         }
-        val recent = doc.select("div.welcome-countdown-day:contains(Now Showing) li")?.mapNotNull {
-            val link = fixUrl(it.selectFirst("a").attr("href"))
-            val name = it.selectFirst("span.welcome-countdown-name").text()
-            val img = it.selectFirst("img").attr("src").replace("medium", "full")
+        val recent = doc.select("div.welcome-countdown-day:contains(Now Showing) li").mapNotNull {
+            val link = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+            val name = it.selectFirst("span.welcome-countdown-name")?.text() ?: ""
+            val img = it.selectFirst("img")?.attr("src")?.replace("medium", "full")
             val dubstat = if (name.contains("Dub)", true)) EnumSet.of(DubStatus.Dubbed) else
                 EnumSet.of(DubStatus.Subbed)
-            val details = it.selectFirst("span.welcome-countdown-details").text()
-            val epnum = episodeNumRegex.find(details)?.value?.replace("Episode ", "") ?: "0"
+            val details = it.selectFirst("span.welcome-countdown-details")?.text()
+            val epnum = if (details.isNullOrBlank()) null else episodeNumRegex.find(details)?.value?.replace("Episode ", "") ?: "0"
             val episodesMap = mutableMapOf<DubStatus, Int>()
-            episodesMap[DubStatus.Subbed] = epnum.toInt()
-            episodesMap[DubStatus.Dubbed] = epnum.toInt()
+            episodesMap[DubStatus.Subbed] = epnum?.toIntOrNull() ?: 0
+            episodesMap[DubStatus.Dubbed] = epnum?.toIntOrNull() ?: 0
             AnimeSearchResponse(
-                "★ $name ★",
-                link.replace(Regex("(\\/episode.*)"), ""),
-                this.name,
-                TvType.Anime,
-                fixUrl(img),
-                null,
-                dubstat,
+                name ="★ $name ★",
+                url = link.replace(Regex("(\\/episode.*)"), ""),
+                apiName = this.name,
+                type = TvType.Anime,
+                posterUrl = fixUrlNull(img),
+                dubStatus = dubstat,
                 episodes = episodesMap
             )
         }
-        if (!recent.isNullOrEmpty()) {
+        if (!recent.isEmpty()) {
             items.add(HomePageList("Now Showing", recent))
         }
         items.add(HomePageList("Featured", featured))
@@ -139,17 +141,16 @@ class KrunchyProvider : MainAPI() {
             val response = crUnblock.geoBypassRequest(url)
             val soup = Jsoup.parse(response.text)
 
-            val episodes = soup.select("li").map {
-
+            val episodes = soup.select("li").mapNotNull {
+                val innerA = it.selectFirst("a") ?: return@mapNotNull null
+                val urlEps = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
                 AnimeSearchResponse(
-                    it.selectFirst("a").attr("title"),
-                    fixUrl(it.selectFirst("a").attr("href")),
-                    this.name,
-                    TvType.Anime,
-                    it.selectFirst("img").attr("src"),
-                    null,
-                    EnumSet.of(DubStatus.Subbed),
-                    null,
+                    name = innerA.attr("title"),
+                    url = urlEps,
+                    apiName = this.name,
+                    type = TvType.Anime,
+                    posterUrl = it.selectFirst("img")?.attr("src"),
+                    dubStatus = EnumSet.of(DubStatus.Subbed)
                 )
             }
             items.add(HomePageList(name, episodes))

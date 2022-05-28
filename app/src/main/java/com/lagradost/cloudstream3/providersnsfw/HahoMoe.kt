@@ -38,7 +38,7 @@ class HahoMoe : MainAPI() {
             val response = khttp.get(mainUrl)
             cookie = response.cookies
             val document = Jsoup.parse(response.text)
-            token = document.selectFirst("""meta[name="csrf-token"]""").attr("content")
+            token = document.selectFirst("""meta[name="csrf-token"]""")?.attr("content")
             token != null
         } catch (e: Exception) {
             false
@@ -54,30 +54,32 @@ class HahoMoe : MainAPI() {
                     for (top in section.select(".tab-content > [role=\"tabpanel\"]")) {
                         val title = "Top - " + top.attr("id").split("-")[1].capitalize(Locale.UK)
                         val anime =
-                            top.select("li > a").map {
+                            top.select("li > a").mapNotNull {
+                                val epTitle = it.selectFirst(".thumb-title")?.text() ?: ""
+                                val url = fixUrlNull(it?.attr("href")) ?: return@mapNotNull null
                                 AnimeSearchResponse(
-                                    it.selectFirst(".thumb-title").text(),
-                                    fixUrl(it.attr("href")),
-                                    this.name,
-                                    TvType.Hentai,
-                                    it.selectFirst("img").attr("src"),
-                                    null,
-                                    EnumSet.of(DubStatus.Subbed),
+                                    name = epTitle,
+                                    url = url,
+                                    apiName = this.name,
+                                    type = TvType.Hentai,
+                                    posterUrl = it.selectFirst("img")?.attr("src"),
+                                    dubStatus = EnumSet.of(DubStatus.Subbed),
                                 )
                             }
                         items.add(HomePageList(title, anime))
                     }
                 } else {
-                    val title = section.selectFirst("h2").text()
+                    val title = section.selectFirst("h2")?.text() ?: ""
                     val anime =
-                        section.select("li > a").map {
+                        section.select("li > a").mapNotNull {
+                            val epTitle = it.selectFirst(".thumb-title")?.text() ?: ""
+                            val url = fixUrlNull(it?.attr("href")) ?: return@mapNotNull null
                             AnimeSearchResponse(
-                                (it.selectFirst(".thumb-title").text() ?: null).toString(),
-                                fixUrl(it.attr("href")),
-                                this.name,
-                                TvType.Hentai,
-                                it.selectFirst("img").attr("src"),
-                                year = null,
+                                name = epTitle,
+                                url = url,
+                                apiName = this.name,
+                                type = TvType.Hentai,
+                                posterUrl = it.selectFirst("img")?.attr("src"),
                                 dubStatus = EnumSet.of(DubStatus.Subbed),
                             )
                         }
@@ -104,25 +106,26 @@ class HahoMoe : MainAPI() {
         if (items.isEmpty()) return ArrayList()
         val returnValue = ArrayList<SearchResponse>()
         for (i in items) {
-            val href = fixUrl(i.attr("href"))
-            val img = fixUrl(i.selectFirst("img").attr("src"))
+            val href = fixUrlNull(i.attr("href")) ?: ""
+            val img = fixUrlNull(i.selectFirst("img")?.attr("src"))
             val title = i.attr("title")
-
-            returnValue.add(
-                if (getIsMovie(href, true)) {
-                    MovieSearchResponse(title, href, this.name, TvType.Hentai, img, null)
-                } else {
-                    AnimeSearchResponse(
-                        title,
-                        href,
-                        this.name,
-                        TvType.Hentai,
-                        img,
-                        null,
-                        EnumSet.of(DubStatus.Subbed),
-                    )
-                }
-            )
+            if (href.isNotBlank()) {
+                returnValue.add(
+                    if (getIsMovie(href, true)) {
+                        MovieSearchResponse(title, href, this.name, TvType.Hentai, img, null)
+                    } else {
+                        AnimeSearchResponse(
+                            title,
+                            href,
+                            this.name,
+                            TvType.Hentai,
+                            img,
+                            null,
+                            EnumSet.of(DubStatus.Subbed),
+                        )
+                    }
+                )
+            }
         }
         return returnValue
     }
@@ -185,11 +188,11 @@ class HahoMoe : MainAPI() {
                 ?.parent()
                 ?.text()
                 ?.trim()
-        val canonicalTitle = document.selectFirst("header.entry-header > h1.mb-3").text().trim()
+        val canonicalTitle = document.selectFirst("header.entry-header > h1.mb-3")?.text()?.trim()
 
         val episodeNodes = document.select("li[class*=\"episode\"] > a")
 
-        val episodes = episodeNodes?.mapNotNull {
+        val episodes = episodeNodes.mapNotNull {
             val dataUrl = it?.attr("href") ?: return@mapNotNull null
             val epi = Episode(
                 data = dataUrl,
@@ -197,7 +200,7 @@ class HahoMoe : MainAPI() {
                 posterUrl = it.selectFirst("img")?.attr("src"),
                 description = it.attr("data-content").trim(),
             )
-            epi.addDate(it.selectFirst(".episode-date").text().trim())
+            epi.addDate(it.selectFirst(".episode-date")?.text()?.trim())
             epi
         } ?: listOf()
         val status =
@@ -206,7 +209,7 @@ class HahoMoe : MainAPI() {
                 "Completed" -> ShowStatus.Completed
                 else -> null
             }
-        val yearText = document.selectFirst("li.release-date .value").text()
+        val yearText = document.selectFirst("li.release-date .value")?.text() ?: ""
         val pattern = "(\\d{4})".toRegex()
         val (year) = pattern.find(yearText)!!.destructured
 
@@ -227,7 +230,7 @@ class HahoMoe : MainAPI() {
         return AnimeLoadResponse(
             englishTitle,
             japaneseTitle,
-            canonicalTitle,
+            canonicalTitle ?: "",
             url,
             this.name,
             getType(type ?: ""),

@@ -27,23 +27,23 @@ class HentaiLa:MainAPI() {
         items.add(
             HomePageList(
                 "Últimos episodios",
-                app.get(mainUrl).document.select(".grid.episodes .hentai.episode").map {
-                    val title = it.selectFirst(".h-title").text()
-                    val poster = it.selectFirst("img").attr("src")
+                app.get(mainUrl).document.select(".grid.episodes .hentai.episode").mapNotNull {
                     val epRegex = Regex("(-(\\d+)\$)")
-                    val url = it.selectFirst("a").attr("href").replace(epRegex,"")
-                        .replace("/ver/","/hentai-")
-                    val epNum = it.selectFirst(".num-episode").text().replace("Episodio ","").toIntOrNull()
+                    val url = it.selectFirst("a")?.attr("href")?.replace(epRegex,"")
+                        ?.replace("/ver/","/hentai-") ?: return@mapNotNull null
+                    val title = it.selectFirst(".h-title")?.text() ?: ""
+                    val poster = it.selectFirst("img")?.attr("src")
+
+                    val epNum = it.selectFirst(".num-episode")?.text()?.replace("Episodio ","")?.toIntOrNull()
                     val episodesMap = mutableMapOf<DubStatus, Int>()
                     episodesMap[DubStatus.Subbed] = epNum ?: 0
                     AnimeSearchResponse(
-                        title,
-                        fixUrl(url),
-                        this.name,
-                        TvType.Hentai,
-                        fixUrl(poster),
-                        null,
-                        if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(
+                        name = title,
+                        url = fixUrl(url),
+                        apiName = this.name,
+                        type = TvType.Hentai,
+                        posterUrl = fixUrlNull(poster),
+                        dubStatus = if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(
                             DubStatus.Dubbed
                         ) else EnumSet.of(DubStatus.Subbed),
                         episodes = episodesMap
@@ -53,17 +53,17 @@ class HentaiLa:MainAPI() {
         for (i in urls) {
             try {
                 val doc = app.get(i.first).document
-                val home = doc.select(".section .grid.hentais article").map {
-                    val title = it.selectFirst(".h-title").text()
-                    val poster = it.selectFirst("img").attr("src")
+                val home = doc.select(".section .grid.hentais article").mapNotNull {
+                    val url = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+                    val title = it.selectFirst(".h-title")?.text() ?: ""
+                    val poster = it.selectFirst("img")?.attr("src")
                     AnimeSearchResponse(
-                        title,
-                        fixUrl(it.selectFirst("a").attr("href")),
-                        this.name,
-                        TvType.Hentai,
-                        fixUrl(poster),
-                        null,
-                        if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
+                        name = title,
+                        url = fixUrl(url),
+                        apiName = this.name,
+                        type = TvType.Hentai,
+                        posterUrl = fixUrlNull(poster),
+                        dubStatus = if (title.contains("Latino") || title.contains("Castellano")) EnumSet.of(DubStatus.Dubbed) else EnumSet.of(DubStatus.Subbed),
                     )
                 }
 
@@ -126,16 +126,16 @@ class HentaiLa:MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
-        val title = doc.selectFirst("h1.h-title").text()
-        val description = doc.selectFirst(".h-content > p").text().replace("Sinopsis: ","")
-        val poster = doc.selectFirst("div.h-thumb:nth-child(2) > figure:nth-child(1) > img").attr("src")
+        val title = doc.selectFirst("h1.h-title")?.text() ?: ""
+        val description = doc.selectFirst(".h-content > p")?.text()?.replace("Sinopsis: ","")
+        val poster = doc.selectFirst("div.h-thumb:nth-child(2) > figure:nth-child(1) > img")?.attr("src")
         val episodes = doc.select(".episodes-list article").map { li ->
             val href = fixUrlNull(li?.selectFirst("a")?.attr("href")) ?: ""
-            val epthumb = li.selectFirst("img").attr("src")
+            val epthumb = li.selectFirst("img")?.attr("src")
             Episode(
                 data = href,
-                name = li.selectFirst(".h-title").text().replace(title,""),
-                posterUrl = fixUrl(epthumb)
+                name = li.selectFirst(".h-title")?.text()?.replace(title,""),
+                posterUrl = fixUrlNull(epthumb)
             )
         }.reversed()
         val genre = doc.select("nav.genres a")
@@ -147,7 +147,7 @@ class HentaiLa:MainAPI() {
             else -> null
         }
         return newAnimeLoadResponse(title, url, TvType.Hentai) {
-            posterUrl = fixUrl(poster)
+            posterUrl = fixUrlNull(poster)
             addEpisodes(DubStatus.Subbed, episodes)
             showStatus = status
             plot = description
