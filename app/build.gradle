@@ -71,7 +71,7 @@ android {
         }
         prerelease {
             applicationIdSuffix ".prerelease"
-            buildConfigField("boolean", "BETA", "true")
+            buildConfigField("boolean", "BETA-X", "true")
             signingConfig signingConfigs.debug
             versionNameSuffix '-PRE'
             debuggable false
