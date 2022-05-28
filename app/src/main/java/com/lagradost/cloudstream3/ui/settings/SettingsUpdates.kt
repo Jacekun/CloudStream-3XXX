@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.pm.PackageInfoCompat.getLongVersionCode
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import com.lagradost.cloudstream3.CommonActivity
@@ -104,6 +105,18 @@ class SettingsUpdates : PreferenceFragmentCompat() {
             return@setOnPreferenceClickListener true
         }
 
+        //Append versionCode to app_version on Manual update pref
+        getPref(R.string.manual_check_update_key)?.let {
+            var currentVersion = 0L
+            context?.let { ctx ->
+                ctx.packageName?.let { pkg ->
+                    ctx.packageManager?.getPackageInfo(pkg,0)?.let { pinfo ->
+                        currentVersion = getLongVersionCode(pinfo)
+                    }
+                }
+            }
+            it.summary = "${getString(R.string.app_version)} r${currentVersion}"
+        }
         getPref(R.string.manual_check_update_key)?.setOnPreferenceClickListener {
             thread {
                 if (!requireActivity().runAutoUpdate(false)) {
