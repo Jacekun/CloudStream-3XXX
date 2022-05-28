@@ -52,6 +52,9 @@ class GeneratorPlayer : FullScreenPlayer() {
         }
     }
 
+    private var titleRez = 3
+    private var limitTitle = 0
+
     private lateinit var viewModel: PlayerGeneratorViewModel //by activityViewModels()
     private lateinit var sync: SyncViewModel
     private var currentLinks: Set<Pair<ExtractorLink?, ExtractorUri?>> = setOf()
@@ -77,6 +80,10 @@ class GeneratorPlayer : FullScreenPlayer() {
     private fun setSubtitles(sub: SubtitleData?): Boolean {
         currentSelectedSubtitles = sub
         return player.setPreferredSubtitles(sub)
+    }
+
+    override fun embeddedSubtitlesFetched(subtitles: List<SubtitleData>) {
+        viewModel.addSubtitles(subtitles.toSet())
     }
 
     private fun noSubtitles(): Boolean {
@@ -255,7 +262,7 @@ class GeneratorPlayer : FullScreenPlayer() {
                 var startSource = 0
 
                 val sortedUrls = sortLinks(useQualitySettings = false)
-                if (sortedUrls.isNullOrEmpty()) {
+                if (sortedUrls.isEmpty()) {
                     sourceDialog.findViewById<LinearLayout>(R.id.sort_sources_holder)?.isGone = true
                 } else {
                     startSource = sortedUrls.indexOf(currentSelectedLink)
@@ -264,9 +271,9 @@ class GeneratorPlayer : FullScreenPlayer() {
                     val sourcesArrayAdapter =
                         ArrayAdapter<String>(ctx, R.layout.sort_bottom_single_choice)
 
-                    sourcesArrayAdapter.addAll(sortedUrls.map {
-                        val name = it.first?.name ?: it.second?.name ?: "NULL"
-                        "$name ${Qualities.getStringByInt(it.first?.quality)}"
+                    sourcesArrayAdapter.addAll(sortedUrls.map { (link, uri) ->
+                        val name = link?.name ?: uri?.name ?: "NULL"
+                        "$name ${Qualities.getStringByInt(link?.quality)}"
                     })
 
                     providerList.choiceMode = AbsListView.CHOICE_MODE_SINGLE
@@ -473,8 +480,9 @@ class GeneratorPlayer : FullScreenPlayer() {
 
         if (settings)
             subtitles.firstOrNull { sub ->
-                sub.name.startsWith(lang)
-                        || sub.name.trim() == langCode
+                val t = sub.name.replace(Regex("[^A-Za-z]"), " ").trim()
+                t == lang || t.startsWith("$lang ")
+                        || t == langCode
             }?.let { sub ->
                 return sub
             }
@@ -550,52 +558,58 @@ class GeneratorPlayer : FullScreenPlayer() {
                 tvType = meta.tvType
             }
         }
-        //Get limit of characters on Video Title
-        var limitTitle = 0
-        context?.let {
-            val settingsManager = PreferenceManager.getDefaultSharedPreferences(it)
-            limitTitle = settingsManager.getInt(getString(R.string.prefer_limit_title_key), 0)
-        }
+
         //Generate video title
-        var playerVideoTitle = if (headerName != null) {
-            (headerName +
-                    if (tvType.isEpisodeBased() && episode != null)
-                        if (season == null)
-                            " - ${getString(R.string.episode)} $episode"
-                        else
-                            " \"${getString(R.string.season_short)}${season}:${getString(R.string.episode_short)}${episode}\""
-                    else "") + if (subName.isNullOrBlank() || subName == headerName) "" else " - $subName"
-        } else {
-            ""
-        }
-
-        //Hide title, if set in setting
-        if (limitTitle < 0) {
-            player_video_title?.visibility = View.GONE
-        } else {
-            //Truncate video title if it exceeds limit
-            val differenceInLength = playerVideoTitle.length - limitTitle
-            val margin = 3 //If the difference is smaller than or equal to this value, ignore it
-            if (limitTitle > 0 && differenceInLength > margin) {
-                playerVideoTitle = playerVideoTitle.substring(0, limitTitle-1) + "..."
+        context?.let { ctx ->
+            var playerVideoTitle = if (headerName != null) {
+                (headerName +
+                        if (tvType.isEpisodeBased() && episode != null)
+                            if (season == null)
+                                " - ${ctx.getString(R.string.episode)} $episode"
+                            else
+                                " \"${ctx.getString(R.string.season_short)}${season}:${ctx.getString(R.string.episode_short)}${episode}\""
+                        else "") + if (subName.isNullOrBlank() || subName == headerName) "" else " - $subName"
+            } else {
+                ""
             }
+
+            //Hide title, if set in setting
+            if (limitTitle < 0) {
+                player_video_title?.visibility = View.GONE
+            } else {
+                //Truncate video title if it exceeds limit
+                val differenceInLength = playerVideoTitle.length - limitTitle
+                val margin = 3 //If the difference is smaller than or equal to this value, ignore it
+                if (limitTitle > 0 && differenceInLength > margin) {
+                    playerVideoTitle = playerVideoTitle.substring(0, limitTitle - 1) + "..."
+                }
+            }
+
+            player_episode_filler_holder?.isVisible = isFiller ?: false
+            player_video_title?.text = playerVideoTitle
         }
 
-        player_episode_filler_holder?.isVisible = isFiller ?: false
-        player_video_title?.text = playerVideoTitle
     }
 
     @SuppressLint("SetTextI18n")
     fun setPlayerDimen(widthHeight: Pair<Int, Int>?) {
         val extra = if (widthHeight != null) {
             val (width, height) = widthHeight
-            " - ${width}x${height}"
+            "${width}x${height}"
         } else {
             ""
         }
-        player_video_title_rez?.text =
-            (currentSelectedLink?.first?.name ?: currentSelectedLink?.second?.name
-            ?: "NULL") + extra
+
+        val source = currentSelectedLink?.first?.name ?: currentSelectedLink?.second?.name
+        ?: "NULL"
+
+        player_video_title_rez?.text = when (titleRez) {
+            0 -> ""
+            1 -> extra
+            2 -> source
+            3 -> "$source - $extra"
+            else -> ""
+        }
     }
 
     override fun playerDimensionsLoaded(widthHeight: Pair<Int, Int>) {
@@ -630,6 +644,12 @@ class GeneratorPlayer : FullScreenPlayer() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        context?.let { ctx ->
+            val settingsManager = PreferenceManager.getDefaultSharedPreferences(ctx)
+            titleRez = settingsManager.getInt(getString(R.string.prefer_limit_title_rez_key), 3)
+            limitTitle = settingsManager.getInt(getString(R.string.prefer_limit_title_key), 0)
+        }
 
         unwrapBundle(savedInstanceState)
         unwrapBundle(arguments)

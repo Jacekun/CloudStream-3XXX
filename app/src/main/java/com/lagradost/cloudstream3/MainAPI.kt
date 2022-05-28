@@ -77,15 +77,20 @@ object APIHolder {
             TwoEmbedProvider(),
             DramaSeeProvider(),
             WatchAsianProvider(),
+	        DramaidProvider(),
             KdramaHoodProvider(),
             AkwamProvider(),
             MyCimaProvider(),
             EgyBestProvider(),
+            FaselHDProvider(),
             SoaptwoDayProvider(),
             HDMProvider(),// disabled due to cloudflare
             TheFlixToProvider(),
             StreamingcommunityProvider(),
             TantifilmProvider(),
+            HDMovie5(),
+            RebahinProvider(),
+            LayarKacaProvider(),
 
             // Metadata providers
             //TmdbProvider(),
@@ -103,14 +108,22 @@ object APIHolder {
             TenshiProvider(),
             WcoProvider(),
             AnimePaheProvider(),
+            DreamSubProvider(),
             NineAnimeProvider(),
             AnimeWorldProvider(),
             ZoroProvider(),
             DubbedAnimeProvider(),
             MonoschinosProvider(),
             KawaiifuProvider(), // disabled due to cloudflare
+	        NeonimeProvider(),
+            KuramanimeProvider(),
+            OploverzProvider(),
+            GomunimeProvider(),
+            NontonAnimeIDProvider(),
+            KuronimeProvider(),
             //MultiAnimeProvider(),
             NginxProvider(),
+            OlgplyProvider(),
 
             // Additional providers
             KrunchyProvider(),
@@ -166,10 +179,13 @@ object APIHolder {
         return null
     }
 
-    fun LoadResponse.getId(): Int {
+    fun getLoadResponseIdFromUrl(url : String, apiName: String) : Int {
         return url.replace(getApiFromName(apiName).mainUrl, "").replace("/", "").hashCode()
     }
 
+    fun LoadResponse.getId(): Int {
+        return getLoadResponseIdFromUrl(url,apiName)
+    }
 
     /**
      * Gets the website captcha token
@@ -677,6 +693,8 @@ fun getQualityFromString(string: String?): SearchQuality? {
         "dvdscr" -> SearchQuality.DVD
         "blueray" -> SearchQuality.BlueRay
         "bluray" -> SearchQuality.BlueRay
+        "blu" -> SearchQuality.BlueRay
+        "fhd" -> SearchQuality.HD
         "br" -> SearchQuality.BlueRay
         "standard" -> SearchQuality.SD
         "sd" -> SearchQuality.SD

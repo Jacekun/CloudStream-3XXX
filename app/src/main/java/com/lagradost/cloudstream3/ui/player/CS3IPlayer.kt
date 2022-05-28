@@ -18,6 +18,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelector
 import com.google.android.exoplayer2.ui.SubtitleView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
@@ -26,9 +27,11 @@ import com.lagradost.cloudstream3.APIHolder.getApiFromName
 import com.lagradost.cloudstream3.USER_AGENT
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mvvm.logError
+import com.lagradost.cloudstream3.mvvm.normalSafeApiCall
 import com.lagradost.cloudstream3.ui.subtitles.SaveCaptionStyle
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.ExtractorUri
+import com.lagradost.cloudstream3.utils.SubtitleHelper.fromTwoLettersToLanguage
 import java.io.File
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
@@ -48,7 +51,6 @@ class CS3IPlayer : IPlayer {
     private val seekActionTime = 30000L
 
     private var ignoreSSL: Boolean = true
-    private var simpleCache: SimpleCache? = null
     private var playBackSpeed: Float = 1.0f
 
     private var lastMuteVolume: Float = 1.0f
@@ -95,6 +97,7 @@ class CS3IPlayer : IPlayer {
     private var prevEpisode: (() -> Unit)? = null
 
     private var playerUpdated: ((Any?) -> Unit)? = null
+    private var embeddedSubtitlesFetched: ((List<SubtitleData>) -> Unit)? = null
 
     override fun initCallbacks(
         playerUpdated: (Any?) -> Unit,
@@ -107,6 +110,7 @@ class CS3IPlayer : IPlayer {
         nextEpisode: (() -> Unit)?,
         prevEpisode: (() -> Unit)?,
         subtitlesUpdates: (() -> Unit)?,
+        embeddedSubtitlesFetched: ((List<SubtitleData>) -> Unit)?,
     ) {
         this.playerUpdated = playerUpdated
         this.updateIsPlaying = updateIsPlaying
@@ -118,6 +122,7 @@ class CS3IPlayer : IPlayer {
         this.nextEpisode = nextEpisode
         this.prevEpisode = prevEpisode
         this.subtitlesUpdates = subtitlesUpdates
+        this.embeddedSubtitlesFetched = embeddedSubtitlesFetched
     }
 
     // I know, this is not a perfect solution, however it works for fixing subs
@@ -202,7 +207,14 @@ class CS3IPlayer : IPlayer {
 
                         trackSelector.setParameters(
                             trackSelector.buildUponParameters()
-                                .setPreferredTextLanguage("_$name")
+                                .apply {
+                                    if (subtitle.origin == SubtitleOrigin.EMBEDDED_IN_VIDEO)
+                                    // The real Language (two letter) is in the url
+                                    // No underscore as the .url is the actual exoplayer designated language
+                                        setPreferredTextLanguage(subtitle.url)
+                                    else
+                                        setPreferredTextLanguage("_$name")
+                                }
                         )
 
                         // ugliest code I have written, it seeks 1ms to *update* the subtitles
@@ -231,16 +243,20 @@ class CS3IPlayer : IPlayer {
     }
 
     override fun getSubtitleOffset(): Long {
-        return currentSubtitleOffset//currentTextRenderer?.getRenderOffsetMs() ?: currentSubtitleOffset
+        return currentSubtitleOffset //currentTextRenderer?.getRenderOffsetMs() ?: currentSubtitleOffset
     }
 
     override fun getCurrentPreferredSubtitle(): SubtitleData? {
         return subtitleHelper.getAllSubtitles().firstOrNull { sub ->
             exoPlayerSelectedTracks.any {
+                // When embedded the real language is in .url as the real name is a two letter code
+                val realName =
+                    if (sub.origin == SubtitleOrigin.EMBEDDED_IN_VIDEO) sub.url else sub.name
+
                 // The replace is needed as exoplayer translates _ to -
                 // Also we prefix the languages with _
                 it.second && it.first.replace("-", "").equals(
-                    sub.name.replace("-", ""),
+                    realName.replace("-", ""),
                     ignoreCase = true
                 )
             }
@@ -269,11 +285,11 @@ class CS3IPlayer : IPlayer {
             updatedTime()
 
         exoPlayer?.release()
-        simpleCache?.release()
+        //simpleCache?.release()
         currentTextRenderer = null
 
         exoPlayer = null
-        simpleCache = null
+        //simpleCache = null
     }
 
     override fun onStop() {
@@ -306,36 +322,37 @@ class CS3IPlayer : IPlayer {
     }
 
     companion object {
+        private var simpleCache: SimpleCache? = null
+
         var requestSubtitleUpdate: (() -> Unit)? = null
 
         private fun createOnlineSource(link: ExtractorLink): DataSource.Factory {
             val provider = getApiFromName(link.source)
             val interceptor = provider.getVideoInterceptor(link)
 
-            val client = app.baseClient
-                .let {
-                    if (interceptor != null)
-                        it.newBuilder()
-                            .addInterceptor(interceptor)
-                            .build()
-                    else it
-                }
+            val source = if (interceptor == null) {
+                DefaultHttpDataSource.Factory() //TODO USE app.baseClient
+                    .setUserAgent(USER_AGENT)
+                    .setAllowCrossProtocolRedirects(true)   //https://stackoverflow.com/questions/69040127/error-code-io-bad-http-status-exoplayer-android
+            } else {
+                val client = app.baseClient.newBuilder()
+                    .addInterceptor(interceptor)
+                    .build()
+                OkHttpDataSource.Factory(client).setUserAgent(USER_AGENT)
+            }
 
-            return OkHttpDataSource.Factory(client).apply {
-                setUserAgent(USER_AGENT)
-                val headers = mapOf(
-                    "referer" to link.referer,
-                    "accept" to "*/*",
-                    "sec-ch-ua" to "\"Chromium\";v=\"91\", \" Not;A Brand\";v=\"99\"",
-                    "sec-ch-ua-mobile" to "?0",
-                    "sec-fetch-user" to "?1",
-                    "sec-fetch-mode" to "navigate",
-                    "sec-fetch-dest" to "video"
-                ) + link.headers // Adds the headers from the provider, e.g Authorization
+            val headers = mapOf(
+                "referer" to link.referer,
+                "accept" to "*/*",
+                "sec-ch-ua" to "\"Chromium\";v=\"91\", \" Not;A Brand\";v=\"99\"",
+                "sec-ch-ua-mobile" to "?0",
+                "sec-fetch-user" to "?1",
+                "sec-fetch-mode" to "navigate",
+                "sec-fetch-dest" to "video"
+            ) + link.headers // Adds the headers from the provider, e.g Authorization
+
+            return source.apply {
                 setDefaultRequestProperties(headers)
-
-                //https://stackoverflow.com/questions/69040127/error-code-io-bad-http-status-exoplayer-android
-//                setAllowCrossProtocolRedirects(true)
             }
         }
 
@@ -467,7 +484,7 @@ class CS3IPlayer : IPlayer {
                     .setLoadControl(
                         DefaultLoadControl.Builder()
                             .setTargetBufferBytes(
-                                if(cacheSize <= 0) {
+                                if (cacheSize <= 0) {
                                     DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES
                                 } else {
                                     if (cacheSize > Int.MAX_VALUE) Int.MAX_VALUE else cacheSize.toInt()
@@ -475,7 +492,7 @@ class CS3IPlayer : IPlayer {
                             )
                             .setBufferDurationsMs(
                                 DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
-                                if(videoBufferMs <= 0) {
+                                if (videoBufferMs <= 0) {
                                     DefaultLoadControl.DEFAULT_MAX_BUFFER_MS
                                 } else {
                                     videoBufferMs.toInt()
@@ -615,9 +632,46 @@ class CS3IPlayer : IPlayer {
                  * Records the current used subtitle/track. Needed as exoplayer seems to have loose track language selection.
                  * */
                 override fun onTracksInfoChanged(tracksInfo: TracksInfo) {
-                    exoPlayerSelectedTracks =
-                        tracksInfo.trackGroupInfos.mapNotNull { it.trackGroup.getFormat(0).language?.let { lang -> lang to it.isSelected } }
-                    subtitlesUpdates?.invoke()
+                    fun Format.isSubtitle(): Boolean {
+                        return this.sampleMimeType?.contains("video/") == false &&
+                                this.sampleMimeType?.contains("audio/") == false
+                    }
+
+                    normalSafeApiCall {
+                        exoPlayerSelectedTracks =
+                            tracksInfo.trackGroupInfos.mapNotNull {
+                                val format = it.trackGroup.getFormat(0)
+                                if (format.isSubtitle())
+                                    format.language?.let { lang -> lang to it.isSelected }
+                                else null
+                            }
+
+                        val exoPlayerReportedTracks = tracksInfo.trackGroupInfos.mapNotNull {
+                            // Filter out unsupported tracks
+                            if (it.isSupported)
+                                it.trackGroup.getFormat(0)
+                            else
+                                null
+                        }.mapNotNull {
+                            // Filter out non subs, already used subs and subs without languages
+                            if (!it.isSubtitle() ||
+                                // Anything starting with - is not embedded
+                                it.language?.startsWith("-") == true ||
+                                it.language == null
+                            ) return@mapNotNull null
+                            return@mapNotNull SubtitleData(
+                                // Nicer looking displayed names
+                                fromTwoLettersToLanguage(it.language!!) ?: it.language!!,
+                                // See setPreferredTextLanguage
+                                it.language!!,
+                                SubtitleOrigin.EMBEDDED_IN_VIDEO,
+                                it.sampleMimeType ?: MimeTypes.APPLICATION_SUBRIP
+                            )
+                        }
+
+                        embeddedSubtitlesFetched?.invoke(exoPlayerReportedTracks)
+                        subtitlesUpdates?.invoke()
+                    }
                     super.onTracksInfoChanged(tracksInfo)
                 }
 
@@ -668,7 +722,8 @@ class CS3IPlayer : IPlayer {
                         Log.i(TAG, "Rendered first frame")
 
                         val invalid = exoPlayer?.duration?.let { duration ->
-                            duration < 20000L
+                            // Only errors short playback when not playing downloaded files
+                            duration < 20_000L && currentDownloadedFile == null
                         } ?: false
                         if (invalid) {
                             releasePlayer(saveTime = false)
@@ -763,6 +818,15 @@ class CS3IPlayer : IPlayer {
                 SubtitleOrigin.OPEN_SUBTITLES -> {
                     // TODO
                     throw NotImplementedError()
+                }
+                SubtitleOrigin.EMBEDDED_IN_VIDEO -> {
+                    if (offlineSourceFactory != null) {
+                        activeSubtitles.add(sub)
+                        SingleSampleMediaSource.Factory(offlineSourceFactory)
+                            .createMediaSource(subConfig, C.TIME_UNSET)
+                    } else {
+                        null
+                    }
                 }
             }
         }

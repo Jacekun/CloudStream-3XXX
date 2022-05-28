@@ -117,11 +117,18 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     VizcloudInfo(),
     MwvnVizcloudInfo(),
     VizcloudDigital(),
+    VizcloudCloud(),
     Mp4Upload(),
     StreamTape(),
+
+    //mixdrop extractors
+    MixDropBz(),
+    MixDropCh(),
     MixDrop(),
+
     Mcloud(),
     XStreamCdn(),
+
     StreamSB(),
     StreamSB1(),
     StreamSB2(),
@@ -133,12 +140,15 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     StreamSB8(),
     StreamSB9(),
     StreamSB10(),
+    SBfull(),
     // Streamhub(), cause Streamhub2() works
     Streamhub2(),
 
     FEmbed(),
     FeHD(),
     Fplayer(),
+    DBfilm(),
+    LayarKaca(),
     //  WatchSB(), 'cause StreamSB.kt works
     Uqload(),
     Uqload1(),
@@ -150,8 +160,11 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     Tomatomatela(),
     Cinestart(),
     OkRu(),
+    OkRuHttps(),
 
     // dood extractors
+    DoodCxExtractor(),
+    DoodPmExtractor(),
     DoodToExtractor(),
     DoodSoExtractor(),
     DoodLaExtractor(),
@@ -176,6 +189,17 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     PlayLtXyz(),
     JKhentaiExtractor(),
     PlayerVoxzer(),
+
+    BullStream(),
+    GMPlayer(),
+
+    Blogger(),
+    Solidfiles(),
+
+    Hxfile(),
+    KotakAnimeid(),
+    Neonime8n(),
+    Neonime7n(),
 )
 
 fun getExtractorApiFromName(name: String): ExtractorApi {

@@ -44,6 +44,20 @@
         <item>4</item>
     </array>
 
+    <array name="limit_title_rez_pref_names">
+        <item>@string/resolution_and_title</item>
+        <item>@string/title</item>
+        <item>@string/resolution</item>
+        <item>@string/none</item>
+    </array>
+
+    <array name="limit_title_rez_pref_values">
+        <item>3</item>
+        <item>2</item>
+        <item>1</item>
+        <item>0</item>
+    </array>
+
     <array name="limit_title_pref_names">
         <item>@string/none</item>
         <item>16 characters</item>
@@ -59,6 +73,15 @@
         <item>64</item>
         <item>128</item>
         <item>-1</item>
+    </array>
+
+    <array name="skip_sec_values">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
     </array>
 
     <array name="video_buffer_length_names">
@@ -143,6 +166,20 @@
         <item>400</item>
         <item>450</item>
         <item>500</item>
+    </array>
+
+    <array name="poster_ui_options">
+        <item>@string/show_hd</item>
+        <item>@string/show_dub</item>
+        <item>@string/show_sub</item>
+        <item>@string/show_title</item>
+    </array>
+
+    <array name="poster_ui_options_values">
+        <item>@string/show_hd_key</item>
+        <item>@string/show_dub_key</item>
+        <item>@string/show_sub_key</item>
+        <item>@string/show_title_key</item>
     </array>
 
     <array name="episode_long_click_options">

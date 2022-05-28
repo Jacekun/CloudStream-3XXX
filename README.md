@@ -45,6 +45,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 |[JAV Junkies](http://www.javjunkies.com)|:x:|:x:|:x:|JAV|-|
 
 ***Screenshots:***
+(All the images are blurred because of DMCA reasons, but are actually not blurred in the app)
 
 <img src="./.github/home.jpg" height="400"/><img src="./.github/search.jpg" height="400"/><img src="./.github/downloads.jpg" height="400"/><img src="./.github/results.jpg" height="400"/>
 <img src="./.github/player.jpg" height="200"/>
@@ -57,6 +58,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 * 🇩🇪 German
 * 🇬🇷 Greek
 * 🇮🇳 Hindi
+* 🇮🇩 Indonesian
 * 🇮🇹 Italian
 * 🇲🇰 Macedonian
 * 🇮🇳 Malayalam
