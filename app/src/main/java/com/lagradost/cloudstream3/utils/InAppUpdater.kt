@@ -123,7 +123,7 @@ class InAppUpdater {
         }
 
         private fun Activity.getPreReleaseUpdate(): Update = runBlocking {
-            val tagUrl = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/git/ref/tags/pre-release"
+            val tagUrl = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/git/ref/tags/javdev_prerelease"
             val releaseUrl = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases"
             val headers = mapOf("Accept" to "application/vnd.github.v3+json")
             val response =
