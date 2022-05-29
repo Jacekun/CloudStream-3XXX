@@ -159,10 +159,10 @@ class InAppUpdater {
 
             val request = DownloadManager.Request(Uri.parse(url))
                 .setMimeType("application/vnd.android.package-archive")
-                .setTitle("CloudStream Update")
+                .setTitle("CloudStream 3XXX Update")
                 .setDestinationInExternalPublicDir(
                     Environment.DIRECTORY_DOWNLOADS,
-                    "CloudStream.apk"
+                    "CloudStream_3XXX.apk"
                 )
                 .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(true)
