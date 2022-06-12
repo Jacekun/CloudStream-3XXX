@@ -15,8 +15,8 @@ import com.lagradost.cloudstream3.metaproviders.CrossTmdbProvider
 import com.lagradost.cloudstream3.movieproviders.*
 import com.lagradost.cloudstream3.providersnsfw.*
 import com.lagradost.cloudstream3.mvvm.logError
-import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.aniListApi
-import com.lagradost.cloudstream3.syncproviders.OAuth2API.Companion.malApi
+import com.lagradost.cloudstream3.syncproviders.AccountManager.Companion.aniListApi
+import com.lagradost.cloudstream3.syncproviders.AccountManager.Companion.malApi
 import com.lagradost.cloudstream3.ui.player.SubtitleData
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -54,7 +54,6 @@ object APIHolder {
             PelisflixProvider(),
             SeriesflixProvider(),
             IHaveNoTvProvider(), // Documentaries provider
-            LookMovieProvider(), // RECAPTCHA (Please allow up to 5 seconds...)
             VMoveeProvider(),
             AllMoviesForYouProvider(),
             VidEmbedProvider(),
@@ -77,7 +76,7 @@ object APIHolder {
             TwoEmbedProvider(),
             DramaSeeProvider(),
             WatchAsianProvider(),
-	        DramaidProvider(),
+            DramaidProvider(),
             KdramaHoodProvider(),
             AkwamProvider(),
             MyCimaProvider(),
@@ -88,9 +87,12 @@ object APIHolder {
             TheFlixToProvider(),
             StreamingcommunityProvider(),
             TantifilmProvider(),
+            CineblogProvider(),
+            AltadefinizioneProvider(),
             HDMovie5(),
             RebahinProvider(),
             LayarKacaProvider(),
+            HDTodayProvider(),
 
             // Metadata providers
             //TmdbProvider(),
@@ -115,7 +117,7 @@ object APIHolder {
             DubbedAnimeProvider(),
             MonoschinosProvider(),
             KawaiifuProvider(), // disabled due to cloudflare
-	        NeonimeProvider(),
+            NeonimeProvider(),
             KuramanimeProvider(),
             OploverzProvider(),
             GomunimeProvider(),
@@ -151,6 +153,13 @@ object APIHolder {
         )
     }
 
+    fun initAll() {
+        for (api in allProviders) {
+            api.init()
+        }
+        apiMap = null
+    }
+
     var apis: List<MainAPI> = arrayListOf()
     private var apiMap: Map<String, Int>? = null
 
@@ -166,7 +175,6 @@ object APIHolder {
     fun getApiFromNameNull(apiName: String?): MainAPI? {
         if (apiName == null) return null
         initMap()
-
         return apiMap?.get(apiName)?.let { apis.getOrNull(it) }
     }
 
@@ -179,12 +187,12 @@ object APIHolder {
         return null
     }
 
-    fun getLoadResponseIdFromUrl(url : String, apiName: String) : Int {
+    fun getLoadResponseIdFromUrl(url: String, apiName: String): Int {
         return url.replace(getApiFromName(apiName).mainUrl, "").replace("/", "").hashCode()
     }
 
     fun LoadResponse.getId(): Int {
-        return getLoadResponseIdFromUrl(url,apiName)
+        return getLoadResponseIdFromUrl(url, apiName)
     }
 
     /**
@@ -393,16 +401,17 @@ abstract class MainAPI {
         var overrideData: HashMap<String, ProvidersInfoJson>? = null
     }
 
-    fun overrideWithNewData(data: ProvidersInfoJson) {
-        this.name = data.name
-        this.mainUrl = data.url
-	    this.storedCredentials = data.credentials
-    }
-
-    init {
+    fun init() {
         overrideData?.get(this.javaClass.simpleName)?.let { data ->
             overrideWithNewData(data)
         }
+    }
+
+    fun overrideWithNewData(data: ProvidersInfoJson) {
+        this.name = data.name
+        if (data.url.isNotBlank() && data.url != "NONE")
+            this.mainUrl = data.url
+        this.storedCredentials = data.credentials
     }
 
     open var name = "NONE"
@@ -519,12 +528,6 @@ fun base64Encode(array: ByteArray): String {
 }
 
 class ErrorLoadingException(message: String? = null) : Exception(message)
-
-fun parseRating(ratingString: String?): Int? {
-    if (ratingString == null) return null
-    val floatRating = ratingString.toFloatOrNull() ?: return null
-    return (floatRating * 10).toInt()
-}
 
 fun MainAPI.fixUrlNull(url: String?): String? {
     if (url.isNullOrEmpty()) {
@@ -825,12 +828,12 @@ fun AnimeSearchResponse.addDubStatus(isDub: Boolean, episodes: Int? = null) {
 }
 
 fun AnimeSearchResponse.addDub(episodes: Int?) {
-    if(episodes == null || episodes <= 0) return
+    if (episodes == null || episodes <= 0) return
     addDubStatus(DubStatus.Dubbed, episodes)
 }
 
 fun AnimeSearchResponse.addSub(episodes: Int?) {
-    if(episodes == null || episodes <= 0) return
+    if (episodes == null || episodes <= 0) return
     addDubStatus(DubStatus.Subbed, episodes)
 }
 
@@ -902,7 +905,7 @@ interface LoadResponse {
     var posterUrl: String?
     var year: Int?
     var plot: String?
-    var rating: Int? // 1-1000
+    var rating: Int? // 0-10000
     var tags: List<String>?
     var duration: Int? // in minutes
     var trailers: List<String>?
@@ -981,7 +984,7 @@ interface LoadResponse {
         }
 
         fun LoadResponse.addRating(value: Int?) {
-            if (value ?: return < 0 || value > 1000) {
+            if ((value ?: return) < 0 || value > 10000) {
                 return
             }
             this.rating = value

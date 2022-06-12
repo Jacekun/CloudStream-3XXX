@@ -17,6 +17,12 @@
         "status": 1,
         "url": "https://allmoviesforyou.net"
     },
+    "AltadefinizioneProvider": {
+        "language": "it",
+        "name": "Altadefinizione",
+        "status": 1,
+        "url": "https://altadefinizione.hair"
+    },
     "AnimeFlickProvider": {
         "language": "en",
         "name": "AnimeFlick",
@@ -70,6 +76,12 @@
         "name": "Bflix",
         "status": 1,
         "url": "https://bflix.ru"
+    },
+    "CineblogProvider": {
+        "language": "it",
+        "name": "CineBlog",
+        "status": 1,
+        "url": "https://cb01.rip"
     },
     "CinecalidadProvider": {
         "language": "es",
@@ -178,6 +190,12 @@
         "status": 0,
         "url": "https://hdm.to"
     },
+    "HDTodayProvider": {
+        "language": "en",
+        "name": "HDToday",
+        "status": 1,
+        "url": "https://hdtoday.cc"
+    },
     "IHaveNoTvProvider": {
         "language": "en",
         "name": "I Have No TV",
@@ -220,7 +238,6 @@
         "url": "https://149.56.24.226"
     },
     "LookMovieProvider": {
-        "language": "en",
         "name": "LookMovie",
         "status": 0,
         "url": "https://lookmovie.io"
@@ -361,7 +378,7 @@
         "language": "it",
         "name": "Streamingcommunity",
         "status": 1,
-        "url": "https://streamingcommunity.top"
+        "url": "https://streamingcommunity.press"
     },
     "TantifilmProvider": {
         "language": "it",

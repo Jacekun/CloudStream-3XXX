@@ -24,7 +24,6 @@ import android.widget.*
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
@@ -41,7 +40,6 @@ import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastState
 import com.google.android.material.button.MaterialButton
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.APIHolder.getApiDubstatusSettings
 import com.lagradost.cloudstream3.APIHolder.getApiFromName
 import com.lagradost.cloudstream3.APIHolder.getId
 import com.lagradost.cloudstream3.AcraApplication.Companion.setKey
@@ -1356,7 +1354,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             val newList = list.filter { it.isSynced && it.hasAccount }
 
             result_mini_sync?.isVisible = newList.isNotEmpty()
-            (result_mini_sync?.adapter as? ImageAdapter?)?.updateList(newList.map { it.icon })
+            (result_mini_sync?.adapter as? ImageAdapter?)?.updateList(newList.mapNotNull { it.icon })
         }
 
         observe(syncModel.syncIds) {
@@ -1511,7 +1509,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             when (startAction) {
                 START_ACTION_RESUME_LATEST -> {
                     for (ep in episodeList) {
-                        println("WATCH STATUS::: S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
+                        //println("WATCH STATUS::: S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
                         if (ep.getWatchProgress() > 0.90f) { // watched too much
                             continue
                         }
@@ -1531,7 +1529,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         var found = false
                         for (ep in episodeList) {
                             if (ep.id == startValue) { // watched too much
-                                println("WATCH STATUS::: START_ACTION_LOAD_EP S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
+                                //println("WATCH STATUS::: START_ACTION_LOAD_EP S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
                                 handleAction(EpisodeClickEvent(ACTION_PLAY_EPISODE_IN_PLAYER, ep))
                                 found = true
                                 break
@@ -1540,7 +1538,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         if (!found)
                             for (ep in episodeList) {
                                 if (ep.episode == resumeEpisode && ep.season == resumeSeason) {
-                                    println("WATCH STATUS::: START_ACTION_LOAD_EP S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
+                                    //println("WATCH STATUS::: START_ACTION_LOAD_EP S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
                                     handleAction(
                                         EpisodeClickEvent(
                                             ACTION_PLAY_EPISODE_IN_PLAYER,
@@ -1791,7 +1789,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         }
                         result_description.setOnClickListener {
                             val builder: AlertDialog.Builder =
-                                AlertDialog.Builder(requireContext())
+                                AlertDialog.Builder(requireContext(), R.style.AlertDialogCustom)
                             builder.setMessage(d.plot)
                                 .setTitle(if (d.type == TvType.Torrent) R.string.torrent_plot else R.string.result_plot)
                                 .show()
