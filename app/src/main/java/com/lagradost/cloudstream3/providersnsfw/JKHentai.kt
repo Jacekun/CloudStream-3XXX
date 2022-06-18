@@ -8,7 +8,7 @@ import kotlin.collections.ArrayList
 class JKHentai:MainAPI() {
     override var mainUrl = "https://jkhentai.net"
     override var name = "JKhentai"
-    override val lang = "es"
+    override var lang = "es"
     override val hasMainPage = true
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true

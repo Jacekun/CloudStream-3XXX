@@ -120,7 +120,7 @@ class SettingsUpdates : PreferenceFragmentCompat() {
                 }
             }
             it.summary = "${getString(R.string.app_version)} r${currentVersion}"
-        }
+        }   
         getPref(R.string.manual_check_update_key)?.setOnPreferenceClickListener {
             thread {
                 if (!requireActivity().runAutoUpdate(false)) {
