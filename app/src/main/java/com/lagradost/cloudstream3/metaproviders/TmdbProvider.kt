@@ -27,7 +27,7 @@ data class TmdbLink(
 
 open class TmdbProvider : MainAPI() {
     // This should always be false, but might as well make it easier for forks
-    open val includeAdult = false
+    open val includeAdult = true
 
     // Use the LoadResponse from the metadata provider
     open val useMetaLoadResponse = false

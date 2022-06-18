@@ -98,8 +98,8 @@ class PinoyMoviesEsProvider : MainAPI() {
                 Pair("Action", "genre_action"),
                 Pair("Comedy", "genre_comedy"),
                 Pair("Romance", "genre_romance"),
-                Pair("Horror", "genre_horror")
-                //Pair("Rated-R", "genre_rated-r")
+                Pair("Horror", "genre_horror"),
+                Pair("Rated-R", "genre_rated-r")
             ), "#")
             if (homepage2.isNotEmpty()) {
                 all.addAll(homepage2)

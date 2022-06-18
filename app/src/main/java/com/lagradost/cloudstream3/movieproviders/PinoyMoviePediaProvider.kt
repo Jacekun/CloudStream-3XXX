@@ -28,8 +28,8 @@ class PinoyMoviePediaProvider : MainAPI() {
             Pair("Action", "genre_action"),
             Pair("Romance", "genre_romance"),
             Pair("Comedy", "genre_comedy"),
-            Pair("Family", "genre_family")
-            //Pair("Adult +18", "genre_pinay-sexy-movies")
+            Pair("Family", "genre_family"),
+            Pair("Adult +18", "genre_pinay-sexy-movies")
         )
         rows.forEach { item ->
             val title = item.first
