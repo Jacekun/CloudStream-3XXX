@@ -23,6 +23,7 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.google.android.exoplayer2.util.MimeTypes
+import com.google.android.exoplayer2.video.VideoSize
 import com.lagradost.cloudstream3.APIHolder.getApiFromName
 import com.lagradost.cloudstream3.USER_AGENT
 import com.lagradost.cloudstream3.app
@@ -153,7 +154,8 @@ class CS3IPlayer : IPlayer {
         data: ExtractorUri?,
         startPosition: Long?,
         subtitles: Set<SubtitleData>,
-        subtitle: SubtitleData?
+        subtitle: SubtitleData?,
+        autoPlay: Boolean?
     ) {
         Log.i(TAG, "loadPlayer")
         if (sameEpisode) {
@@ -168,7 +170,7 @@ class CS3IPlayer : IPlayer {
         }
 
         // we want autoplay because of TV and UX
-        isPlaying = true
+        isPlaying = autoPlay ?: isPlaying
 
         // release the current exoplayer and cache
         releasePlayer()
@@ -686,6 +688,14 @@ class CS3IPlayer : IPlayer {
                         isPlaying = exo.isPlaying
                     }
 
+                    when (playbackState) {
+                        Player.STATE_READY -> {
+                            onRenderFirst()
+                        }
+                        else -> {}
+                    }
+
+
                     if (playWhenReady) {
                         when (playbackState) {
                             Player.STATE_READY -> {
@@ -715,50 +725,85 @@ class CS3IPlayer : IPlayer {
                 //    super.onCues(cues.map { cue -> cue.buildUpon().setText("Hello world").setSize(Cue.DIMEN_UNSET).build() })
                 //}
 
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    super.onIsPlayingChanged(isPlaying)
+                    if (isPlaying) {
+                        onRenderFirst()
+                    }
+                }
+
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    super.onPlaybackStateChanged(playbackState)
+                    when (playbackState) {
+                        Player.STATE_READY -> {
+                            requestAutoFocus?.invoke()
+                        }
+                        Player.STATE_ENDED -> {
+                            handleEvent(CSPlayerEvent.NextEpisode)
+                        }
+                        Player.STATE_BUFFERING -> {
+                            updatedTime()
+                        }
+                        Player.STATE_IDLE -> {
+                            // IDLE
+                        }
+                        else -> Unit
+                    }
+                }
+
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    super.onVideoSizeChanged(videoSize)
+                    playerDimensionsLoaded?.invoke(Pair(videoSize.width, videoSize.height))
+                }
+
                 override fun onRenderedFirstFrame() {
                     updatedTime()
-
-                    if (!hasUsedFirstRender) { // this insures that we only call this once per player load
-                        Log.i(TAG, "Rendered first frame")
-
-                        val invalid = exoPlayer?.duration?.let { duration ->
-                            // Only errors short playback when not playing downloaded files
-                            duration < 20_000L && currentDownloadedFile == null
-                        } ?: false
-                        if (invalid) {
-                            releasePlayer(saveTime = false)
-                            playerError?.invoke(InvalidFileException("Too short playback"))
-                            return
-                        }
-
-                        setPreferredSubtitles(currentSubtitles)
-                        hasUsedFirstRender = true
-                        val format = exoPlayer?.videoFormat
-                        val width = format?.width
-                        val height = format?.height
-                        if (height != null && width != null) {
-                            playerDimensionsLoaded?.invoke(Pair(width, height))
-                            updatedTime()
-                            exoPlayer?.apply {
-                                requestedListeningPercentages?.forEach { percentage ->
-                                    createMessage { _, _ ->
-                                        updatedTime()
-                                    }
-                                        .setLooper(Looper.getMainLooper())
-                                        .setPosition( /* positionMs= */contentDuration * percentage / 100)
-                                        //   .setPayload(customPayloadData)
-                                        .setDeleteAfterDelivery(false)
-                                        .send()
-                                }
-                            }
-                        }
-                    }
                     super.onRenderedFirstFrame()
+                    onRenderFirst()
                 }
             })
         } catch (e: Exception) {
             Log.e(TAG, "loadExo error", e)
             playerError?.invoke(e)
+        }
+    }
+
+    fun onRenderFirst() {
+        if (!hasUsedFirstRender) { // this insures that we only call this once per player load
+            Log.i(TAG, "Rendered first frame")
+
+            val invalid = exoPlayer?.duration?.let { duration ->
+                // Only errors short playback when not playing downloaded files
+                duration < 20_000L && currentDownloadedFile == null
+            } ?: false
+
+            if (invalid) {
+                releasePlayer(saveTime = false)
+                playerError?.invoke(InvalidFileException("Too short playback"))
+                return
+            }
+
+            setPreferredSubtitles(currentSubtitles)
+            hasUsedFirstRender = true
+            val format = exoPlayer?.videoFormat
+            val width = format?.width
+            val height = format?.height
+            if (height != null && width != null) {
+                playerDimensionsLoaded?.invoke(Pair(width, height))
+                updatedTime()
+                exoPlayer?.apply {
+                    requestedListeningPercentages?.forEach { percentage ->
+                        createMessage { _, _ ->
+                            updatedTime()
+                        }
+                            .setLooper(Looper.getMainLooper())
+                            .setPosition( /* positionMs= */contentDuration * percentage / 100)
+                            //   .setPayload(customPayloadData)
+                            .setDeleteAfterDelivery(false)
+                            .send()
+                    }
+                }
+            }
         }
     }
 
@@ -830,7 +875,7 @@ class CS3IPlayer : IPlayer {
     }
 
     private fun loadOnlinePlayer(context: Context, link: ExtractorLink) {
-        Log.i(TAG, "loadOnlinePlayer")
+        Log.i(TAG, "loadOnlinePlayer $link")
         try {
             currentLink = link
 
