@@ -47,7 +47,7 @@
     "AsiaFlixProvider": {
         "name": "AsiaFlix",
         "url": "https://asiaflix.app",
-        "status": 3
+        "status": 0
     },
     "BflixProvider": {
         "name": "Bflix",
@@ -97,7 +97,7 @@
     "EgyBestProvider": {
         "name": "EgyBest",
         "url": "https://egy.best",
-        "status": 1
+        "status": 0
     },
     "EntrepeliculasyseriesProvider": {
         "name": "EntrePeliculasySeries",
@@ -122,7 +122,7 @@
     "KawaiifuProvider": {
         "name": "Kawaiifu",
         "url": "https://kawaiifu.com",
-        "status": 0
+        "status": 1
     },
     "HDMProvider": {
         "name": "HD Movies",
@@ -241,8 +241,8 @@
     },
     "TwoEmbedProvider": {
         "name": "2Embed",
-        "url": "https://www.2embed.ru",
-        "status": 0
+        "url": "https://2embed.org",
+        "status": 1
     },
     "VMoveeProvider": {
         "name": "VMovee",

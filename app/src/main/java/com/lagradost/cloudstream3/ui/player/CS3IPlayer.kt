@@ -9,9 +9,7 @@ import android.widget.FrameLayout
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
-import com.google.android.exoplayer2.source.MergingMediaSource
-import com.google.android.exoplayer2.source.SingleSampleMediaSource
+import com.google.android.exoplayer2.source.*
 import com.google.android.exoplayer2.text.TextRenderer
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.TrackSelector
@@ -31,6 +29,7 @@ import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.mvvm.normalSafeApiCall
 import com.lagradost.cloudstream3.ui.subtitles.SaveCaptionStyle
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.ExtractorLinkPlayList
 import com.lagradost.cloudstream3.utils.ExtractorUri
 import com.lagradost.cloudstream3.utils.SubtitleHelper.fromTwoLettersToLanguage
 import java.io.File
@@ -64,6 +63,15 @@ class CS3IPlayer : IPlayer {
     private var playbackPosition: Long = 0
 
     private val subtitleHelper = PlayerSubtitleHelper()
+
+    /**
+     * This is a way to combine the MediaItem and its duration for the concatenating MediaSource.
+     * @param durationUs does not matter if only one slice is present, since it will not concatenate
+     * */
+    data class MediaItemSlice(
+        val mediaItem: MediaItem,
+        val durationUs: Long
+    )
 
     override fun getDuration(): Long? = exoPlayer?.duration
     override fun getPosition(): Long? = exoPlayer?.currentPosition
@@ -99,6 +107,21 @@ class CS3IPlayer : IPlayer {
 
     private var playerUpdated: ((Any?) -> Unit)? = null
     private var embeddedSubtitlesFetched: ((List<SubtitleData>) -> Unit)? = null
+
+    override fun releaseCallbacks() {
+        playerUpdated = null
+        updateIsPlaying = null
+        requestAutoFocus = null
+        playerError = null
+        playerDimensionsLoaded = null
+        requestedListeningPercentages = null
+        playerPositionChanged = null
+        nextEpisode = null
+        prevEpisode = null
+        subtitlesUpdates = null
+        embeddedSubtitlesFetched = null
+        requestSubtitleUpdate = null
+    }
 
     override fun initCallbacks(
         playerUpdated: (Any?) -> Unit,
@@ -187,6 +210,9 @@ class CS3IPlayer : IPlayer {
     }
 
     var currentSubtitles: SubtitleData? = null
+    /**
+     * @return True if the player should be reloaded
+     * */
     override fun setPreferredSubtitles(subtitle: SubtitleData?): Boolean {
         Log.i(TAG, "setPreferredSubtitles init $subtitle")
         currentSubtitles = subtitle
@@ -202,7 +228,6 @@ class CS3IPlayer : IPlayer {
                     SubtitleStatus.REQUIRES_RELOAD -> {
                         Log.i(TAG, "setPreferredSubtitles REQUIRES_RELOAD")
                         return@let true
-                        // reloadPlayer(context)
                     }
                     SubtitleStatus.IS_ACTIVE -> {
                         Log.i(TAG, "setPreferredSubtitles IS_ACTIVE")
@@ -227,7 +252,6 @@ class CS3IPlayer : IPlayer {
                         //}
                     }
                     SubtitleStatus.NOT_FOUND -> {
-                        // not found
                         Log.i(TAG, "setPreferredSubtitles NOT_FOUND")
                         return@let true
                     }
@@ -269,7 +293,7 @@ class CS3IPlayer : IPlayer {
         subtitleHelper.setSubStyle(style)
     }
 
-    private fun saveData() {
+    override fun saveData() {
         Log.i(TAG, "saveData")
         updatedTime()
 
@@ -299,14 +323,14 @@ class CS3IPlayer : IPlayer {
 
         saveData()
         exoPlayer?.pause()
-        releasePlayer()
+        //releasePlayer()
     }
 
     override fun onPause() {
         Log.i(TAG, "onPause")
         saveData()
         exoPlayer?.pause()
-        releasePlayer()
+        //releasePlayer()
     }
 
     override fun onResume(context: Context) {
@@ -449,7 +473,7 @@ class CS3IPlayer : IPlayer {
 
         private fun buildExoPlayer(
             context: Context,
-            mediaItem: MediaItem,
+            mediaItemSlices: List<MediaItemSlice>,
             subSources: List<SingleSampleMediaSource>,
             currentWindow: Int,
             playbackPosition: Long,
@@ -504,13 +528,29 @@ class CS3IPlayer : IPlayer {
                             ).build()
                     )
 
-            val videoMediaSource =
-                (if (cacheFactory == null) DefaultMediaSourceFactory(context) else DefaultMediaSourceFactory(
-                    cacheFactory
-                )).createMediaSource(
-                    mediaItem
-                )
 
+            val factory =
+                if (cacheFactory == null) DefaultMediaSourceFactory(context)
+                else DefaultMediaSourceFactory(cacheFactory)
+
+            // If there is only one item then treat it as normal, if multiple: concatenate the items.
+            val videoMediaSource = if (mediaItemSlices.size == 1) {
+                factory.createMediaSource(mediaItemSlices.first().mediaItem)
+            } else {
+                val source = ConcatenatingMediaSource()
+                mediaItemSlices.map {
+                    source.addMediaSource(
+                        // The duration MUST be known for it to work properly, see https://github.com/google/ExoPlayer/issues/4727
+                        ClippingMediaSource(
+                            factory.createMediaSource(it.mediaItem),
+                            it.durationUs
+                        )
+                    )
+                }
+                source
+            }
+
+            println("PLAYBACK POS $playbackPosition")
             return exoPlayerBuilder.build().apply {
                 setPlayWhenReady(playWhenReady)
                 seekTo(currentWindow, playbackPosition)
@@ -522,7 +562,6 @@ class CS3IPlayer : IPlayer {
                 )
                 setHandleAudioBecomingNoisy(true)
                 setPlaybackSpeed(playBackSpeed)
-
             }
         }
     }
@@ -591,7 +630,7 @@ class CS3IPlayer : IPlayer {
 
     private fun loadExo(
         context: Context,
-        mediaItem: MediaItem,
+        mediaSlices: List<MediaItemSlice>,
         subSources: List<SingleSampleMediaSource>,
         cacheFactory: CacheDataSource.Factory? = null
     ) {
@@ -603,7 +642,7 @@ class CS3IPlayer : IPlayer {
             // this makes no sense
             exoPlayer = buildExoPlayer(
                 context,
-                mediaItem,
+                mediaSlices,
                 subSources,
                 currentWindow,
                 playbackPosition,
@@ -699,7 +738,7 @@ class CS3IPlayer : IPlayer {
                     if (playWhenReady) {
                         when (playbackState) {
                             Player.STATE_READY -> {
-                                requestAutoFocus?.invoke()
+
                             }
                             Player.STATE_ENDED -> {
                                 handleEvent(CSPlayerEvent.NextEpisode)
@@ -728,6 +767,7 @@ class CS3IPlayer : IPlayer {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     super.onIsPlayingChanged(isPlaying)
                     if (isPlaying) {
+                        requestAutoFocus?.invoke()
                         onRenderFirst()
                     }
                 }
@@ -736,7 +776,7 @@ class CS3IPlayer : IPlayer {
                     super.onPlaybackStateChanged(playbackState)
                     when (playbackState) {
                         Player.STATE_READY -> {
-                            requestAutoFocus?.invoke()
+
                         }
                         Player.STATE_ENDED -> {
                             handleEvent(CSPlayerEvent.NextEpisode)
@@ -771,10 +811,13 @@ class CS3IPlayer : IPlayer {
     fun onRenderFirst() {
         if (!hasUsedFirstRender) { // this insures that we only call this once per player load
             Log.i(TAG, "Rendered first frame")
-
             val invalid = exoPlayer?.duration?.let { duration ->
                 // Only errors short playback when not playing downloaded files
                 duration < 20_000L && currentDownloadedFile == null
+                        // Concatenated sources (non 1 periodCount) bypasses the invalid check as exoPlayer.duration gives only the current period
+                        // If you can get the total time that'd be better, but this is already niche.
+                        && exoPlayer?.currentTimeline?.periodCount == 1
+                        && exoPlayer?.isCurrentMediaItemLive != true
             } ?: false
 
             if (invalid) {
@@ -822,7 +865,7 @@ class CS3IPlayer : IPlayer {
             )
 
             subtitleHelper.setActiveSubtitles(activeSubtitles.toSet())
-            loadExo(context, mediaItem, subSources)
+            loadExo(context, listOf(MediaItemSlice(mediaItem, Long.MIN_VALUE)), subSources)
         } catch (e: Exception) {
             Log.e(TAG, "loadOfflinePlayer error", e)
             playerError?.invoke(e)
@@ -874,6 +917,10 @@ class CS3IPlayer : IPlayer {
         return Pair(subSources, activeSubtitles)
     }
 
+    override fun isActive(): Boolean {
+        return exoPlayer != null
+    }
+
     private fun loadOnlinePlayer(context: Context, link: ExtractorLink) {
         Log.i(TAG, "loadOnlinePlayer $link")
         try {
@@ -895,7 +942,17 @@ class CS3IPlayer : IPlayer {
             } else {
                 MimeTypes.VIDEO_MP4
             }
-            val mediaItem = getMediaItem(mime, link.url)
+
+            val mediaItems = if (link is ExtractorLinkPlayList) {
+                link.playlist.map {
+                    MediaItemSlice(getMediaItem(mime, it.url), it.durationUs)
+                }
+            } else {
+                listOf(
+                    // Single sliced list with unset length
+                    MediaItemSlice(getMediaItem(mime, link.url), Long.MIN_VALUE)
+                )
+            }
 
             val onlineSourceFactory = createOnlineSource(link)
             val offlineSourceFactory = context.createOfflineSource()
@@ -916,7 +973,7 @@ class CS3IPlayer : IPlayer {
                 setUpstreamDataSourceFactory(onlineSourceFactory)
             }
 
-            loadExo(context, mediaItem, subSources, cacheFactory)
+            loadExo(context, mediaItems, subSources, cacheFactory)
         } catch (e: Exception) {
             Log.e(TAG, "loadOnlinePlayer error", e)
             playerError?.invoke(e)

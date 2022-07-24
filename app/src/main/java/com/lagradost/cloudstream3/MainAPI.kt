@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.lagradost.cloudstream3.LoadResponse.Companion.addMalId
 import com.lagradost.cloudstream3.animeproviders.*
+import com.lagradost.cloudstream3.liveproviders.EjaTv
 import com.lagradost.cloudstream3.metaproviders.CrossTmdbProvider
 import com.lagradost.cloudstream3.movieproviders.*
 import com.lagradost.cloudstream3.providersnsfw.*
@@ -66,7 +66,8 @@ object APIHolder {
             VfSerieProvider(),
             FrenchStreamProvider(),
             AsianLoadProvider(),
-            AsiaFlixProvider(), // restricted
+            AsiaFlixProvider(), // This should be removed in favor of asianembed.io, same source
+            EjaTv(),
             BflixProvider(),
             FmoviesToProvider(),
             SflixProProvider(),
@@ -94,15 +95,23 @@ object APIHolder {
             TantifilmProvider(),
             CineblogProvider(),
             AltadefinizioneProvider(),
+            FilmpertuttiProvider(),
             HDMovie5(),
             RebahinProvider(),
             LayarKacaProvider(),
             HDTodayProvider(),
+            OpenVidsProvider(),       
+            IdlixProvider(),
+            MultiplexProvider(),
+            VidSrcProvider(),
+            UakinoProvider(),
+            PhimmoichillProvider(),
+            HDrezkaProvider(),
+  
 
             // Metadata providers
             //TmdbProvider(),
             CrossTmdbProvider(),
-            ApiMDBProvider(),
 
             // Anime providers
             WatchCartoonOnlineProvider(),
@@ -118,7 +127,6 @@ object APIHolder {
             TenshiProvider(),
             WcoProvider(),
             AnimePaheProvider(),
-            DreamSubProvider(),
             NineAnimeProvider(),
             AnimeWorldProvider(),
             ZoroProvider(),
@@ -132,9 +140,14 @@ object APIHolder {
             GomunimeProvider(),
             NontonAnimeIDProvider(),
             KuronimeProvider(),
+            OtakudesuProvider(),
+            AnimeIndoProvider(),
             //MultiAnimeProvider(),
             NginxProvider(),
             OlgplyProvider(),
+            AniflixProvider(),
+            KimCartoonProvider(),
+            XcineProvider(),
 
             // Additional providers
             KrunchyProvider(),
@@ -598,6 +611,11 @@ fun capitalizeStringNullable(str: String?): String? {
     }
 }
 
+fun fixTitle(str: String): String {
+    return str.split(" ").joinToString(" ") { it.lowercase()
+        .replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else it } }
+}
+
 /** https://www.imdb.com/title/tt2861424/ -> tt2861424 */
 fun imdbUrlToId(url: String): String? {
     return Regex("/title/(tt[0-9]*)").find(url)?.groupValues?.get(1)
@@ -645,6 +663,7 @@ enum class TvType {
     Torrent,
     Documentary,
     AsianDrama,
+    Live,
     JAV,
     Hentai,
     XXX
@@ -652,7 +671,11 @@ enum class TvType {
 
 // IN CASE OF FUTURE ANIME MOVIE OR SMTH
 fun TvType.isMovieType(): Boolean {
-    return this == TvType.Movie || this == TvType.AnimeMovie || this == TvType.Torrent || this == TvType.JAV || this == TvType.XXX
+    return this == TvType.Movie || this == TvType.AnimeMovie || this == TvType.Torrent || this == TvType.Live || this == TvType.JAV || this == TvType.XXX
+}
+
+fun TvType.isLiveStream(): Boolean {
+    return this == TvType.Live
 }
 
 // returns if the type has an anime opening
@@ -961,11 +984,11 @@ interface LoadResponse {
             this.actors = actors?.map { actor -> ActorData(actor) }
         }
 
-        fun LoadResponse.getMalId() : String? {
+        fun LoadResponse.getMalId(): String? {
             return this.syncData[malIdPrefix]
         }
 
-        fun LoadResponse.getAniListId() : String? {
+        fun LoadResponse.getAniListId(): String? {
             return this.syncData[aniListIdPrefix]
         }
 
@@ -1066,7 +1089,7 @@ interface LoadResponse {
 
 fun LoadResponse?.isEpisodeBased(): Boolean {
     if (this == null) return false
-    return (this is AnimeLoadResponse || this is TvSeriesLoadResponse) && this.type.isEpisodeBased()
+    return this is EpisodeResponse && this.type.isEpisodeBased()
 }
 
 fun LoadResponse?.isAnimeBased(): Boolean {
@@ -1077,6 +1100,17 @@ fun LoadResponse?.isAnimeBased(): Boolean {
 fun TvType?.isEpisodeBased(): Boolean {
     if (this == null) return false
     return (this == TvType.TvSeries || this == TvType.Anime)
+}
+
+
+data class NextAiring(
+    val episode: Int,
+    val unixTime: Long,
+)
+
+interface EpisodeResponse {
+    var showStatus: ShowStatus?
+    var nextAiring: NextAiring?
 }
 
 data class TorrentLoadResponse(
@@ -1112,7 +1146,7 @@ data class AnimeLoadResponse(
     override var year: Int? = null,
 
     var episodes: MutableMap<DubStatus, List<Episode>> = mutableMapOf(),
-    var showStatus: ShowStatus? = null,
+    override var showStatus: ShowStatus? = null,
 
     override var plot: String? = null,
     override var tags: List<String>? = null,
@@ -1126,7 +1160,8 @@ data class AnimeLoadResponse(
     override var comingSoon: Boolean = false,
     override var syncData: MutableMap<String, String> = mutableMapOf(),
     override var posterHeaders: Map<String, String>? = null,
-) : LoadResponse
+    override var nextAiring: NextAiring? = null,
+) : LoadResponse, EpisodeResponse
 
 fun AnimeLoadResponse.addEpisodes(status: DubStatus, episodes: List<Episode>?) {
     if (episodes == null) return
@@ -1152,6 +1187,28 @@ suspend fun MainAPI.newAnimeLoadResponse(
     }
     return builder
 }
+
+data class LiveStreamLoadResponse(
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    var dataUrl: String,
+
+    override var posterUrl: String? = null,
+    override var year: Int? = null,
+    override var plot: String? = null,
+
+    override var type: TvType = TvType.Live,
+    override var rating: Int? = null,
+    override var tags: List<String>? = null,
+    override var duration: Int? = null,
+    override var trailers: List<ExtractorLink>? = null,
+    override var recommendations: List<SearchResponse>? = null,
+    override var actors: List<ActorData>? = null,
+    override var comingSoon: Boolean = false,
+    override var syncData: MutableMap<String, String> = mutableMapOf(),
+    override var posterHeaders: Map<String, String>? = null,
+) : LoadResponse
 
 data class MovieLoadResponse(
     override var name: String,
@@ -1284,7 +1341,7 @@ data class TvSeriesLoadResponse(
     override var year: Int? = null,
     override var plot: String? = null,
 
-    var showStatus: ShowStatus? = null,
+    override var showStatus: ShowStatus? = null,
     override var rating: Int? = null,
     override var tags: List<String>? = null,
     override var duration: Int? = null,
@@ -1294,7 +1351,8 @@ data class TvSeriesLoadResponse(
     override var comingSoon: Boolean = false,
     override var syncData: MutableMap<String, String> = mutableMapOf(),
     override var posterHeaders: Map<String, String>? = null,
-) : LoadResponse
+    override var nextAiring: NextAiring? = null,
+) : LoadResponse, EpisodeResponse
 
 suspend fun MainAPI.newTvSeriesLoadResponse(
     name: String,

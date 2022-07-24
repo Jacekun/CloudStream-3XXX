@@ -52,6 +52,7 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 
 ***The list of supported languages:***
 * 🇱🇧 Arabic
+* 🇨🇿 Czech
 * 🇳🇱 Dutch
 * 🇬🇧 English
 * 🇫🇷 French

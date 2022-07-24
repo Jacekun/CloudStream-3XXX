@@ -1,5 +1,6 @@
 package com.lagradost.cloudstream3.ui.result
 
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Bundle
@@ -54,6 +55,9 @@ open class ResultTrailerPlayer : com.lagradost.cloudstream3.ui.player.FullScreen
             }
 
             result_trailer_loading?.isVisible = false
+            result_smallscreen_holder?.isVisible = !isFullScreenPlayer
+            result_fullscreen_holder?.isVisible = isFullScreenPlayer
+
             player_background?.apply {
                 isVisible = true
                 layoutParams =
@@ -70,6 +74,9 @@ open class ResultTrailerPlayer : com.lagradost.cloudstream3.ui.player.FullScreen
         fixPlayerSize()
     }
 
+    override fun showMirrorsDialogue() {}
+    override fun openOnlineSubPicker(context: Context, imdbId: Long?, dismissCallback: () -> Unit) {}
+
     override fun subtitlesChanged() {}
 
     override fun embeddedSubtitlesFetched(subtitles: List<SubtitleData>) {}
@@ -82,7 +89,6 @@ open class ResultTrailerPlayer : com.lagradost.cloudstream3.ui.player.FullScreen
         isFullScreenPlayer = fullscreen
         lockRotation = fullscreen
         player_fullscreen?.setImageResource(if (fullscreen) R.drawable.baseline_fullscreen_exit_24 else R.drawable.baseline_fullscreen_24)
-        uiReset()
         if (fullscreen) {
             enterFullscreen()
             result_top_bar?.isVisible = false
@@ -103,6 +109,7 @@ open class ResultTrailerPlayer : com.lagradost.cloudstream3.ui.player.FullScreen
             exitFullscreen()
         }
         fixPlayerSize()
+        uiReset()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

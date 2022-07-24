@@ -142,6 +142,10 @@ class ResultViewModel : ViewModel() {
             posterUrl = posterUrl ?: meta.posterUrl ?: meta.backgroundPosterUrl
             actors = actors ?: meta.actors
 
+            if (this is EpisodeResponse) {
+                nextAiring = nextAiring ?: meta.nextAiring
+            }
+
             for ((k, v) in syncs ?: emptyMap()) {
                 syncData[k] = v
             }
@@ -161,29 +165,33 @@ class ResultViewModel : ViewModel() {
                 addTrailer(meta.trailers)
             }, {
                 if (this !is AnimeLoadResponse) return@argamap
-                val map = getEpisodesDetails(getMalId(), getAniListId())
+                val map = getEpisodesDetails(getMalId(), getAniListId(), isResponseRequired = false)
                 if (map.isNullOrEmpty()) return@argamap
                 updateEpisodes = DubStatus.values().map { dubStatus ->
                     val current =
-                        this.episodes[dubStatus]?.sortedBy { it.episode ?: 0 }?.toMutableList()
+                        this.episodes[dubStatus]?.mapIndexed { index, episode ->
+                            episode.apply {
+                                this.episode = this.episode ?: (index + 1)
+                            }
+                        }?.sortedBy { it.episode ?: 0 }?.toMutableList()
                     if (current.isNullOrEmpty()) return@map false
-                    val episodes = current.mapIndexed { index, ep -> ep.episode ?: (index + 1) }
+                    val episodeNumbers = current.map { ep -> ep.episode!! }
                     var updateCount = 0
                     map.forEach { (episode, node) ->
-                        episodes.binarySearch(episode).let { index ->
+                        episodeNumbers.binarySearch(episode).let { index ->
                             current.getOrNull(index)?.let { currentEp ->
                                 current[index] = currentEp.apply {
                                     updateCount++
+                                    val currentBack = this
                                     this.description = this.description ?: node.description?.en
                                     this.name = this.name ?: node.titles?.canonical
-                                    this.episode = this.episode ?: node.num ?: episodes[index]
+                                    this.episode = this.episode ?: node.num ?: episodeNumbers[index]
                                     this.posterUrl = this.posterUrl ?: node.thumbnail?.original?.url
                                 }
                             }
                         }
                     }
                     this.episodes[dubStatus] = current
-
                     updateCount > 0
                 }.any { it }
             })
@@ -432,6 +440,7 @@ class ResultViewModel : ViewModel() {
                     res[dubStatus]?.let { episodes ->
                         updateEpisodes(mainId, episodes, -1)
                     }
+
                     _dubStatus.postValue(dubStatus)
                     _dubSubSelections.postValue(loadResponse.episodes.keys)
                 }
@@ -470,6 +479,26 @@ class ResultViewModel : ViewModel() {
                     updateEpisodes(mainId, episodes, -1)
                 }
                 is MovieLoadResponse -> {
+                    buildResultEpisode(
+                        loadResponse.name,
+                        loadResponse.name,
+                        null,
+                        0,
+                        null,
+                        loadResponse.dataUrl,
+                        loadResponse.apiName,
+                        (mainId), // HAS SAME ID
+                        0,
+                        null,
+                        null,
+                        null,
+                        loadResponse.type,
+                        mainId
+                    ).let {
+                        updateEpisodes(mainId, listOf(it), -1)
+                    }
+                }
+                is LiveStreamLoadResponse -> {
                     buildResultEpisode(
                         loadResponse.name,
                         loadResponse.name,
