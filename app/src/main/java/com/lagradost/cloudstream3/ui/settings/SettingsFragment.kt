@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.preference.Preference
@@ -147,6 +148,19 @@ class SettingsFragment : Fragment() {
                     isFocusableInTouchMode = true
                 }
             }
+        }
+
+        //Append versionCode to app_version on Manual update pref
+        settings?.let { it ->
+            var currentVersion = 0L
+            context?.let { ctx ->
+                ctx.packageName?.let { pkg ->
+                    ctx.packageManager?.getPackageInfo(pkg,0)?.let { pinfo ->
+                        currentVersion = PackageInfoCompat.getLongVersionCode(pinfo)
+                    }
+                }
+            }
+            it.text = "${getString(R.string.app_version)} r${currentVersion}"
         }
     }
 }
