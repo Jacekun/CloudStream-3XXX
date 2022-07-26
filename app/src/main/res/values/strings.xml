@@ -1,6 +1,9 @@
 <!--https://newbedev.com/concatenate-multiple-strings-in-xml-->
 <resources>
     <!-- KEYS DON'T TRANSLATE -->
+    //NSFW fork-specific keys
+    <string name="nsfw_pref_togglenonstream" translatable="false">nsfw_pref_togglenonstream</string>
+    //Main App
     <string name="search_providers_list_key" translatable="false">search_providers_list</string>
     <string name="locale_key" translatable="false">app_locale</string>
     <string name="search_types_list_key" translatable="false">search_type_list</string>
@@ -85,6 +88,15 @@
     <string name="preview_background_img_des">Preview Background</string>
 
     <!-- TRANSLATE, BUT DON'T FORGET FORMAT -->
+    //NSFW fork-specific text
+    <string name="nsfw_text_togglenonstream" formatted="true">Enable search-only sites</string>
+    <string name="nsfw_text_togglenonstream_summ" formatted="true">Requires app restart. If off, hides all non-working sites</string>
+    <string name="nsfw_text_settings">NSFW Settings</string>
+    <string name="jav">JAV</string>
+    <string name="hentai">Hentai</string>
+    <string name="nsfw">NSFW</string>
+    <string name="xxx">XXX</string>
+    //Main App
     <string name="player_speed_text_format" formatted="true">Speed (%.2fx)</string>
     <string name="rated_format" formatted="true">Rated: %.1f</string>
     <string name="new_update_format" formatted="true">New update found!\n%s -> %s</string>
@@ -329,10 +341,6 @@
     <string name="ova">OVA</string>
     <string name="asian_drama">Asian Dramas</string>
     <string name="livestreams">Livestreams</string>
-    <string name="jav">JAV</string>
-    <string name="hentai">Hentai</string>
-    <string name="nsfw">NSFW</string>
-    <string name="xxx">XXX</string>    
 
     <!--singular-->
     <string name="movies_singular">Movie</string>

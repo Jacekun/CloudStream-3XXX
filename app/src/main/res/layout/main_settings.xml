@@ -99,6 +99,13 @@
                     android:text="@string/category_account" />
 
             <TextView
+                android:nextFocusUp="@id/settings_credits"
+
+                android:id="@+id/settings_nsfw_id"
+                style="@style/SettingsItem"
+                android:text="@string/nsfw" />
+
+            <TextView
                     android:id="@+id/settings"
                     android:padding="10dp"
                     android:gravity="center"

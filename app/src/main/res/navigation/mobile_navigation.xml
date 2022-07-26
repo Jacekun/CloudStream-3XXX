@@ -87,6 +87,15 @@
     </action>
 
     <fragment
+        android:id="@+id/navigation_settings_nsfw"
+        android:label="@string/nsfw_text_settings"
+        android:name="com.lagradost.cloudstream3.ui.settings.SettingsNSFW"
+        app:enterAnim="@anim/enter_anim"
+        app:exitAnim="@anim/exit_anim"
+        app:popEnterAnim="@anim/enter_anim"
+        app:popExitAnim="@anim/exit_anim" />
+
+    <fragment
             android:id="@+id/navigation_settings_player"
             android:label="@string/title_settings"
             android:name="com.lagradost.cloudstream3.ui.settings.SettingsPlayer"
@@ -264,6 +273,13 @@
             app:exitAnim="@anim/exit_anim"
             app:popEnterAnim="@anim/enter_anim"
             app:popExitAnim="@anim/exit_anim">
+        <action
+            app:enterAnim="@anim/enter_anim"
+            app:exitAnim="@anim/exit_anim"
+            app:popEnterAnim="@anim/enter_anim"
+            app:popExitAnim="@anim/exit_anim"
+            android:id="@+id/action_navigation_settings_to_navigation_settings_nsfw"
+            app:destination="@id/navigation_settings_nsfw" />
         <action
                 android:id="@+id/action_navigation_settings_to_navigation_settings_ui"
                 app:destination="@id/navigation_settings_ui"

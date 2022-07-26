@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <SwitchPreference
+        android:defaultValue="true"
+        android:icon="@drawable/baseline_grid_view_24"
+        android:key="@string/nsfw_pref_togglenonstream"
+        android:summary="@string/nsfw_text_togglenonstream_summ"
+        android:title="@string/nsfw_text_togglenonstream"
+        app:defaultValue="false" />
+</PreferenceScreen>

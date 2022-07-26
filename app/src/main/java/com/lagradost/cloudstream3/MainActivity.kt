@@ -37,6 +37,7 @@ import com.lagradost.cloudstream3.CommonActivity.showToast
 import com.lagradost.cloudstream3.CommonActivity.updateLocale
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.network.initClient
+import com.lagradost.cloudstream3.providersnsfw.*
 import com.lagradost.cloudstream3.receivers.VideoDownloadRestartReceiver
 import com.lagradost.cloudstream3.syncproviders.AccountManager.Companion.OAuth2Apis
 import com.lagradost.cloudstream3.syncproviders.AccountManager.Companion.accountManagers
@@ -553,6 +554,24 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
             apis = allProviders
         }
 
+        //Note: Add NSFW search only sites if its enabled
+        val nsfwAllowSearchOnlySites = try {
+            settingsManager.getBoolean(getString(R.string.nsfw_pref_togglenonstream), false)
+        } catch (e: Exception) {
+            logError(e)
+            false
+        }
+        if (nsfwAllowSearchOnlySites) {
+            apis = apis + listOf(
+                JavTubeWatch(),
+                JavFreeSh(),
+                JavGuru(),
+                HpJavTv(),
+                JavMost(),
+                Javclcom(),
+                Pandamovie(),
+            )
+        }
 
         loadThemes(this)
         updateLocale()
