@@ -19,30 +19,38 @@ A fork of [CloudStream-3](https://github.com/LagradOst/CloudStream-3), with addi
 + **Random** button on Homepage.
 
 ## NSFW Sites
-| Site | MainPage           | Search | Stream | Types | Remarks |
-|------|--------------------|--------|--------|---------|---------|
-|[Haho moe](https://haho.moe)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|-|
-|[Hanime](https://hanime.tv)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|-|
-|[HentaiLA](https://hentaila.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|Spanish provider.|
-|[JavFree](https://javfree.sh/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Heavily reliant on Streamsb working.|
-|[JavHD](https://javhd.icu)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some scenes' links aren't loaded.|
-|[JavSub](https://javsub.co)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some ``dood`` servers not loaded.|
-|[JKhentai](https://jkhentai.net)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|Hentai|Spanish provider.|
-|[Op Jav](https://opjav.com/)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Some links not loaded.|
-|[PHub](https://www.pornhub.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|Might need VPN.|
-|[Xvideos](https://www.xvideos.com)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV, Hentai, XXX|-|
-|[Vlxx](https://vlxx.sex)|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|JAV|Vietnamese subbed. CloudFare issues on some areas.|
-|[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
-|[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
-|[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
-|[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|:x:|JAV|-|
-|[Javcl](https://javcl.com)|:x:|:heavy_check_mark:|:x:|JAV|-|
-|[Txxx](http://www.txxx.com)|:x:|:x:|:x:|JAV, Hentai, XXX|-|
-|[Javgg](https://javgg.net/)|:x:|:x:|:x:|JAV|-|
-|[VJav](https://vjav.com)|:x:|:x:|:x:|JAV|-|
-|[JavRave Club](https://javrave.club)|:x:|:x:|:x:|JAV|-|
-|[Avgle](https://avgle.com)|:x:|:x:|:x:|JAV|-|
-|[JAV Junkies](http://www.javjunkies.com)|:x:|:x:|:x:|JAV|-|
+### Supported sites:
+
+| Name | Types   | Remarks |
+|------|---------|---------|
+|[Haho moe](https://haho.moe)|Hentai|-|
+|[Hanime](https://hanime.tv)|Hentai|-|
+|[HentaiLA](https://hentaila.com)|Hentai|Spanish provider.|
+|[JavFree](https://javfree.sh/)|JAV|Heavily reliant on Streamsb working.|
+|[JavHD](https://javhd.icu)|JAV|Some scenes' links aren't loaded.|
+|[JavSub](https://javsub.co)|JAV|Some ``dood`` servers not loaded.|
+|[JKhentai](https://jkhentai.net)|Hentai|Spanish provider.|
+|[Op Jav](https://opjav.com/)|JAV|Some links not loaded.|
+|[PHub](https://www.pornhub.com)|JAV, Hentai, XXX|Might need VPN.|
+|[Xvideos](https://www.xvideos.com)|JAV, Hentai, XXX|-|
+|[Vlxx](https://vlxx.sex)|JAV|Vietnamese subbed. CloudFare issues on some areas.|
+
+### WIP:
+
+| Name | Main Page | Search | Types | Remarks |
+|------|---------|---------|---------|---------|
+|[Jav Guru](https://jav.guru)|:heavy_check_mark:|:heavy_check_mark:|JAV|Encryption|
+|[HpJAV.tv](https://hpjav.tv)|:heavy_check_mark:|:heavy_check_mark:|JAV|Encryption|
+|[JAV Most](https://www5.javmost.com)|:heavy_check_mark:|:heavy_check_mark:|JAV|Encryption|
+|[JavTube](https://javtube.watch)|:heavy_check_mark:|:heavy_check_mark:|JAV|Encryption|
+|[Javcl](https://javcl.com)|:x:|:heavy_check_mark:|JAV|-|
+|[Pandamovies](https://pandamovies.org)|:x:|:x:|JAV, Hentai, XXX|-|
+|[Txxx](http://www.txxx.com)|:x:|:x:|JAV, Hentai, XXX|-|
+|[Javgg](https://javgg.net/)|:x:|:x:|JAV|-|
+|[VJav](https://vjav.com)|:x:|:x:|JAV|-|
+|[JavRave Club](https://javrave.club)|:x:|:x:|JAV|-|
+|[Avgle](https://avgle.com)|:x:|:x:|JAV|-|
+|[JAV Junkies](http://www.javjunkies.com)|:x:|:x:|JAV|-|
 
 ***Screenshots:***
 (All the images are blurred because of DMCA reasons, but are actually not blurred in the app)
