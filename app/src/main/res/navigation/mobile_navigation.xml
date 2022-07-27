@@ -274,12 +274,12 @@
             app:popEnterAnim="@anim/enter_anim"
             app:popExitAnim="@anim/exit_anim">
         <action
+            android:id="@+id/action_navigation_settings_to_navigation_settings_nsfw"
+            app:destination="@id/navigation_settings_nsfw"
             app:enterAnim="@anim/enter_anim"
             app:exitAnim="@anim/exit_anim"
             app:popEnterAnim="@anim/enter_anim"
-            app:popExitAnim="@anim/exit_anim"
-            android:id="@+id/action_navigation_settings_to_navigation_settings_nsfw"
-            app:destination="@id/navigation_settings_nsfw" />
+            app:popExitAnim="@anim/exit_anim" />
         <action
                 android:id="@+id/action_navigation_settings_to_navigation_settings_ui"
                 app:destination="@id/navigation_settings_ui"
