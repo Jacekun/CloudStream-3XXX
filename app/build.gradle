@@ -43,7 +43,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
 
-        versionCode 1344
+        versionCode 1607
         versionName "3.0.1"
 
         resValue "string", "app_version",
