@@ -1,7 +1,6 @@
 package com.lagradost.cloudstream3.providersnsfw
 
 import android.util.Log
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.extractors.FEmbed
@@ -133,9 +132,9 @@ class Javhdicu : MainAPI() {
             val caption = it?.selectFirst("span.meta-info")?.text()?.trim()?.lowercase() ?: ""
             when (caption) {
                 "category", "tag" -> {
-                    val tagtexts = it.select("a")?.mapNotNull { tag ->
+                    val tagtexts = it.select("a").mapNotNull { tag ->
                         tag?.text()?.trim() ?: return@mapNotNull null
-                    } ?: listOf()
+                    }
                     if (tagtexts.isNotEmpty()) {
                         tags.addAll(tagtexts.filter { a -> a.isNotBlank() }.distinct())
                     }
@@ -212,9 +211,6 @@ class Javhdicu : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data.isBlank()) return false
-        if (data == "[]") return false
-        if (data == "about:blank") return false
 
         var count = 0
         tryParseJson<List<String>>(data.trim())?.apmap { vid ->

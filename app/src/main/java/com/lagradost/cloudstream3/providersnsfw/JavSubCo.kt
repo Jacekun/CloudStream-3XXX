@@ -116,7 +116,7 @@ class JavSubCo : MainAPI() {
             title = it.name ?: ""
             poster = it.thumbnailUrl
             year = it.uploadDate?.take(4)?.toIntOrNull()
-            descript = it.description
+            descript = "Title: ${title} ${System.lineSeparator()} ${it.description}"
 
             if (!contentUrl.isNullOrBlank()) {
                 streamLinks.add(contentUrl)
@@ -135,7 +135,7 @@ class JavSubCo : MainAPI() {
             listOf()
         }
         Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")
-        playerIframes.forEach {
+        playerIframes.apmap {
             val innerDoc = app.get(it).document.selectFirst("script#beeteam368_obj_wes-js-extra")
             var innerText = innerDoc?.html() ?: ""
             if (innerText.isNotBlank()) {
@@ -171,9 +171,6 @@ class JavSubCo : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data.isBlank()) return false
-        if (data == "[]") return false
-        if (data == "about:blank") return false
 
         var count = 0
         tryParseJson<List<String>>(data)?.forEach { link->

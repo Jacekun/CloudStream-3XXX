@@ -161,6 +161,7 @@ object APIHolder {
             // All of NSFW sources
             Javhdicu(),
             JavSubCo(),
+            JavFreeSh(),
             OpJavCom(),
             Vlxx(),
             Xvideos(),
@@ -169,7 +170,6 @@ object APIHolder {
             JKHentai(),
             Hanime(),
             HahoMoe(),
-            JavFreeSh(),
         )
 
 

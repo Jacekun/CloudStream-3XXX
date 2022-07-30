@@ -1,17 +1,13 @@
 package com.lagradost.cloudstream3.providersnsfw
 
 import android.util.Log
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.movieproviders.SflixProvider
-import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.network.AppResponse
 import com.lagradost.cloudstream3.network.DdosGuardKiller
+import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.lagradost.nicehttp.NiceResponse
-import java.lang.Exception
 
 class Vlxx : MainAPI() {
     override var name = "Vlxx"
@@ -102,18 +98,18 @@ class Vlxx : MainAPI() {
         Log.d("Blue", "json ${json}")
         json?.let {
 
-            val list = mapper.readValue<List<SflixProvider.Sources>>(it)
+            val list = tryParseJson<List<SflixProvider.Sources>>(it)
             Log.d("Blue", "list ${list}")
-            list.forEach {
-                it.file?.let { file ->
+            list?.forEach { vidlink ->
+                vidlink.file?.let { file ->
                     callback.invoke(
                         ExtractorLink(
-                            file,
-                            name = "${this.name} - ${it.label}",
+                            source = file,
+                            name = this.name,
                             url = file,
                             referer = data,
-                            quality = it.label?.let { it1 -> getQualityFromName(it1) } ?: kotlin.run { Qualities.P720.value },
-                            file.endsWith("m3u8")
+                            quality = getQualityFromName(vidlink.label),
+                            isM3u8 = file.endsWith("m3u8")
                         )
                     )
                 }

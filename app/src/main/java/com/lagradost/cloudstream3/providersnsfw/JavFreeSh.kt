@@ -6,6 +6,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
+import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
@@ -143,17 +144,16 @@ class JavFreeSh : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data == "about:blank") return false
-        if (data.isEmpty()) return false
+
         var success = false
         try {
             // GET request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
             val linkToGet = "https://player.javfree.sh/stream/$id"
             val jsonres = app.get(linkToGet, referer = mainUrl).text
+            val referer = "https://player.javfree.sh/embed.html"
             //Log.i(this.name, "Result => (jsonres) ${jsonres}")
-            parseJson<ResponseJson?>(jsonres).let { item ->
-                val referer = "https://player.javfree.sh/embed.html"
+            tryParseJson<ResponseJson?>(jsonres)?.let { item ->
                 item?.list?.forEach { link ->
                     val linkUrl = link.file ?: ""
                     if (linkUrl.isNotBlank()) {
@@ -166,8 +166,8 @@ class JavFreeSh : MainAPI() {
                         )
                     }
                 }
+                return success
             }
-            return success
         } catch (e: Exception) {
             e.printStackTrace()
             logError(e)

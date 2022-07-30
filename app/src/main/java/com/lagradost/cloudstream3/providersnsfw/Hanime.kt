@@ -6,7 +6,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.jsoup.Jsoup
+import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -244,20 +244,21 @@ class Hanime : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val res = app.get(data).text
-        val response = mapper.readValue<HanimeEpisodeData>(res)
+        val response = tryParseJson<HanimeEpisodeData>(res)
 
         val streams = ArrayList<ExtractorLink>()
 
-        response.videosManifest.servers.map { server ->
+        response?.videosManifest?.servers?.map { server ->
             server.streams.forEach {
                 if (it.url.isNotEmpty()) {
-                    streams.add(ExtractorLink(
-                        "Hanime",
-                        "Hanime - ${server.name} - ${it.filesizeMbs}mb",
-                        it.url,
-                        "",
-                        getQualityFromName(it.height),
-                        true
+                    streams.add(
+                        ExtractorLink(
+                            source ="Hanime",
+                            name ="Hanime - ${server.name} - ${it.filesizeMbs}mb",
+                            url = it.url,
+                            referer = "",
+                            quality = getQualityFromName(it.height),
+                            isM3u8 = true
                     ))
                 }
             }

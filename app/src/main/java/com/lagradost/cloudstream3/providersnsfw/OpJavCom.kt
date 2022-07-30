@@ -1,7 +1,6 @@
 package com.lagradost.cloudstream3.providersnsfw
 
 import android.util.Log
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.extractors.XStreamCdn
@@ -120,7 +119,7 @@ class OpJavCom : MainAPI() {
         //Log.i(this.name, "Result => (url) ${url}")
         val poster = fixUrlNull(doc.select("meta[itemprop=image]")?.get(1)?.attr("content")?.trim())
         val title = doc.selectFirst("meta[property=og:title]")?.attr("content").toString()
-        val descript = doc.selectFirst("meta[name=keywords]")?.attr("content")?.trim()
+        val descript = "Title: $title ${System.lineSeparator()}" + doc.selectFirst("meta[name=keywords]")?.attr("content")?.trim()
         val year = doc.selectFirst("meta[itemprop=dateCreated]")?.attr("content")?.toIntOrNull()
 
         val tags = doc.select("dl > dd")?.get(1)?.select("a")?.mapNotNull {
@@ -177,7 +176,7 @@ class OpJavCom : MainAPI() {
                 //Log.i(this.name, "Result => (respAjax text) $respAjax")
                 Jsoup.parse(respAjax).select("iframe")?.forEach { iframe ->
                     val serverLink = iframe?.attr("src")?.trim()
-                    if (!serverLink.isNullOrEmpty()) {
+                    if (!serverLink.isNullOrBlank()) {
                         watchlink.add(serverLink)
                         Log.i(this.name, "Result => (serverLink) $serverLink")
                     }
@@ -205,8 +204,6 @@ class OpJavCom : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data == "about:blank") return false
-        if (data.isBlank()) return false
 
         var count = 0
         tryParseJson<List<String>>(data)?.forEach { link ->
