@@ -145,7 +145,7 @@ class JavFreeSh : MainAPI() {
     ): Boolean {
         if (data == "about:blank") return false
         if (data.isEmpty()) return false
-        var count = 0
+        var success = false
         try {
             // GET request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
@@ -156,16 +156,18 @@ class JavFreeSh : MainAPI() {
                 val referer = "https://player.javfree.sh/embed.html"
                 item?.list?.forEach { link ->
                     val linkUrl = link.file ?: ""
-                    if (linkUrl.isNotEmpty()) {
+                    if (linkUrl.isNotBlank()) {
                         //Log.i(this.name, "ApiError => (link url) $linkUrl")
-                        if (loadExtractor(linkUrl, referer, callback)) {
-                            count++
-                            //Log.i(this.name, "ApiError => (link loaded) $linkUrl")
-                        }
+                        success = loadExtractor(
+                            url= linkUrl,
+                            referer = referer,
+                            subtitleCallback = subtitleCallback,
+                            callback = callback
+                        )
                     }
                 }
             }
-            return count > 0
+            return success
         } catch (e: Exception) {
             e.printStackTrace()
             logError(e)

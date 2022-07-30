@@ -6,6 +6,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.extractors.XStreamCdn
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
+import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.HttpSession
 import com.lagradost.cloudstream3.utils.loadExtractor
@@ -205,24 +206,32 @@ class OpJavCom : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         if (data == "about:blank") return false
-        if (data.isEmpty()) return false
+        if (data.isBlank()) return false
 
         var count = 0
-        mapper.readValue<List<String>>(data).forEach { link ->
+        tryParseJson<List<String>>(data)?.forEach { link ->
             val url = fixUrl(link.trim())
             Log.i(this.name, "Result => (url) $url")
             when {
                 url.startsWith("https://opmovie.xyz") -> {
                     val ext = XStreamCdn()
                     ext.domainUrl = "opmovie.xyz"
-                    ext.getSafeUrl(url, url)?.forEach {
-                        Log.i(this.name, "Result => (xtream) ${it.url}")
-                        callback.invoke(it)
-                        count++
-                    }
+                    ext.getSafeUrl(
+                        url = url,
+                        referer = url,
+                        subtitleCallback = subtitleCallback,
+                        callback = callback
+                    )
+                    count++
                 }
                 else -> {
-                    if (loadExtractor(url, mainUrl, callback)) {
+                    val success = loadExtractor(
+                        url = url,
+                        referer = mainUrl,
+                        subtitleCallback = subtitleCallback,
+                        callback = callback
+                    )
+                    if (success) {
                         count++
                     }
                 }

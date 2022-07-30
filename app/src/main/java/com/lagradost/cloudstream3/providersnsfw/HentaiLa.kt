@@ -166,7 +166,13 @@ class HentaiLa:MainAPI() {
                 fetchUrls(videos).map {
                     it.replace("https://embedsb.com/e/","https://watchsb.com/e/")
                 }.toList().apmap {
-                    loadExtractor(it, data, callback)
+                    //loadExtractor(it, data, callback)
+                    loadExtractor(
+                        url = it,
+                        referer = data,
+                        subtitleCallback = subtitleCallback,
+                        callback = callback
+                    )
                 }
                 if (videos.contains("Arc")) {
                     val arcregex = Regex("(https:\\/\\/.*\\.us\\.archive\\.org\\/.*\\/items\\/.*\\/video\\.mp4)")

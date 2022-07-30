@@ -102,14 +102,13 @@ class JKHentai:MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         app.get(data).document.select(".player-content iframe").apmap {
-            val url = it.attr("src")
-            for (extractor in extractorApis) {
-                if (url.startsWith(extractor.mainUrl)) {
-                    extractor.getSafeUrl(url, data)?.apmap { link ->
-                        callback(link)
-                    }
-                }
-            }
+            val url = it?.attr("src") ?: return@apmap null
+            loadExtractor(
+                url = url,
+                referer = data,
+                subtitleCallback = subtitleCallback,
+                callback = callback
+            )
         }
         return true
     }

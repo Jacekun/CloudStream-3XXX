@@ -183,13 +183,22 @@ class JavSubCo : MainAPI() {
                     link.contains("watch-jav") -> {
                         val extractor = FEmbed()
                         extractor.domainUrl = "embedsito.com"
-                        extractor.getSafeUrl(link, mainUrl)?.forEach { it2 ->
-                            callback.invoke(it2)
-                            count++
-                        }
+                        extractor.getSafeUrl(
+                            url = link,
+                            referer = mainUrl,
+                            subtitleCallback = subtitleCallback,
+                            callback = callback
+                        )
+                        count++
                     }
                     else -> {
-                        if (loadExtractor(link, mainUrl, callback)) {
+                        val success = loadExtractor(
+                            url = link,
+                            referer = mainUrl,
+                            subtitleCallback = subtitleCallback,
+                            callback = callback
+                        )
+                        if (success) {
                             count++
                         }
                     }

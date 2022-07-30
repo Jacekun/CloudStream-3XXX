@@ -7,6 +7,7 @@ import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.extractors.WatchSB
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
+import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
@@ -211,29 +212,40 @@ class Javhdicu : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        if (data.isEmpty()) return false
+        if (data.isBlank()) return false
         if (data == "[]") return false
         if (data == "about:blank") return false
 
         var count = 0
-        mapper.readValue<List<String>>(data.trim()).apmap { vid ->
+        tryParseJson<List<String>>(data.trim())?.apmap { vid ->
             Log.i(this.name, "Result => (vid) $vid")
             if (vid.startsWith("http")) {
                 count++
                 when {
                     vid.startsWith("https://javhdfree.icu") -> {
-                        FEmbed().getSafeUrl(vid)?.apmap { item ->
-                            callback.invoke(item)
-                        }
+                        FEmbed().getSafeUrl(
+                            url = vid,
+                            referer = vid,
+                            subtitleCallback = subtitleCallback,
+                            callback = callback
+                        )
                     }
                     vid.startsWith("https://viewsb.com") -> {
                         val url = vid.replace("viewsb.com", "watchsb.com")
-                        WatchSB().getSafeUrl(url)?.apmap { item ->
-                            callback.invoke(item)
-                        }
+                        WatchSB().getSafeUrl(
+                            url = url,
+                            referer = url,
+                            subtitleCallback = subtitleCallback,
+                            callback = callback
+                        )
                     }
                     else -> {
-                        loadExtractor(vid, vid, callback)
+                        loadExtractor(
+                            url = vid,
+                            referer = vid,
+                            subtitleCallback = subtitleCallback,
+                            callback = callback
+                        )
                     }
                 }
             }
