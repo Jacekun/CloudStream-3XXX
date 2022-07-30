@@ -18,6 +18,8 @@ class JavSubCo : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
+    private val prefixTag = "dummyTag" //For use on stream links to differentiate links
+
     data class ResponseMovieDetails(
         @JsonProperty("name") val name: String?,
         @JsonProperty("description") val description: String?,
@@ -92,7 +94,6 @@ class JavSubCo : MainAPI() {
         val body = document.getElementsByTag("body")
 
         // Default values
-        val streamLinks = mutableListOf<String>()
         var title = ""
         var poster : String? = null
         var year : Int? = null
@@ -111,54 +112,40 @@ class JavSubCo : MainAPI() {
         }
         //Log.i(this.name, "Result => (scriptJson) $scriptJson")
 
-        tryParseJson<ResponseMovieDetails>(scriptJson)?.let {
-            val contentUrl = it.contentUrl
-            title = it.name ?: ""
-            poster = it.thumbnailUrl
-            year = it.uploadDate?.take(4)?.toIntOrNull()
-            descript = "Title: ${title} ${System.lineSeparator()} ${it.description}"
-
-            if (!contentUrl.isNullOrBlank()) {
-                streamLinks.add(contentUrl)
-            }
-            Log.i(this.name, "Result => (contentUrl) $contentUrl")
-        }
-
         // Video stream
-        val playerIframes: List<String> = try {
+        val playerIframes: MutableList<String> = try {
             //Note: Fetch all multi-link urls
             document.selectFirst("div.series-listing")?.select("a")?.mapNotNull {
                 it?.attr("href") ?: return@mapNotNull null
-            } ?: listOf()
+            }?.toMutableList() ?: mutableListOf()
         } catch (e: Exception) {
             Log.i(this.name, "Result => Exception (load) $e")
-            listOf()
-        }
-        Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")
-        playerIframes.apmap {
-            val innerDoc = app.get(it).document.selectFirst("script#beeteam368_obj_wes-js-extra")
-            var innerText = innerDoc?.html() ?: ""
-            if (innerText.isNotBlank()) {
-                "(?<=single_video_url\":)(.*)(?=,)".toRegex().find(innerText)
-                    ?.groupValues?.get(0)?.let { iframe ->
-                    innerText = iframe.trim().trim('"')
-                }
-                Jsoup.parse(innerText)?.selectFirst("iframe")?.attr("src")?.let { server ->
-                    val serverLink = server.replace("\\", "").replace("\"", "")
-                    streamLinks.add(serverLink)
-                    Log.i(this.name, "Result => (streamLink add) $serverLink")
-                }
-            }
-            //Log.i(this.name, "Result => (innerText final) $innerText")
+            mutableListOf()
         }
 
-        Log.i(this.name, "Result => (streamLinks) ${streamLinks.toJson()}")
+        // Add additional links
+        // Duplicate links
+//        tryParseJson<ResponseMovieDetails>(scriptJson)?.let {
+//            val contentUrl = it.contentUrl
+//            title = it.name ?: ""
+//            poster = it.thumbnailUrl
+//            year = it.uploadDate?.take(4)?.toIntOrNull()
+//            descript = "Title: $title ${System.lineSeparator()} ${it.description}"
+//
+//            if (!contentUrl.isNullOrBlank()) {
+//                playerIframes.add("$prefixTag$contentUrl")//Raw link without needing to fetch from JavSub API
+//            }
+//            Log.i(this.name, "Result => (contentUrl) $contentUrl")
+//        }
+
+        Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")
+
         return MovieLoadResponse(
             name = title,
             url = url,
             apiName = this.name,
             type = TvType.JAV,
-            dataUrl = streamLinks.toJson(),
+            dataUrl = playerIframes.toJson(),
             posterUrl = poster,
             year = year,
             plot = descript
@@ -173,36 +160,67 @@ class JavSubCo : MainAPI() {
     ): Boolean {
 
         var count = 0
-        tryParseJson<List<String>>(data)?.forEach { link->
+        tryParseJson<List<String>>(data)?.apmap { link ->
             Log.i(this.name, "Result => (link) $link")
-            if (link.isNotBlank()) {
-                when {
-                    link.contains("watch-jav") -> {
-                        val extractor = FEmbed()
-                        extractor.domainUrl = "embedsito.com"
-                        extractor.getSafeUrl(
-                            url = link,
-                            referer = mainUrl,
-                            subtitleCallback = subtitleCallback,
-                            callback = callback
-                        )
-                        count++
-                    }
-                    else -> {
-                        val success = loadExtractor(
-                            url = link,
-                            referer = mainUrl,
-                            subtitleCallback = subtitleCallback,
-                            callback = callback
-                        )
+            if (link.startsWith(prefixTag)) {
+                val linkUrl = link.removePrefix(prefixTag)
+                val success = extractStreamLink(linkUrl, subtitleCallback, callback)
+                if (success) {
+                    count++
+                }
+            }
+            else {
+                val innerDoc =
+                    app.get(link).document.selectFirst("script#beeteam368_obj_wes-js-extra")
+                var innerText = innerDoc?.html() ?: ""
+                if (innerText.isNotBlank()) {
+                    "(?<=single_video_url\":)(.*)(?=,)".toRegex().find(innerText)
+                        ?.groupValues?.get(0)?.let { iframe ->
+                            innerText = iframe.trim().trim('"')
+                        }
+                    Jsoup.parse(innerText)?.selectFirst("iframe")?.attr("src")?.let { server ->
+                        val serverLink = server.replace("\\", "").replace("\"", "")
+                        val success = extractStreamLink(serverLink, subtitleCallback, callback)
                         if (success) {
                             count++
                         }
+                        Log.i(this.name, "Result => (streamLink add) $serverLink")
                     }
                 }
             }
-            //Log.i(this.name, "Result => count: $count")
         }
+        //Log.i(this.name, "Result => count: $count")
         return count > 0
+    }
+
+    private suspend fun extractStreamLink(
+        link: String,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit)
+    : Boolean {
+        if (link.isNotBlank()) {
+            when {
+                link.contains("watch-jav") -> {
+                    val extractor = FEmbed()
+                    extractor.domainUrl = "embedsito.com"
+                    extractor.getSafeUrl(
+                        url = link,
+                        referer = mainUrl,
+                        subtitleCallback = subtitleCallback,
+                        callback = callback
+                    )
+                    return true
+                }
+                else -> {
+                    return loadExtractor(
+                        url = link,
+                        referer = mainUrl,
+                        subtitleCallback = subtitleCallback,
+                        callback = callback
+                    )
+                }
+            }
+        }
+        return false
     }
 }
