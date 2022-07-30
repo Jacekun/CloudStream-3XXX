@@ -222,7 +222,7 @@
     "SoaptwoDayProvider": {
         "name": "Soap2Day",
         "url": "https://secretlink.xyz",
-        "status": 1
+        "status": 0
     },
     "TenshiProvider": {
         "name": "Tenshi.moe",
@@ -241,7 +241,7 @@
     },
     "TwoEmbedProvider": {
         "name": "2Embed",
-        "url": "https://2embed.org",
+        "url": "https://www.2embed.to",
         "status": 1
     },
     "VMoveeProvider": {
@@ -262,6 +262,11 @@
     "VidEmbedProvider": {
         "name": "VidEmbed",
         "url": "https://vidembed.cc",
+        "status": 1
+    },
+    "YomoviesProvider": {
+        "name": "Yomovies",
+        "url": "https://yomovies.vip",
         "status": 1
     },
     "WatchAsianProvider": {

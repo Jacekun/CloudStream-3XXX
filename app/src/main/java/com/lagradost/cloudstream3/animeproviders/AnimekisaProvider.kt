@@ -2,8 +2,6 @@ package com.lagradost.cloudstream3.animeproviders
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.mvvm.normalSafeApiCall
-import com.lagradost.cloudstream3.mvvm.safeApiCall
 import com.lagradost.cloudstream3.mvvm.suspendSafeApiCall
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -74,7 +72,7 @@ class AnimekisaProvider : MainAPI() {
                 val title = it.selectFirst("h3 a")?.text() ?: ""
                 val url = it.selectFirst("a.film-poster-ahref")?.attr("href")
                     ?.replace("watch/", "anime/")?.replace(
-                        Regex("(-episode-(\\d+)\\/\$|-episode-(\\d+)\$|-episode-full|-episode-.*-.(\\/|))"),
+                        Regex("(-episode-(\\d+)/\$|-episode-(\\d+)\$|-episode-full|-episode-.*-.(/|))"),
                         ""
                     ) ?: return@mapNotNull null
                 val poster = it.selectFirst(".film-poster img")?.attr("data-src")
@@ -126,7 +124,7 @@ class AnimekisaProvider : MainAPI() {
     ): Boolean {
         app.get(data).document.select("#servers-list ul.nav li a").apmap {
             val server = it.attr("data-embed")
-            loadExtractor(server, data, callback)
+            loadExtractor(server, data, subtitleCallback, callback)
         }
         return true
     }

@@ -21,7 +21,13 @@
         "language": "it",
         "name": "Altadefinizione",
         "status": 1,
-        "url": "https://altadefinizione.hair"
+        "url": "https://altadefinizione.tienda"
+    },
+    "AniPlayProvider": {
+        "language": "it",
+        "name": "AniPlay",
+        "status": 1,
+        "url": "https://aniplay.it"
     },
     "AniflixProvider": {
         "language": "en",
@@ -46,6 +52,18 @@
         "name": "AnimePahe",
         "status": 0,
         "url": "https://animepahe.com"
+    },
+    "AnimeSailProvider": {
+        "language": "id",
+        "name": "AnimeSail",
+        "status": 1,
+        "url": "https://111.90.143.42"
+    },
+    "AnimeSaturnProvider": {
+        "language": "it",
+        "name": "AnimeSaturn",
+        "status": 1,
+        "url": "https://www.animesaturn.cc"
     },
     "AnimeWorldProvider": {
         "language": "it",
@@ -100,10 +118,16 @@
         "status": 1,
         "url": "https://bflix.ru"
     },
+    "CimaNowProvider": {
+        "language": "ar",
+        "name": "CimaNow",
+        "status": 1,
+        "url": "https://cimanow.cc"
+    },
     "CineblogProvider": {
         "language": "it",
         "name": "CineBlog",
-        "status": 0,
+        "status": 1,
         "url": "https://cb01.rip"
     },
     "CinecalidadProvider": {
@@ -197,8 +221,8 @@
     "FilmpertuttiProvider": {
         "language": "it",
         "name": "Filmpertutti",
-        "status": 0,
-        "url": "https://www.filmpertutti.love"
+        "status": 1,
+        "url": "https://filmpertutti.love"
     },
     "FmoviesToProvider": {
         "language": "en",
@@ -240,7 +264,7 @@
         "language": "ru",
         "name": "HDrezka",
         "status": 1,
-        "url": "https://rezka.ag"
+        "url": "https://hdrezka19139.org"
     },
     "IHaveNoTvProvider": {
         "language": "en",
@@ -459,7 +483,7 @@
     "SoaptwoDayProvider": {
         "language": "en",
         "name": "Soap2Day",
-        "status": 1,
+        "status": 0,
         "url": "https://secretlink.xyz"
     },
     "SolarmovieProvider": {
@@ -472,13 +496,13 @@
         "language": "it",
         "name": "Streamingcommunity",
         "status": 1,
-        "url": "https://streamingcommunity.org"
+        "url": "https://streamingcommunity.best"
     },
     "TantifilmProvider": {
         "language": "it",
         "name": "Tantifilm",
         "status": 1,
-        "url": "https://www.tantifilm.pics"
+        "url": "https://www.tantifilm.nl"
     },
     "TenshiProvider": {
         "language": "en",
@@ -489,8 +513,14 @@
     "TheFlixToProvider": {
         "language": "en",
         "name": "TheFlix.to",
-        "status": 1,
+        "status": 0,
         "url": "https://theflix.to"
+    },
+    "TocanimeProvider": {
+        "language": "vi",
+        "name": "Tocanime",
+        "status": 1,
+        "url": "https://tocanime.co"
     },
     "TrailersTwoProvider": {
         "language": "en",
@@ -502,7 +532,7 @@
         "language": "en",
         "name": "2Embed",
         "status": 1,
-        "url": "https://2embed.org"
+        "url": "https://www.2embed.to"
     },
     "UakinoProvider": {
         "language": "uk",
@@ -563,6 +593,12 @@
         "name": "Xcine",
         "status": 1,
         "url": "https://xcine.me"
+    },
+    "YomoviesProvider": {
+        "language": "hi",
+        "name": "Yomovies",
+        "status": 1,
+        "url": "https://yomovies.vip"
     },
     "ZoroProvider": {
         "language": "en",

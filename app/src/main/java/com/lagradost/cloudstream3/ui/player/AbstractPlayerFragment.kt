@@ -228,12 +228,13 @@ abstract class AbstractPlayerFragment(
 
     open fun playerError(exception: Exception) {
         fun showToast(message: String, gotoNext: Boolean = false) {
-            if (!gotoNext || hasNextMirror()) {
+            if (gotoNext && hasNextMirror()) {
                 showToast(
                     activity,
                     message,
                     Toast.LENGTH_SHORT
                 )
+                nextMirror()
             } else {
                 showToast(
                     activity,
@@ -374,6 +375,7 @@ abstract class AbstractPlayerFragment(
             subView = player_view?.findViewById(R.id.exo_subtitles)
             subStyle = SubtitlesFragment.getCurrentSavedStyle()
             player.initSubtitles(subView, subtitle_holder, subStyle)
+
             SubtitlesFragment.applyStyleEvent += ::onSubStyleChanged
 
             try {

@@ -2,12 +2,12 @@ package com.lagradost.cloudstream3.animeproviders
 
 import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addAniListId
 import com.lagradost.cloudstream3.LoadResponse.Companion.addMalId
 import com.lagradost.cloudstream3.movieproviders.SflixProvider.Companion.extractRabbitStream
 import com.lagradost.cloudstream3.movieproviders.SflixProvider.Companion.runSflixExtractorVerifierJob
+import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.Coroutines.ioSafe
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -55,17 +55,18 @@ class ZoroProvider : MainAPI() {
     private fun Element.toSearchResult(): SearchResponse? {
         val href = fixUrl(this.select("a").attr("href"))
         val title = this.select("h3.film-name").text()
-            val dubSub = this.select(".film-poster > .tick.ltr").text()
+        val dubSub = this.select(".film-poster > .tick.ltr").text()
         //val episodes = this.selectFirst(".film-poster > .tick-eps")?.text()?.toIntOrNull()
 
         val dubExist = dubSub.contains("dub", ignoreCase = true)
         val subExist = dubSub.contains("sub", ignoreCase = true)
-        val episodes = this.selectFirst(".film-poster > .tick.rtl > .tick-eps")?.text()?.let { eps ->
-            //println("REGEX:::: $eps")
-            // current episode / max episode
-            //Regex("Ep (\\d+)/(\\d+)")
-            epRegex.find(eps)?.groupValues?.get(1)?.toIntOrNull()
-        }
+        val episodes =
+            this.selectFirst(".film-poster > .tick.rtl > .tick-eps")?.text()?.let { eps ->
+                //println("REGEX:::: $eps")
+                // current episode / max episode
+                //Regex("Ep (\\d+)/(\\d+)")
+                epRegex.find(eps)?.groupValues?.get(1)?.toIntOrNull()
+            }
         if (href.contains("/news/") || title.trim().equals("News", ignoreCase = true)) return null
         val posterUrl = fixUrl(this.select("img").attr("data-src"))
         val type = getType(this.select("div.fd-infor > span.fdi-item").text())
@@ -209,7 +210,7 @@ class ZoroProvider : MainAPI() {
         val animeId = URI(url).path.split("-").last()
 
         val episodes = Jsoup.parse(
-            mapper.readValue<Response>(
+            parseJson<Response>(
                 app.get(
                     "$mainUrl/ajax/v2/episode/list/$animeId"
                 ).text
@@ -222,7 +223,7 @@ class ZoroProvider : MainAPI() {
         }
 
         val actors = document.select("div.block-actors-content > div.bac-list-wrap > div.bac-item")
-            ?.mapNotNull { head ->
+            .mapNotNull { head ->
                 val subItems = head.select(".per-info") ?: return@mapNotNull null
                 if (subItems.isEmpty()) return@mapNotNull null
                 var role: ActorRole? = null
@@ -346,7 +347,7 @@ class ZoroProvider : MainAPI() {
                 link,
             ).parsed<RapidCloudResponse>().link
             val hasLoadedExtractorLink =
-                loadExtractor(extractorLink, "https://rapid-cloud.ru/", callback)
+                loadExtractor(extractorLink, "https://rapid-cloud.ru/", subtitleCallback, callback)
 
             if (!hasLoadedExtractorLink) {
                 extractRabbitStream(

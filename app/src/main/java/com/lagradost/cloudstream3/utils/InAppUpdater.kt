@@ -69,9 +69,6 @@ class InAppUpdater {
             @JsonProperty("updateNodeId") val updateNodeId: String?
         )
 
-        private val mapper = JsonMapper.builder().addModule(KotlinModule())
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
-
         private fun Activity.getAppUpdate(): Update {
             return try {
                 val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
@@ -89,6 +86,7 @@ class InAppUpdater {
         private fun Activity.getReleaseUpdate(): Update {
             val debugTAG = "ApiError"
             val url = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases/latest"
+            val headers = mapOf("Accept" to "application/vnd.github.v3+json")
             var currentVersionCode = 0L
             var latestVersionCode = 0
             var shouldUpdate = false
@@ -104,7 +102,7 @@ class InAppUpdater {
             Log.i(debugTAG, "(currentVersion) $currentVersionCode")
 
             runBlocking {
-                app.get(url).text.let { jsonText ->
+                app.get(url, headers = headers).text.let { jsonText ->
                     parseJson<GithubRelease>(jsonText).let { response ->
                         latestVersionCode = response.tag_name.replace("jav_r", "").trim().toIntOrNull() ?: 0
                         shouldUpdate = latestVersionCode > currentVersionCode
@@ -127,7 +125,7 @@ class InAppUpdater {
             val releaseUrl = "https://api.github.com/repos/Jacekun/CloudStream-3XXX/releases"
             val headers = mapOf("Accept" to "application/vnd.github.v3+json")
             val response =
-                mapper.readValue<List<GithubRelease>>(app.get(releaseUrl, headers = headers).text)
+                parseJson<List<GithubRelease>>(app.get(releaseUrl, headers = headers).text)
 
             val found =
                 response.lastOrNull { rel ->
@@ -136,7 +134,7 @@ class InAppUpdater {
             val foundAsset = found?.assets?.getOrNull(0)
 
             val tagResponse =
-                mapper.readValue<GithubTag>(app.get(tagUrl, headers = headers).text)
+                parseJson<GithubTag>(app.get(tagUrl, headers = headers).text)
 
             val shouldUpdate =
                 (getString(R.string.prerelease_commit_hash) != tagResponse.github_object.sha)

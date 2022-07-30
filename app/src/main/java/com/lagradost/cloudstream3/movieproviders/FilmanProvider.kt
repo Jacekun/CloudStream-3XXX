@@ -2,8 +2,9 @@ package com.lagradost.cloudstream3.movieproviders
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 
@@ -18,12 +19,11 @@ class FilmanProvider : MainAPI() {
     )
 
     override suspend fun getMainPage(): HomePageResponse {
-        val response = app.get(mainUrl).text
-        val document = Jsoup.parse(response)
-        val lists = document.select(".item-list,.series-list")
+        val document = app.get(mainUrl).document
+        val lists = document.select("#item-list,#series-list")
         val categories = ArrayList<HomePageList>()
         for (l in lists) {
-            val title = l.parent()!!.select("h3").text()
+            val title = capitalizeString(l.parent()!!.select("h3").text().lowercase())
             val items = l.select(".poster").map { i ->
                 val name = i.select("a[href]").attr("title")
                 val href = i.select("a[href]").attr("href")
@@ -53,17 +53,18 @@ class FilmanProvider : MainAPI() {
 
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/wyszukiwarka?phrase=$query"
-        val response = app.get(url).text
-        val document = Jsoup.parse(response)
+        val document = app.get(url).document
         val lists = document.select("#advanced-search > div")
-        val movies = lists[1].select(".item")
-        val series = lists[3].select(".item")
+        val movies = lists[1].select("#item-list > div:not(.clearfix)")
+        val series = lists[3].select("#item-list > div:not(.clearfix)")
         if (movies.isEmpty() && series.isEmpty()) return ArrayList()
         fun getVideos(type: TvType, items: Elements): List<SearchResponse> {
-            return items.map { i ->
-                val href = i.attr("href")
-                val img = i.selectFirst("> img")!!.attr("src").replace("/thumb/", "/big/")
-                val name = i.selectFirst(".title")!!.text()
+            return items.mapNotNull { i ->
+                val href = i.selectFirst(".poster > a")?.attr("href") ?: return@mapNotNull null
+                val img =
+                    i.selectFirst(".poster > a > img")?.attr("src")?.replace("/thumb/", "/big/")
+                val name = i.selectFirst(".film_title")?.text() ?: return@mapNotNull null
+                val year = i.selectFirst(".film_year")?.text()?.toIntOrNull()
                 if (type === TvType.TvSeries) {
                     TvSeriesSearchResponse(
                         name,
@@ -71,11 +72,11 @@ class FilmanProvider : MainAPI() {
                         this.name,
                         type,
                         img,
-                        null,
+                        year,
                         null
                     )
                 } else {
-                    MovieSearchResponse(name, href, this.name, type, img, null)
+                    MovieSearchResponse(name, href, this.name, type, img, year)
                 }
             }
         }
@@ -83,8 +84,7 @@ class FilmanProvider : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val document = Jsoup.parse(response)
+        val document = app.get(url).document
         val documentTitle = document.select("title").text().trim()
 
         if (documentTitle.startsWith("Logowanie")) {
@@ -94,7 +94,7 @@ class FilmanProvider : MainAPI() {
         var title = document.select("span[itemprop=title]").text()
         val data = document.select("#links").outerHtml()
         val posterUrl = document.select("#single-poster > img").attr("src")
-        val year = document.select(".info > ul li").getOrNull(0)?.text()?.toIntOrNull()
+        val year = document.select(".info > ul > li").getOrNull(1)?.text()?.toIntOrNull()
         val plot = document.select(".description").text()
         val episodesElements = document.select("#episode-list a[href]")
         if (episodesElements.isEmpty()) {
@@ -138,7 +138,7 @@ class FilmanProvider : MainAPI() {
         document?.select(".link-to-video")?.apmap { item ->
             val decoded = base64Decode(item.select("a").attr("data-iframe"))
             val link = tryParseJson<LinkElement>(decoded)?.src ?: return@apmap
-            loadExtractor(link, null, callback)
+            loadExtractor(link, subtitleCallback, callback)
         }
         return true
     }

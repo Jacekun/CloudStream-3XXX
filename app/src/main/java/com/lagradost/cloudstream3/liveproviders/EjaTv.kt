@@ -1,16 +1,14 @@
 package com.lagradost.cloudstream3.liveproviders
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.nodes.Element
-import org.jsoup.select.Elements
 
 class EjaTv : MainAPI() {
-    override var mainUrl = "https://eja.tv/"
+    override var mainUrl = "https://eja.tv"
     override var name = "Eja.tv"
 
     // Universal language?
@@ -22,18 +20,20 @@ class EjaTv : MainAPI() {
         TvType.Live
     )
 
-    private fun Element.toSearchResponse(): MovieSearchResponse? {
+    private fun Element.toSearchResponse(): LiveSearchResponse? {
         val link = this.select("div.alternative a").last() ?: return null
         val href = fixUrl(link.attr("href"))
-        val img = this.select("div.thumb img")
-
-        return MovieSearchResponse(
+        val img = this.selectFirst("div.thumb img")
+        val lang = this.selectFirst(".card-title > a")?.attr("href")?.removePrefix("?country=")
+            ?.replace("int", "eu") //international -> European Union 🇪🇺
+        return LiveSearchResponse(
             // Kinda hack way to get the title
-            img.attr("alt").replaceFirst("Watch ", ""),
+            img?.attr("alt")?.replaceFirst("Watch ", "") ?: return null,
             href,
             this@EjaTv.name,
             TvType.Live,
-            fixUrl(img.attr("src"))
+            fixUrl(img.attr("src")),
+            lang = lang
         )
     }
 
@@ -52,7 +52,8 @@ class EjaTv : MainAPI() {
             }
             HomePageList(
                 title,
-                shows
+                shows,
+                isHorizontalImages = true
             )
         })
     }

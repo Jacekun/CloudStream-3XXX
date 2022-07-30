@@ -191,8 +191,8 @@ object BackupUtils {
                         "content/unknown",
                     )
                 )
-            } catch (e : Exception) {
-                showToast(this,e.message)
+            } catch (e: Exception) {
+                showToast(this, e.message)
                 logError(e)
             }
         }
