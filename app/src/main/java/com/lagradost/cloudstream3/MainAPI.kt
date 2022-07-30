@@ -169,6 +169,7 @@ object APIHolder {
             JKHentai(),
             Hanime(),
             HahoMoe(),
+            JavFreeSh(),
         )
 
 

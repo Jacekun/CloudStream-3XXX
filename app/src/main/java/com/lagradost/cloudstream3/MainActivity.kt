@@ -567,7 +567,6 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
         if (nsfwAllowSearchOnlySites) {
             apis = apis + listOf(
                 JavTubeWatch(),
-                JavFreeSh(),
                 JavGuru(),
                 HpJavTv(),
                 JavMost(),
