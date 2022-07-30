@@ -123,20 +123,21 @@ class JavSubCo : MainAPI() {
             mutableListOf()
         }
 
-        // Add additional links
-        // Duplicate links
-//        tryParseJson<ResponseMovieDetails>(scriptJson)?.let {
-//            val contentUrl = it.contentUrl
-//            title = it.name ?: ""
-//            poster = it.thumbnailUrl
-//            year = it.uploadDate?.take(4)?.toIntOrNull()
-//            descript = "Title: $title ${System.lineSeparator()} ${it.description}"
-//
-//            if (!contentUrl.isNullOrBlank()) {
-//                playerIframes.add("$prefixTag$contentUrl")//Raw link without needing to fetch from JavSub API
-//            }
-//            Log.i(this.name, "Result => (contentUrl) $contentUrl")
-//        }
+        // JAV Info
+        tryParseJson<ResponseMovieDetails>(scriptJson)?.let {
+            val contentUrl = it.contentUrl
+            title = it.name ?: ""
+            poster = it.thumbnailUrl
+            year = it.uploadDate?.take(4)?.toIntOrNull()
+            descript = "Title: $title ${System.lineSeparator()} ${it.description}"
+
+            // Add additional links
+            if (!contentUrl.isNullOrBlank()) {
+                //Raw link without needing to fetch from JavSub API
+                //playerIframes.add("$prefixTag$contentUrl")
+            }
+            //Log.i(this.name, "Result => (contentUrl) $contentUrl")
+        }
 
         Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")
 
