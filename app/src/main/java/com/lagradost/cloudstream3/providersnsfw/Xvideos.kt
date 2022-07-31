@@ -1,6 +1,7 @@
 package com.lagradost.cloudstream3.providersnsfw
 
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.*
 import java.util.*
 
@@ -12,44 +13,43 @@ class Xvideos:MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
 
+    override val mainPage = mainPageOf(
+        "$mainUrl/new/" to "Main Page",
+    )
+
     override suspend fun getMainPage(
         page: Int,
         categoryName: String,
         categoryData: String
     ): HomePageResponse {
         val items = ArrayList<HomePageList>()
-        val urls = listOf(
-            Pair(mainUrl, "Trending Now"),
-            //Pair("$mainUrl/best", "Best"),
-            Pair("$mainUrl/tags/jav", "JAV"),
-        )
-        for (i in urls) {
-            try {
-                val soup = app.get(i.first).document
-                val home = soup.select("div.thumb-block").mapNotNull {
-                    if (it == null) { return@mapNotNull null }
-                    val title = it.selectFirst("p.title a")?.text() ?: ""
-                    val link = fixUrlNull(it.selectFirst("div.thumb a")?.attr("href")) ?: return@mapNotNull null
-                    val image = it.selectFirst("div.thumb a img")?.attr("data-src")
-                    MovieSearchResponse(
-                        name = title,
-                        url = link,
-                        apiName = this.name,
-                        type = TvType.XXX,
-                        posterUrl = image,
-                        year = null
-                    )
-                }
-                items.add(
-                    HomePageList(
-                        name = i.second,
-                        list = home,
-                        isHorizontalImages = true
-                    )
+        val pagedLink = categoryData + page
+        try {
+            val soup = app.get(pagedLink).document
+            val home = soup.select("div.thumb-block").mapNotNull {
+                if (it == null) { return@mapNotNull null }
+                val title = it.selectFirst("p.title a")?.text() ?: ""
+                val link = fixUrlNull(it.selectFirst("div.thumb a")?.attr("href")) ?: return@mapNotNull null
+                val image = it.selectFirst("div.thumb a img")?.attr("data-src")
+                MovieSearchResponse(
+                    name = title,
+                    url = link,
+                    apiName = this.name,
+                    type = TvType.XXX,
+                    posterUrl = image,
+                    year = null
                 )
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+            items.add(
+                HomePageList(
+                    name = categoryName,
+                    list = home,
+                    isHorizontalImages = true
+                )
+            )
+        } catch (e: Exception) {
+            //e.printStackTrace()
+            logError(e)
         }
 
         if (items.size <= 0) throw ErrorLoadingException()
