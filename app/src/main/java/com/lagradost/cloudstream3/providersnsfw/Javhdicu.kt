@@ -30,6 +30,7 @@ class Javhdicu : MainAPI() {
         categoryName: String,
         categoryData: String
     ): HomePageResponse {
+        val homePageList = mutableListOf<HomePageList>()
         val pagedlink = if (page > 0) categoryData + page else categoryData
         val document = app.get(pagedlink).document
         val all = ArrayList<HomePageList>()
@@ -76,15 +77,20 @@ class Javhdicu : MainAPI() {
             }.distinctBy { a -> a.url }
 
             if (elements.isNotEmpty()) {
-                return newHomePageResponse(
-                    list = HomePageList(
+                homePageList.add(
+                    HomePageList(
                         name = title,
                         list = elements,
                         isHorizontalImages = true
-                    ),
-                    hasNext = true
+                    )
                 )
             }
+        }
+        if (homePageList.isNotEmpty()) {
+            return newHomePageResponse(
+                list = homePageList,
+                hasNext = true
+            )
         }
         throw ErrorLoadingException("No homepage data found!")
     }

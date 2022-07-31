@@ -28,45 +28,56 @@ class JavSubCo : MainAPI() {
         @JsonProperty("contentUrl") val contentUrl: String?
     )
 
+    override val mainPage = mainPageOf(
+        "$mainUrl/page/" to "Main Page",
+    )
+
     override suspend fun getMainPage(
         page: Int,
         categoryName: String,
         categoryData: String
     ): HomePageResponse {
-        val document = app.get(mainUrl).document
 
-        return HomePageResponse(
-        document.select("main#main-content").map { it2 ->
-                val title = "Homepage"
-                val inner = it2?.select("article > div.post-item-wrap") ?: return@map null
-                //Log.i(this.name, "inner => $inner")
-                val elements: List<SearchResponse> = inner.mapNotNull {
-                    //Log.i(this.name, "Inner content => $innerArticle")
-                    val innerA = it.selectFirst("div.blog-pic-wrap > a")?: return@mapNotNull null
-                    val link = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
+        val pagedlink = if (page > 0) categoryData + page else categoryData
+        val document = app.get(pagedlink).document
+        val homepage = document.select("main#main-content").map { it2 ->
+            val inner = it2?.select("article > div.post-item-wrap") ?: return@map null
+            //Log.i(this.name, "inner => $inner")
+            val elements: List<SearchResponse> = inner.mapNotNull {
+                //Log.i(this.name, "Inner content => $innerArticle")
+                val innerA = it.selectFirst("div.blog-pic-wrap > a")?: return@mapNotNull null
+                val link = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
 
-                    val imgArticle = innerA.selectFirst("img")
-                    val name = innerA.attr("title") ?: imgArticle?.attr("alt") ?: "<No Title>"
-                    val image = imgArticle?.attr("data-src")
-                    val year = null
-                    //Log.i(this.name, "image => $image")
+                val imgArticle = innerA.selectFirst("img")
+                val name = innerA.attr("title") ?: imgArticle?.attr("alt") ?: "<No Title>"
+                val image = imgArticle?.attr("data-src")
+                val year = null
+                //Log.i(this.name, "image => $image")
 
-                    MovieSearchResponse(
-                        name = name,
-                        url = link,
-                        apiName = this.name,
-                        type = TvType.JAV,
-                        posterUrl = image,
-                        year = year
-                    )
-                }.distinctBy { a -> a.url }
-
-                HomePageList(
-                    name = title,
-                    list = elements,
-                    isHorizontalImages = true
+                MovieSearchResponse(
+                    name = name,
+                    url = link,
+                    apiName = this.name,
+                    type = TvType.JAV,
+                    posterUrl = image,
+                    year = year
                 )
-            }.filterNotNull().filter { a -> a.list.isNotEmpty() } )
+            }.distinctBy { a -> a.url }
+
+            HomePageList(
+                name = categoryName,
+                list = elements,
+                isHorizontalImages = true
+            )
+        }.filterNotNull().filter { a -> a.list.isNotEmpty() }
+
+        if (homepage.isNotEmpty()) {
+            return newHomePageResponse(
+                list = homepage,
+                hasNext = true
+            )
+        }
+        throw ErrorLoadingException("No homepage data found!")
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
