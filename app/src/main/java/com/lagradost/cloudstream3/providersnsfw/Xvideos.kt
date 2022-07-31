@@ -12,11 +12,15 @@ class Xvideos:MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val urls = listOf(
             Pair(mainUrl, "Trending Now"),
-            Pair("$mainUrl/best", "Best"),
+            //Pair("$mainUrl/best", "Best"),
             Pair("$mainUrl/tags/jav", "JAV"),
         )
         for (i in urls) {

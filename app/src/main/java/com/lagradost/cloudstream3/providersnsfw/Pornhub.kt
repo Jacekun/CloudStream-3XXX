@@ -15,7 +15,11 @@ class Pornhub:MainAPI() {
     override val vpnStatus = VPNStatus.MightBeNeeded //Cause it's a big site
     override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val urls = listOf(
             Pair(mainUrl, "Trending Now"),

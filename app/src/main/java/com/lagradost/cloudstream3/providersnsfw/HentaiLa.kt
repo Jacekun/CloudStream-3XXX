@@ -16,7 +16,11 @@ class HentaiLa:MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.Hentai)
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val urls = listOf(
             Pair("$mainUrl/directorio", "Hentais"),
             Pair("$mainUrl/directorio?filter=popular", "Populares"),

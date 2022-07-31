@@ -81,8 +81,11 @@ class Hanime : MainAPI() {
         return null
     }
 
-    override suspend fun getMainPage(): HomePageResponse {
-
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
 
         val data = app.get("https://hanime.tv/").text
         val jsonText = Regex("""window\.__NUXT__=(.*?);</script>""").find(data)!!.destructured.component1()

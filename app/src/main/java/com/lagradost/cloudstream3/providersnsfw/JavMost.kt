@@ -12,7 +12,11 @@ class JavMost : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()

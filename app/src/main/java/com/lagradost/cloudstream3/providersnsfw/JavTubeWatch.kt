@@ -13,7 +13,11 @@ class JavTubeWatch : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val document = app.get(mainUrl).document
         val all = ArrayList<HomePageList>()
 

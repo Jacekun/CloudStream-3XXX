@@ -30,7 +30,11 @@ class JavFreeSh : MainAPI() {
 
     fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free").removeSuffix("HD Free Online on JAVFree.SH").trim()
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()

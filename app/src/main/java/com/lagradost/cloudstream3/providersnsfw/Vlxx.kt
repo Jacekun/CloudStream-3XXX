@@ -31,7 +31,11 @@ class Vlxx : MainAPI() {
         return resp
     }
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val document = getPage(mainUrl, mainUrl).document
         val all = ArrayList<HomePageList>()
         val title = "Homepage"

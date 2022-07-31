@@ -88,7 +88,11 @@ class KrunchyProvider : MainAPI() {
         TvType.OVA
     )
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
         val urls = listOf(
             Pair("$mainUrl/videos/anime/popular/ajax_page?pg=1", "Popular 1"),
             Pair("$mainUrl/videos/anime/popular/ajax_page?pg=2", "Popular 2"),
