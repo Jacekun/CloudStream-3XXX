@@ -20,6 +20,8 @@ class OpJavCom : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
+    val prefix = "Watch JAV"
+
     override suspend fun getMainPage(): HomePageResponse {
         val document = app.get(mainUrl).document
         val all = ArrayList<HomePageList>()
@@ -44,20 +46,20 @@ class OpJavCom : MainAPI() {
             val title = "Row $count"
             val isSimple = row.first == selectorSimple
             val entries = row.second.select(row.first)
-            val elements = entries?.mapNotNull {
+            val elements = entries.mapNotNull {
                 if (it == null) { return@mapNotNull null }
-                var link = ""
-                var name = ""
-                var image : String? = null
+                val link: String
+                val name: String
+                val image : String?
                 var year : Int? = null
 
                 if (isSimple) {
                     //Simple load
                     val inner = it.select("div.info") ?: return@mapNotNull null
-                    link = fixUrlNull(inner.select("a")?.get(0)?.attr("href")) ?: return@mapNotNull null
+                    link = fixUrlNull(inner.select("a").get(0)?.attr("href")) ?: return@mapNotNull null
                     name = inner.text().trim()
                     val imgsrc = it.select("img")
-                    image = imgsrc?.attr("src") ?: imgsrc?.attr("data-src")
+                    image = imgsrc.attr("src") ?: imgsrc.attr("data-src")
                 } else {
                     val inner = it.select("div.inner") ?: return@mapNotNull null
                     val poster = inner.select("a.poster") ?: return@mapNotNull null
@@ -74,11 +76,12 @@ class OpJavCom : MainAPI() {
                     posterUrl = image,
                     year = year
                 )
-            }?.distinctBy { a -> a.url } ?: listOf()
+            }.distinctBy { a -> a.url }
             if (elements.isNotEmpty()) {
                 all.add(
                     HomePageList(
-                        title, elements
+                        name = title,
+                        list = elements
                     )
                 )
             }
@@ -92,14 +95,14 @@ class OpJavCom : MainAPI() {
             .select("div.block-body > div.list-film.row > div")
             //.select("div.item.col-lg-3.col-md-3.col-sm-6.col-xs-6")
         //Log.i(this.name, "Result => (document) ${document}")
-        return document?.mapNotNull {
+        return document.mapNotNull {
             val inner = it.select("div.inner") ?: return@mapNotNull null
             val innerPost = inner.select("a.poster") ?: return@mapNotNull null
 
             val link = fixUrlNull(innerPost.attr("href")) ?: return@mapNotNull null
-            val title = innerPost.attr("title")?.trim() ?: "<No Title found>"
+            val title = innerPost.attr("title").trim().removePrefix(prefix).trim()
             val imgsrc = innerPost.select("img")
-            val image = fixUrlNull(imgsrc?.attr("src") ?: imgsrc?.attr("data-src"))
+            val image = fixUrlNull(imgsrc.attr("src") ?: imgsrc.attr("data-src"))
             val year = inner.select("dfn").last()?.text()?.trim()?.toIntOrNull()
 
             //Log.i(this.name, "Result => $")
@@ -111,32 +114,32 @@ class OpJavCom : MainAPI() {
                 posterUrl = image,
                 year = year
             )
-        }?.distinctBy { it.url } ?: listOf()
+        }.distinctBy { it.url }
     }
 
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
         //Log.i(this.name, "Result => (url) ${url}")
-        val poster = fixUrlNull(doc.select("meta[itemprop=image]")?.get(1)?.attr("content")?.trim())
-        val title = doc.selectFirst("meta[property=og:title]")?.attr("content").toString()
+        val poster = fixUrlNull(doc.select("meta[itemprop=image]").get(1)?.attr("content")?.trim())
+        val title = doc.selectFirst("meta[property=og:title]")?.attr("content").toString().removePrefix(prefix).trim()
         val descript = "Title: $title ${System.lineSeparator()}" + doc.selectFirst("meta[name=keywords]")?.attr("content")?.trim()
         val year = doc.selectFirst("meta[itemprop=dateCreated]")?.attr("content")?.toIntOrNull()
 
-        val tags = doc.select("dl > dd")?.get(1)?.select("a")?.mapNotNull {
+        val tags = doc.select("dl > dd").get(1)?.select("a")?.mapNotNull {
             //Log.i(this.name, "Result => (tag) $it")
             it?.text()?.trim() ?: return@mapNotNull null
         }
 
         //Fetch server links
         val watchlink = ArrayList<String>()
-        val mainLink = doc.select("div.buttons.row a")?.attr("href") ?: ""
+        val mainLink = doc.select("div.buttons.row a").attr("href") ?: ""
         //Log.i(this.name, "Result => (mainLink) $mainLink")
 
         //Fetch episode links from mainlink
         if (mainLink.isNotBlank()) {
-            val epsDoc = app.get(url = mainLink, referer = mainUrl).document
-            //Fetch filmId
-            /*var filmId = ""
+            app.get(url = mainLink, referer = mainUrl).document.let { epsDoc ->
+                //Fetch filmId
+                /*var filmId = ""
         val epLinkDoc = epsDoc.getElementsByTag("head").select("script").toString()
         //Log.i(this.name, "Result => (epLinkDoc) $epLinkDoc")
         try {
@@ -150,35 +153,37 @@ class OpJavCom : MainAPI() {
                 Log.i(this.name, "Result => (filmId) $filmId")
             }
         } catch (e: Exception) { }*/
-            //Fetch server links
-            epsDoc.select("div.block.servers li")?.mapNotNull {
-                val inner = it?.selectFirst("a") ?: return@mapNotNull null
-                val linkUrl = inner.attr("href") ?: return@mapNotNull null
-                val linkId = inner.attr("id") ?: return@mapNotNull null
-                Pair(linkUrl, linkId)
-            }?.apmap {
-                //First = Url, Second = EpisodeID
-                //Log.i(this.name, "Result => (eplink-Id) $it")
-                val ajaxHead = mapOf(
-                    Pair("Origin", mainUrl),
-                    Pair("Referer", it.first)
-                )
-                //https://opjav.com/movie/War%20of%20the%20Roses-64395/watch-movie.html
-                //EpisodeID, 442671
-                //filmID, 64395
-                val ajaxData = mapOf(
-                    Pair("NextEpisode", "1"),
-                    Pair("EpisodeID", it.second)
-                    //Pair("filmID", filmId)
-                )
-                val sess = HttpSession()
-                val respAjax = sess.post("$mainUrl/ajax", headers = ajaxHead, data = ajaxData).text
-                //Log.i(this.name, "Result => (respAjax text) $respAjax")
-                Jsoup.parse(respAjax).select("iframe")?.forEach { iframe ->
-                    val serverLink = iframe?.attr("src")?.trim()
-                    if (!serverLink.isNullOrBlank()) {
-                        watchlink.add(serverLink)
-                        Log.i(this.name, "Result => (serverLink) $serverLink")
+                //Fetch server links
+                epsDoc.select("div.block.servers li").mapNotNull {
+                    val inner = it?.selectFirst("a") ?: return@mapNotNull null
+                    val linkUrl = inner.attr("href") ?: return@mapNotNull null
+                    val linkId = inner.attr("id") ?: return@mapNotNull null
+                    Pair(linkUrl, linkId)
+                }.apmap {
+                    //First = Url, Second = EpisodeID
+                    //Log.i(this.name, "Result => (eplink-Id) $it")
+                    val ajaxHead = mapOf(
+                        Pair("Origin", mainUrl),
+                        Pair("Referer", it.first)
+                    )
+                    //https://opjav.com/movie/War%20of%20the%20Roses-64395/watch-movie.html
+                    //EpisodeID, 442671
+                    //filmID, 64395
+                    val ajaxData = mapOf(
+                        Pair("NextEpisode", "1"),
+                        Pair("EpisodeID", it.second)
+                        //Pair("filmID", filmId)
+                    )
+                    val sess = HttpSession()
+                    val respAjax =
+                        sess.post("$mainUrl/ajax", headers = ajaxHead, data = ajaxData).text
+                    //Log.i(this.name, "Result => (respAjax text) $respAjax")
+                    Jsoup.parse(respAjax).select("iframe").forEach { iframe ->
+                        val serverLink = iframe?.attr("src")?.trim()
+                        if (!serverLink.isNullOrBlank()) {
+                            watchlink.add(serverLink)
+                            Log.i(this.name, "Result => (serverLink) $serverLink")
+                        }
                     }
                 }
             }
