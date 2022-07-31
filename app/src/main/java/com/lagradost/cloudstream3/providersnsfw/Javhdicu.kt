@@ -19,14 +19,21 @@ class Javhdicu : MainAPI() {
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
 
+    override val mainPage = mainPageOf(
+        "$mainUrl/page/" to "Main Page",
+    )
+
+    val prefix = "JAV HD"
+
     override suspend fun getMainPage(
         page: Int,
         categoryName: String,
         categoryData: String
     ): HomePageResponse {
-        val document = app.get(mainUrl).document
+        val pagedlink = if (page > 0) categoryData + page else categoryData
+        val document = app.get(pagedlink).document
         val all = ArrayList<HomePageList>()
-        val mainbody = document.getElementsByTag("body")?.select("div.container")
+        val mainbody = document.getElementsByTag("body").select("div.container")
         //Log.i(this.name, "Result => (mainbody) ${mainbody}")
 
         var count = 0
@@ -39,24 +46,23 @@ class Javhdicu : MainAPI() {
         //Log.i(this.name, "Result => (titles) ${titles}")
         val entries = mainbody.select("div#video-widget-3016")
         count = 0
-        entries?.forEach { it2 ->
+        entries.forEach { it2 ->
             count++
             // Fetch row title
             val pair = titles.filter { aa -> aa.first == count }
             val title = if (pair.isNotEmpty()) { pair[0].second } else { "<No Name Row>" }
             // Fetch list of items and map
             val inner = it2.select("div.col-md-3.col-sm-6.col-xs-6.item.responsive-height.post")
-            val elements: List<SearchResponse> = inner?.mapNotNull {
+            val elements: List<SearchResponse> = inner.mapNotNull {
                 // Inner element
                 val aa = it.selectFirst("div.item-img > a") ?: return@mapNotNull null
                 // Video details
                 val link = aa.attr("href") ?: return@mapNotNull null
-                var name = aa.attr("title")?.cleanTitle() ?: ""
-                val image = aa.select("img")?.attr("src")
+                val name = aa.attr("title").cleanTitle()
+                val image = aa.select("img").attr("src")
                 val year = null
                 //Log.i(this.name, "Result => (link) ${link}")
                 //Log.i(this.name, "Result => (image) ${image}")
-                name = name.removePrefix("JAV HD")
 
                 MovieSearchResponse(
                     name = name,
@@ -67,17 +73,20 @@ class Javhdicu : MainAPI() {
                     year = year,
                     id = null,
                 )
-            }?.distinctBy { a -> a.url } ?: listOf()
+            }.distinctBy { a -> a.url }
 
-            all.add(
-                HomePageList(
-                    name = title,
-                    list = elements,
-                    isHorizontalImages = true
+            if (elements.isNotEmpty()) {
+                return newHomePageResponse(
+                    list = HomePageList(
+                        name = title,
+                        list = elements,
+                        isHorizontalImages = true
+                    ),
+                    hasNext = true
                 )
-            )
+            }
         }
-        return HomePageResponse(all.filter { hp -> hp.list.isNotEmpty() })
+        throw ErrorLoadingException("No homepage data found!")
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
@@ -137,8 +146,8 @@ class Javhdicu : MainAPI() {
         videoDetailsEl?.select("span.meta")?.forEach {
             //Log.i(this.name, "Result => (span meta) $it")
             val caption = it?.selectFirst("span.meta-info")?.text()?.trim()?.lowercase() ?: ""
-            when {
-                caption == "category" || caption == "tag" -> {
+            when (caption) {
+                "category", "tag" -> {
                     val tagtexts = it.select("a").mapNotNull { tag ->
                         tag?.text()?.trim() ?: return@mapNotNull null
                     }
@@ -266,6 +275,6 @@ class Javhdicu : MainAPI() {
         this.filter { a -> a.isNotBlank() && !a.startsWith("https://a.realsrv.com") }.toJson()
 
     private fun String.cleanTitle(): String =
-        this.trim().removePrefix("JAV HD").trim()
+        this.trim().removePrefix(prefix).trim()
 
 }
