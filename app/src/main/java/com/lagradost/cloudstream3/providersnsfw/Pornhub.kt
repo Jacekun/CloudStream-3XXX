@@ -1,12 +1,12 @@
 package com.lagradost.cloudstream3.providersnsfw
 
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.utils.*
 import org.jsoup.nodes.Element
-import java.util.*
 
-class Pornhub:MainAPI() {
+class Pornhub : MainAPI() {
     override var mainUrl = "https://www.pornhub.com"
     override var name = "Pornhub"
     override val hasMainPage = true
@@ -15,47 +15,48 @@ class Pornhub:MainAPI() {
     override val vpnStatus = VPNStatus.MightBeNeeded //Cause it's a big site
     override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
 
+    override val mainPage = mainPageOf(
+        "$mainUrl/video?page=" to "Main Page",
+    )
+
     override suspend fun getMainPage(
         page: Int,
         categoryName: String,
         categoryData: String
     ): HomePageResponse {
-        val items = ArrayList<HomePageList>()
-        val urls = listOf(
-            Pair(mainUrl, "Trending Now"),
-            Pair("$mainUrl/video?o=tr", "Best rated this month"),
-            Pair("$mainUrl/video?c=111", "Japanese"),
-            Pair("$mainUrl/categories/hentai", "Hentai"),
-        )
-        for (i in urls) {
-            try {
-                val soup = app.get(i.first).document
-                val home = soup.select("div.sectionWrapper div.wrap").mapNotNull {
-                    if (it == null) { return@mapNotNull null }
-                    val title = it.selectFirst("span.title a")?.text() ?: ""
-                    val link = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
-                    val img = fetchImgUrl(it.selectFirst("img"))
-                    MovieSearchResponse(
-                        name = title,
-                        url = link,
-                        apiName = this.name,
-                        type = TvType.XXX,
-                        posterUrl = img
-                    )
-                }
-                items.add(
-                    HomePageList(
-                        name = i.second,
+        try {
+            val pagedLink = if (page > 0) categoryData + page else categoryData
+            val soup = app.get(pagedLink).document
+            val home = soup.select("div.sectionWrapper div.wrap").mapNotNull {
+                if (it == null) { return@mapNotNull null }
+                val title = it.selectFirst("span.title a")?.text() ?: ""
+                val link = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+                val img = fetchImgUrl(it.selectFirst("img"))
+                MovieSearchResponse(
+                    name = title,
+                    url = link,
+                    apiName = this.name,
+                    type = TvType.XXX,
+                    posterUrl = img
+                )
+            }
+            if (home.isNotEmpty()) {
+                return newHomePageResponse(
+                    list = HomePageList(
+                        name = categoryName,
                         list = home,
                         isHorizontalImages = true
-                    )
+                    ),
+                    hasNext = true
                 )
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } else {
+                throw ErrorLoadingException("No homepage data found!")
             }
+        } catch (e: Exception) {
+            //e.printStackTrace()
+            logError(e)
         }
-        if (items.size <= 0) throw ErrorLoadingException()
-        return HomePageResponse(items)
+        throw ErrorLoadingException()
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
@@ -75,10 +76,10 @@ class Pornhub:MainAPI() {
             )
         }.distinctBy { it.url }
     }
+
     override suspend fun load(url: String): LoadResponse {
         val soup = app.get(url).document
         val title = soup.selectFirst(".title span")?.text() ?: ""
-        val description = title
         val poster: String? = soup.selectFirst("div.video-wrapper .mainPlayerDiv img")?.attr("src") ?:
             soup.selectFirst("head meta[property=og:image]")?.attr("content")
         val tags = soup.select("div.categoriesWrapper a")
@@ -91,7 +92,7 @@ class Pornhub:MainAPI() {
             dataUrl = url,
             posterUrl = poster,
             tags = tags,
-            plot = description
+            plot = title
         )
     }
     override suspend fun loadLinks(
