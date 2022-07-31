@@ -3,9 +3,8 @@ package com.lagradost.cloudstream3.providersnsfw
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.*
-import java.util.*
 
-class Xvideos:MainAPI() {
+class Xvideos : MainAPI() {
     override var mainUrl = "https://www.xvideos.com"
     override var name = "Xvideos"
     override val hasMainPage = true
@@ -22,8 +21,7 @@ class Xvideos:MainAPI() {
         categoryName: String,
         categoryData: String
     ): HomePageResponse {
-        val items = ArrayList<HomePageList>()
-        val pagedLink = categoryData + page
+        val pagedLink = if (page > 0) categoryData + page else categoryData
         try {
             val soup = app.get(pagedLink).document
             val home = soup.select("div.thumb-block").mapNotNull {
@@ -40,20 +38,23 @@ class Xvideos:MainAPI() {
                     year = null
                 )
             }
-            items.add(
-                HomePageList(
-                    name = categoryName,
-                    list = home,
-                    isHorizontalImages = true
+            if (home.isNotEmpty()) {
+                return newHomePageResponse(
+                    list = HomePageList(
+                        name = categoryName,
+                        list = home,
+                        isHorizontalImages = true
+                    ),
+                    hasNext = true
                 )
-            )
+            } else {
+                throw ErrorLoadingException("No homepage data found!")
+            }
         } catch (e: Exception) {
             //e.printStackTrace()
             logError(e)
         }
-
-        if (items.size <= 0) throw ErrorLoadingException()
-        return HomePageResponse(items)
+        throw ErrorLoadingException()
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
@@ -80,7 +81,6 @@ class Xvideos:MainAPI() {
         val soup = app.get(url).document
         val title = if (url.contains("channels")||url.contains("pornstars")) soup.selectFirst("html.xv-responsive.is-desktop head title")?.text() else
             soup.selectFirst(".page-title")?.text()
-        val description = title
         val poster: String? = if (url.contains("channels") || url.contains("pornstars")) soup.selectFirst(".profile-pic img")?.attr("data-src") else
             soup.selectFirst("head meta[property=og:image]")?.attr("content")
         val tags = soup.select(".video-tags-list li a")
@@ -105,7 +105,7 @@ class Xvideos:MainAPI() {
                     type = TvType.XXX,
                     episodes = episodes,
                     posterUrl = poster,
-                    plot = description,
+                    plot = title,
                     showStatus = ShowStatus.Ongoing,
                     tags = tags,
                 )
@@ -118,7 +118,7 @@ class Xvideos:MainAPI() {
                     type = tvType,
                     dataUrl = url,
                     posterUrl = poster,
-                    plot = description,
+                    plot = title,
                     tags = tags,
                 )
             }
