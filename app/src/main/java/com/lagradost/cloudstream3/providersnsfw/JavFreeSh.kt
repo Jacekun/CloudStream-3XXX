@@ -58,19 +58,20 @@ class JavFreeSh : MainAPI() {
                     val year = null
 
                     MovieSearchResponse(
-                        name,
-                        link,
-                        this.name,
-                        TvType.JAV,
-                        image,
-                        year,
-                        null,
+                        name = name,
+                        url = link,
+                        apiName = this.name,
+                        type = TvType.JAV,
+                        posterUrl = image,
+                        year = year
                     )
                 }
 
                 all.add(
                     HomePageList(
-                        title, elements
+                        name = title,
+                        list = elements,
+                        isHorizontalImages = true
                     )
                 )
             }

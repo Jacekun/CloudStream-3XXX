@@ -64,9 +64,12 @@ class Javhdicu : MainAPI() {
                     id = null,
                 )
             }?.distinctBy { a -> a.url } ?: listOf()
+
             all.add(
                 HomePageList(
-                    title, elements
+                    name = title,
+                    list = elements,
+                    isHorizontalImages = true
                 )
             )
         }
@@ -130,8 +133,8 @@ class Javhdicu : MainAPI() {
         videoDetailsEl?.select("span.meta")?.forEach {
             //Log.i(this.name, "Result => (span meta) $it")
             val caption = it?.selectFirst("span.meta-info")?.text()?.trim()?.lowercase() ?: ""
-            when (caption) {
-                "category", "tag" -> {
+            when {
+                caption == "category" || caption == "tag" -> {
                     val tagtexts = it.select("a").mapNotNull { tag ->
                         tag?.text()?.trim() ?: return@mapNotNull null
                     }

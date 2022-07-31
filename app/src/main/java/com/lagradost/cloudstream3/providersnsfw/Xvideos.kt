@@ -36,7 +36,13 @@ class Xvideos:MainAPI() {
                         year = null
                     )
                 }
-                items.add(HomePageList(i.second, home))
+                items.add(
+                    HomePageList(
+                        name = i.second,
+                        list = home,
+                        isHorizontalImages = true
+                    )
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }

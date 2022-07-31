@@ -32,8 +32,7 @@ class JavSubCo : MainAPI() {
         val document = app.get(mainUrl).document
 
         return HomePageResponse(
-        document.select("main#main-content")
-            ?.map { it2 ->
+        document.select("main#main-content").map { it2 ->
                 val title = "Homepage"
                 val inner = it2?.select("article > div.post-item-wrap") ?: return@map null
                 //Log.i(this.name, "inner => $inner")
@@ -57,10 +56,13 @@ class JavSubCo : MainAPI() {
                         year = year
                     )
                 }.distinctBy { a -> a.url }
+
                 HomePageList(
-                    title, elements
+                    name = title,
+                    list = elements,
+                    isHorizontalImages = true
                 )
-            }?.filterNotNull()?.filter { a -> a.list.isNotEmpty() } ?: listOf())
+            }.filterNotNull().filter { a -> a.list.isNotEmpty() } )
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
