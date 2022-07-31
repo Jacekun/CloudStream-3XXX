@@ -104,7 +104,7 @@ class AllAnimeProvider : MainAPI() {
         @JsonProperty("__typename") val _typename: String? = null
     )
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(page: Int, categoryName: String, categoryData: String): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val urls = listOf(
 //            Pair(
@@ -312,7 +312,7 @@ class AllAnimeProvider : MainAPI() {
         @JsonProperty("episodeIframeHead") val episodeIframeHead: String
     )
 
-    private fun getM3u8Qualities(
+    private suspend fun getM3u8Qualities(
         m3u8Link: String,
         referer: String,
         qualityName: String,

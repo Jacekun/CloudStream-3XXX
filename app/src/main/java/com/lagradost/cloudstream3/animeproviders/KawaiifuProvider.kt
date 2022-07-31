@@ -14,7 +14,7 @@ class KawaiifuProvider : MainAPI() {
 
     override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie)
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(page: Int, categoryName: String, categoryData: String): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val resp = app.get(mainUrl).text
 
@@ -91,7 +91,7 @@ class KawaiifuProvider : MainAPI() {
         val title = soup.selectFirst(".title")!!.text()
         val tags = soup.select(".table a[href*=\"/tag/\"]").map { tag -> tag.text() }
         val description = soup.select(".sub-desc p")
-            .filter { it.select("strong").isEmpty() && it.select("iframe").isEmpty() }
+            .filter { it -> it.select("strong").isEmpty() && it.select("iframe").isEmpty() }
             .joinToString("\n") { it.text() }
         val year = url.split("/").filter { it.contains("-") }[0].split("-")[1].toIntOrNull()
 

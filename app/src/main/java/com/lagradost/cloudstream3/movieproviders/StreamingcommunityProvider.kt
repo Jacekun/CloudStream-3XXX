@@ -174,10 +174,10 @@ class StreamingcommunityProvider : MainAPI() {
         val posterMap = hashMapOf<String, String>()
     }
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(page: Int, categoryName: String, categoryData: String): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val document = app.get(mainUrl).document
-        document.select("slider-title").subList(0, 6).map { it ->
+        document.select("slider-title").subList(0, 3).map { it ->
             if (it.attr("slider-name") != "In arrivo") {
                 val films = it.attr("titles-json")
                 val lista = mutableListOf<MovieSearchResponse>()
@@ -398,7 +398,7 @@ class StreamingcommunityProvider : MainAPI() {
     }
 
 
-    private fun getM3u8Qualities(
+    private suspend fun getM3u8Qualities(
         m3u8Link: String,
         referer: String,
         qualityName: String,

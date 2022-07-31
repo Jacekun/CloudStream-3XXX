@@ -1,15 +1,14 @@
 package com.lagradost.cloudstream3.movieproviders
 
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.mvvm.logError
-import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 
 
 class TantifilmProvider : MainAPI() {
     override var lang = "it"
-    override var mainUrl = "https://www.tantifilm.nl"
+    override var mainUrl = "https://tantifilm.autos"
     override var name = "Tantifilm"
     override val hasMainPage = true
     override val hasChromecastSupport = true
@@ -18,37 +17,33 @@ class TantifilmProvider : MainAPI() {
         TvType.TvSeries,
     )
 
-    override suspend fun getMainPage(): HomePageResponse {
-        val items = ArrayList<HomePageList>()
-        val urls = listOf(
-            Pair("$mainUrl/watch-genre/serie-tv/", "Serie Tv"),
-            Pair("$mainUrl/watch-genre/azione/", "Azione"),
-            Pair("$mainUrl/watch-genre/avventura/", "Avventura"),
-        )
-        for ((url, name) in urls) {
-            try {
-                val soup = app.get(url).document
-                val home = soup.select("div.media3").map {
-                    val title = it.selectFirst("p")!!.text().substringBefore("(")
-                    val link = it.selectFirst("a")!!.attr("href")
-                    TvSeriesSearchResponse(
-                        title,
-                        link,
-                        this.name,
-                        TvType.Movie,
-                        it.selectFirst("img")!!.attr("src"),
-                        null,
-                        null,
-                    )
-                }
+    override val mainPage = mainPageOf(
+        Pair("$mainUrl/watch-genre/al-cinema/page/", "Ultimi Film"),
+        Pair("$mainUrl/serie-tv/page/", "Ultime Serie Tv"),
+        Pair("$mainUrl/watch-genre/film-aggiornati/page/", "Ultimi Film Aggiornati"),
+    )
 
-                items.add(HomePageList(name, home))
-            } catch (e: Exception) {
-                logError(e)
-            }
+    override suspend fun getMainPage(
+        page: Int,
+        categoryName: String,
+        categoryData: String
+    ): HomePageResponse {
+        val url = categoryData + page
+        val soup = app.get(url).document
+        val home = soup.select("div.media3").map {
+            val title = it.selectFirst("p")!!.text().substringBefore("(")
+            val link = it.selectFirst("a")!!.attr("href")
+            TvSeriesSearchResponse(
+                title,
+                link,
+                this.name,
+                TvType.Movie,
+                it.selectFirst("img")!!.attr("src"),
+                null,
+                null,
+            )
         }
-        if (items.size <= 0) throw ErrorLoadingException()
-        return HomePageResponse(items)
+        return newHomePageResponse(categoryName, home)
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
@@ -125,7 +120,7 @@ class TantifilmProvider : MainAPI() {
 
             val episodeList = ArrayList<Episode>()
 
-            for ((season,seasonurl) in list) {
+            for ((season, seasonurl) in list) {
                 val seasonDocument = app.get(seasonurl).document
                 val episodes = seasonDocument.select("nav.second_nav > select > option")
                 if (episodes.isNotEmpty()) {
@@ -147,11 +142,12 @@ class TantifilmProvider : MainAPI() {
                 title,
                 url,
                 type,
-                episodeList) {
-                this.posterUrl= fixUrlNull(poster)
+                episodeList
+            ) {
+                this.posterUrl = fixUrlNull(poster)
                 this.year = year.toIntOrNull()
-                this.plot= descipt[0]
-                this.rating= rating
+                this.plot = descipt[0]
+                this.rating = rating
                 this.recommendations = recomm
                 addTrailer(trailerurl)
             }
@@ -167,7 +163,7 @@ class TantifilmProvider : MainAPI() {
             val actors: List<ActorData>? = if (Linkactor.isNotEmpty()) {
                 val actorpage = app.get(Linkactor + "cast/").document
                 actorpage.select("article.membro-cast").filter {
-                    it.selectFirst("img")
+                    it -> it.selectFirst("img")
                         ?.attr("src") != "https://www.filmtv.it/imgbank/DUMMY/no_portrait.jpg"
                 }.mapNotNull {
                     val name = it.selectFirst("div.info > h3")!!.text()

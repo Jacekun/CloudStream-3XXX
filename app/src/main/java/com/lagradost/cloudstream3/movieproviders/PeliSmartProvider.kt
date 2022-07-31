@@ -17,7 +17,7 @@ class PeliSmartProvider: MainAPI() {
     )
     override val vpnStatus = VPNStatus.MightBeNeeded //Due to evoload sometimes not loading
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(page: Int, categoryName: String, categoryData: String): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val urls = listOf(
             Pair("$mainUrl/peliculas/", "Peliculas"),
@@ -25,7 +25,8 @@ class PeliSmartProvider: MainAPI() {
             Pair("$mainUrl/documentales/", "Documentales"),
         )
 
-        for ((url, name) in urls) {
+        // has no inf loading
+        urls.apmap { (url, name) ->
             try {
                 val soup = app.get(url).document
                 val home = soup.select(".description-off").map {
