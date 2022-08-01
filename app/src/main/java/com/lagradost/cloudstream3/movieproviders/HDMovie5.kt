@@ -8,7 +8,7 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class HDMovie5 : MainAPI() {
-    override var mainUrl = "https://hdmovie2.art"
+    override var mainUrl = "https://hdmovie2.click"
     override var name = "HDMovie"
     override var lang = "hi"
 
@@ -19,7 +19,7 @@ class HDMovie5 : MainAPI() {
         TvType.TvSeries,
     )
 
-    override suspend fun getMainPage(page: Int, categoryName: String, categoryData: String): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         val doc = app.get(mainUrl).document.select("div.content")
         val list = mapOf(
             "Featured Movies" to "featured",
