@@ -88,11 +88,7 @@ class KrunchyProvider : MainAPI() {
         TvType.OVA
     )
 
-    override suspend fun getMainPage(
-        page: Int,
-        categoryName: String,
-        categoryData: String
-    ): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val urls = listOf(
             Pair("$mainUrl/videos/anime/popular/ajax_page?pg=1", "Popular 1"),
             Pair("$mainUrl/videos/anime/popular/ajax_page?pg=2", "Popular 2"),
@@ -137,7 +133,7 @@ class KrunchyProvider : MainAPI() {
                 episodes = episodesMap
             )
         }
-        if (!recent.isEmpty()) {
+        if (recent.isNotEmpty()) {
             items.add(HomePageList("Now Showing", recent))
         }
         items.add(HomePageList("Featured", featured))

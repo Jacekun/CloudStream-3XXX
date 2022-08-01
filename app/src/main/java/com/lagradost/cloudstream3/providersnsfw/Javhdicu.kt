@@ -25,13 +25,9 @@ class Javhdicu : MainAPI() {
 
     val prefix = "JAV HD"
 
-    override suspend fun getMainPage(
-        page: Int,
-        categoryName: String,
-        categoryData: String
-    ): HomePageResponse {
+    override suspend fun getMainPage(page: Int, data: MainPageRequest): HomePageResponse {
         val homePageList = mutableListOf<HomePageList>()
-        val pagedlink = if (page > 0) categoryData + page else categoryData
+        val pagedlink = if (page > 0) data.data + page else data.data
         val document = app.get(pagedlink).document
         val all = ArrayList<HomePageList>()
         val mainbody = document.getElementsByTag("body").select("div.container")

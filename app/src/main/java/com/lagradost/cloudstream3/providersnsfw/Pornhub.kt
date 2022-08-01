@@ -19,12 +19,10 @@ class Pornhub : MainAPI() {
         "$mainUrl/video?page=" to "Main Page",
     )
 
-    override suspend fun getMainPage(
-        page: Int,
-        categoryName: String,
-        categoryData: String
-    ): HomePageResponse {
+    override suspend fun getMainPage(page: Int, data: MainPageRequest): HomePageResponse {
         try {
+            val categoryData = data.data
+            val categoryName = data.name
             val pagedLink = if (page > 0) categoryData + page else categoryData
             val soup = app.get(pagedLink).document
             val home = soup.select("div.sectionWrapper div.wrap").mapNotNull {

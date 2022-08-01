@@ -83,8 +83,7 @@ class Hanime : MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        categoryName: String,
-        categoryData: String
+        data: MainPageRequest
     ): HomePageResponse {
 
         val data = app.get("https://hanime.tv/").text

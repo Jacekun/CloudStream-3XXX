@@ -47,8 +47,7 @@ class HahoMoe : MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        categoryName: String,
-        categoryData: String
+        data: MainPageRequest
     ): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val soup = app.get(mainUrl).document

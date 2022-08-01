@@ -15,8 +15,7 @@ class JavTubeWatch : MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        categoryName: String,
-        categoryData: String
+        data: MainPageRequest
     ): HomePageResponse {
         val document = app.get(mainUrl).document
         val all = ArrayList<HomePageList>()

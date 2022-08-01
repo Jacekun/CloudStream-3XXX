@@ -14,8 +14,7 @@ class JavMost : MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        categoryName: String,
-        categoryData: String
+        data: MainPageRequest
     ): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)

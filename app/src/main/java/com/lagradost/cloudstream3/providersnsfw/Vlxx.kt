@@ -33,8 +33,7 @@ class Vlxx : MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        categoryName: String,
-        categoryData: String
+        data: MainPageRequest
     ): HomePageResponse {
         val document = getPage(mainUrl, mainUrl).document
         val all = ArrayList<HomePageList>()

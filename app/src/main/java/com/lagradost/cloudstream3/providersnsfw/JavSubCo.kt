@@ -32,12 +32,9 @@ class JavSubCo : MainAPI() {
         "$mainUrl/page/" to "Main Page",
     )
 
-    override suspend fun getMainPage(
-        page: Int,
-        categoryName: String,
-        categoryData: String
-    ): HomePageResponse {
-
+    override suspend fun getMainPage(page: Int, data: MainPageRequest): HomePageResponse {
+        val categoryData = data.data
+        val categoryName = data.name
         val pagedlink = if (page > 0) categoryData + page else categoryData
         val document = app.get(pagedlink).document
         val homepage = document.select("main#main-content").map { it2 ->
