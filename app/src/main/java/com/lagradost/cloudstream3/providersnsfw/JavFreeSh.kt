@@ -30,7 +30,7 @@ class JavFreeSh : MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        data: MainPageRequest
+        request: MainPageRequest
     ): HomePageResponse {
         val html = app.get(mainUrl).text
         val document = Jsoup.parse(html)
@@ -40,12 +40,13 @@ class JavFreeSh : MainAPI() {
             .select("div#content").select("div#primary")
             .select("main")
 
-        mainbody.select("section")?.forEach { it2 ->
+        mainbody.select("section").forEach { it2 ->
             // Fetch row title
-            val title = it2.select("h2.widget-title")?.text() ?: "Unnamed Row"
+            val title = it2?.select("h2.widget-title")?.text() ?: "Unnamed Row"
             // Fetch list of items and map
-            val inner = it2.select("div.videos-list").select("article")
-            if (inner != null) {
+            it2.select("div.videos-list")
+                .select("article").let { inner ->
+
                 val elements: List<SearchResponse> = inner.map {
 
                     val aa = it.select("a").firstOrNull()

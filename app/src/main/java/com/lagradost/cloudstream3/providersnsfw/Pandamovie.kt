@@ -15,7 +15,7 @@ class Pandamovie : MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        data: MainPageRequest
+        request: MainPageRequest
     ): HomePageResponse {
         val items = ArrayList<HomePageList>()
         val urls = listOf(

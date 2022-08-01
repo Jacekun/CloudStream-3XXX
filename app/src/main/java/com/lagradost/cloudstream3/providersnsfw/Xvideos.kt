@@ -16,9 +16,9 @@ class Xvideos : MainAPI() {
         "$mainUrl/new/" to "Main Page",
     )
 
-    override suspend fun getMainPage(page: Int, data: MainPageRequest): HomePageResponse {
-        val categoryData = data.data
-        val categoryName = data.name
+    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+        val categoryData = request.data
+        val categoryName = request.name
         val pagedLink = if (page > 0) categoryData + page else categoryData
         try {
             val soup = app.get(pagedLink).document

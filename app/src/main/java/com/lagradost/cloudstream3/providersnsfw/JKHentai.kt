@@ -16,7 +16,7 @@ class JKHentai:MainAPI() {
 
     override suspend fun getMainPage(
         page: Int,
-        data: MainPageRequest
+        request: MainPageRequest
     ): HomePageResponse {
         val urls = listOf(
             Pair("$mainUrl/lista/", "Hentais"),
