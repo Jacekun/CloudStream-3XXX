@@ -88,75 +88,107 @@ class KrunchyProvider : MainAPI() {
         TvType.OVA
     )
 
+    override val mainPage = mainPageOf(
+        "$mainUrl/videos/anime/popular/ajax_page?pg=" to "Popular",
+        "$mainUrl/videos/anime/simulcasts/ajax_page" to "Simulcasts"
+    )
+
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val urls = listOf(
-            Pair("$mainUrl/videos/anime/popular/ajax_page?pg=1", "Popular 1"),
-            Pair("$mainUrl/videos/anime/popular/ajax_page?pg=2", "Popular 2"),
-            Pair("$mainUrl/videos/anime/popular/ajax_page?pg=3", "Popular 3"),
-            Pair("$mainUrl/videos/anime/simulcasts/ajax_page", "Simulcasts"),
-        )
+        val categoryData = request.data
+        val paginated = categoryData.endsWith("=")
+        val pagedLink = if (paginated) categoryData + page else categoryData
+        val items = mutableListOf<HomePageList>()
 
-        val doc = Jsoup.parse(crUnblock.geoBypassRequest(mainUrl).text)
-        val items = ArrayList<HomePageList>()
-        val featured = doc.select(".js-featured-show-list > li").mapNotNull { anime ->
-            val url = fixUrlNull(anime?.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
-            val imgEl = anime.selectFirst("img")
-            val name = imgEl?.attr("alt") ?: ""
-            val posterUrl = imgEl?.attr("src")?.replace("small", "full")
-            AnimeSearchResponse(
-                name = name,
-                url = url,
-                apiName = this.name,
-                type = TvType.Anime,
-                posterUrl = posterUrl,
-                dubStatus = EnumSet.of(DubStatus.Subbed)
-            )
-        }
-        val recent = doc.select("div.welcome-countdown-day:contains(Now Showing) li").mapNotNull {
-            val link = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
-            val name = it.selectFirst("span.welcome-countdown-name")?.text() ?: ""
-            val img = it.selectFirst("img")?.attr("src")?.replace("medium", "full")
-            val dubstat = if (name.contains("Dub)", true)) EnumSet.of(DubStatus.Dubbed) else
-                EnumSet.of(DubStatus.Subbed)
-            val details = it.selectFirst("span.welcome-countdown-details")?.text()
-            val epnum = if (details.isNullOrBlank()) null else episodeNumRegex.find(details)?.value?.replace("Episode ", "") ?: "0"
-            val episodesMap = mutableMapOf<DubStatus, Int>()
-            episodesMap[DubStatus.Subbed] = epnum?.toIntOrNull() ?: 0
-            episodesMap[DubStatus.Dubbed] = epnum?.toIntOrNull() ?: 0
-            AnimeSearchResponse(
-                name ="★ $name ★",
-                url = link.replace(Regex("(\\/episode.*)"), ""),
-                apiName = this.name,
-                type = TvType.Anime,
-                posterUrl = fixUrlNull(img),
-                dubStatus = dubstat,
-                episodes = episodesMap
-            )
-        }
-        if (recent.isNotEmpty()) {
-            items.add(HomePageList("Now Showing", recent))
-        }
-        items.add(HomePageList("Featured", featured))
-        urls.apmap { (url, name) ->
-            val response = crUnblock.geoBypassRequest(url)
-            val soup = Jsoup.parse(response.text)
-
-            val episodes = soup.select("li").mapNotNull {
-                val innerA = it.selectFirst("a") ?: return@mapNotNull null
-                val urlEps = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
+        // Only fetch page at first-time load of homepage
+        if (page <= 1) {
+            val doc = Jsoup.parse(crUnblock.geoBypassRequest(mainUrl).text)
+            val featured = doc.select(".js-featured-show-list > li").mapNotNull { anime ->
+                val url =
+                    fixUrlNull(anime?.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+                val imgEl = anime.selectFirst("img")
+                val name = imgEl?.attr("alt") ?: ""
+                val posterUrl = imgEl?.attr("src")?.replace("small", "full")
                 AnimeSearchResponse(
-                    name = innerA.attr("title"),
-                    url = urlEps,
+                    name = name,
+                    url = url,
                     apiName = this.name,
                     type = TvType.Anime,
-                    posterUrl = it.selectFirst("img")?.attr("src"),
+                    posterUrl = posterUrl,
                     dubStatus = EnumSet.of(DubStatus.Subbed)
                 )
             }
-            items.add(HomePageList(name, episodes))
+            val recent =
+                doc.select("div.welcome-countdown-day:contains(Now Showing) li").mapNotNull {
+                    val link =
+                        fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+                    val name = it.selectFirst("span.welcome-countdown-name")?.text() ?: ""
+                    val img = it.selectFirst("img")?.attr("src")?.replace("medium", "full")
+                    val dubstat = if (name.contains("Dub)", true)) EnumSet.of(DubStatus.Dubbed) else
+                        EnumSet.of(DubStatus.Subbed)
+                    val details = it.selectFirst("span.welcome-countdown-details")?.text()
+                    val epnum =
+                        if (details.isNullOrBlank()) null else episodeNumRegex.find(details)?.value?.replace(
+                            "Episode ",
+                            ""
+                        ) ?: "0"
+                    val episodesMap = mutableMapOf<DubStatus, Int>()
+                    episodesMap[DubStatus.Subbed] = epnum?.toIntOrNull() ?: 0
+                    episodesMap[DubStatus.Dubbed] = epnum?.toIntOrNull() ?: 0
+                    AnimeSearchResponse(
+                        name = "★ $name ★",
+                        url = link.replace(Regex("(\\/episode.*)"), ""),
+                        apiName = this.name,
+                        type = TvType.Anime,
+                        posterUrl = fixUrlNull(img),
+                        dubStatus = dubstat,
+                        episodes = episodesMap
+                    )
+                }
+            if (recent.isNotEmpty()) {
+                items.add(
+                    HomePageList(
+                        name = "Now Showing",
+                        list = recent,
+                    )
+                )
+            }
+            items.add(HomePageList("Featured", featured))
         }
-        if (items.size <= 0) throw ErrorLoadingException()
-        return HomePageResponse(items)
+
+        if (paginated || !paginated && page <= 1) {
+            crUnblock.geoBypassRequest(pagedLink).let { respText ->
+                val soup = Jsoup.parse(respText.text)
+
+                val episodes = soup.select("li").mapNotNull {
+                    val innerA = it.selectFirst("a") ?: return@mapNotNull null
+                    val urlEps = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
+                    AnimeSearchResponse(
+                        name = innerA.attr("title"),
+                        url = urlEps,
+                        apiName = this.name,
+                        type = TvType.Anime,
+                        posterUrl = it.selectFirst("img")?.attr("src"),
+                        dubStatus = EnumSet.of(DubStatus.Subbed)
+                    )
+                }
+                if (episodes.isNotEmpty()) {
+                    items.add(
+                        HomePageList(
+                            name = request.name,
+                            list = episodes,
+                        )
+                    )
+                }
+            }
+        }
+
+        if (items.isNotEmpty()) {
+            return newHomePageResponse(
+                list = items,
+                hasNext = true
+            )
+        }
+        throw ErrorLoadingException()
     }
 
     private fun getCloseMatches(sequence: String, items: Collection<String>): ArrayList<String> {
@@ -211,14 +243,12 @@ class KrunchyProvider : MainAPI() {
                 anime.img = anime.img.replace("small", "full")
                 searchResutls.add(
                     AnimeSearchResponse(
-                        anime.name,
-                        anime.link,
-                        this.name,
-                        TvType.Anime,
-                        anime.img,
-                        null,
-                        dubstat,
-                        null,
+                        name = anime.name,
+                        url = anime.link,
+                        apiName = this.name,
+                        type = TvType.Anime,
+                        posterUrl = anime.img,
+                        dubStatus = dubstat,
                     )
                 )
                 ++count
