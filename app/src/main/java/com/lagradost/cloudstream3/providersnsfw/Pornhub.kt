@@ -114,7 +114,7 @@ class Pornhub : MainAPI() {
                 callback(
                     ExtractorLink(
                         source = name,
-                        name = name,
+                        name = "${this.name} m3u8",
                         url = stream.streamUrl,
                         referer = mainUrl,
                         quality = getQualityFromName(stream.quality?.toString()),

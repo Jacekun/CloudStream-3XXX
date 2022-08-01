@@ -133,48 +133,49 @@ class Xvideos : MainAPI() {
             if (script.data().contains("HTML5Player")) {
                 val extractedlink = script.data().substringAfter(".setVideoHLS('")
                     .substringBefore("');")
-                if (extractedlink.isNotBlank())
+                if (extractedlink.isNotBlank()) {
                     M3u8Helper().m3u8Generation(
                         M3u8Helper.M3u8Stream(
                             extractedlink,
                             headers = app.get(data).headers.toMap()
                         ), true
-                    )
-                        .map { stream ->
-                            val qualityString = if ((stream.quality ?: 0) == 0) "" else "${stream.quality}p"
-                            callback( ExtractorLink(
-                                "Xvideos",
-                                "Xvideos m3u8 $qualityString",
-                                stream.streamUrl,
-                                data,
-                                getQualityFromName(stream.quality.toString()),
-                                true
-                            ))
-                        }
+                    ).map { stream ->
+                        callback(
+                            ExtractorLink(
+                                source = this.name,
+                                name = "${this.name} m3u8",
+                                url = stream.streamUrl,
+                                referer = data,
+                                quality = getQualityFromName(stream.quality?.toString()),
+                                isM3u8 = true
+                            )
+                        )
+                    }
+                }
                 val mp4linkhigh = script.data().substringAfter("html5player.setVideoUrlHigh('").substringBefore("');")
-                if (mp4linkhigh.isNotBlank())
+                if (mp4linkhigh.isNotBlank()) {
                     callback(
                         ExtractorLink(
-                            "Xvideos",
-                            "Xvideos MP4 HIGH",
-                            mp4linkhigh,
-                            data,
-                            Qualities.Unknown.value,
-                            false
+                            source = this.name,
+                            name = "${this.name} MP4 High",
+                            url = mp4linkhigh,
+                            referer = data,
+                            quality = Qualities.Unknown.value,
                         )
                     )
+                }
                 val mp4linklow = script.data().substringAfter("html5player.setVideoUrlLow('").substringBefore("');")
-                if (mp4linklow.isNotBlank())
+                if (mp4linklow.isNotBlank()) {
                     callback(
                         ExtractorLink(
-                            "Xvideos",
-                            "Xvideos MP4 LOW",
-                            mp4linklow,
-                            data,
-                            Qualities.Unknown.value,
-                            false
+                            source = this.name,
+                            name = "${this.name} MP4 Low",
+                            url = mp4linklow,
+                            referer = data,
+                            quality = Qualities.Unknown.value,
                         )
                     )
+                }
             }
         }
         return true
