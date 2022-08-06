@@ -158,7 +158,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial
                 android:nextFocusUp="@id/subtitles_remove_bloat"
-                android:nextFocusDown="@id/apply_btt"
+                android:nextFocusDown="@id/subtitles_filter_sub_lang"
                 android:nextFocusLeft="@id/apply_btt"
                 android:nextFocusRight="@id/cancel_btt"
                 android:fontFamily="@font/google_sans"
@@ -168,6 +168,19 @@
                 android:text="@string/subtitles_remove_captions"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:nextFocusUp="@id/subtitles_remove_captions"
+            android:nextFocusDown="@id/apply_btt"
+            android:nextFocusLeft="@id/apply_btt"
+            android:nextFocusRight="@id/cancel_btt"
+            android:fontFamily="@font/google_sans"
+            style="@style/SettingsItem"
+            app:drawableEndCompat="@null"
+            android:id="@+id/subtitles_filter_sub_lang"
+            android:text="@string/subtitles_filter_lang"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
         <TextView
                 android:layout_width="match_parent"
