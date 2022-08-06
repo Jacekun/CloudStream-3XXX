@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.annotation.FontRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.ui.CaptionStyleCompat
@@ -27,6 +28,7 @@ import com.lagradost.cloudstream3.CommonActivity.onDialogDismissedEvent
 import com.lagradost.cloudstream3.CommonActivity.showToast
 import com.lagradost.cloudstream3.R
 import com.lagradost.cloudstream3.ui.settings.SettingsFragment.Companion.isTrueTvSettings
+import com.lagradost.cloudstream3.utils.DataStore.getSharedPrefs
 import com.lagradost.cloudstream3.utils.DataStore.setKey
 import com.lagradost.cloudstream3.utils.Event
 import com.lagradost.cloudstream3.utils.SingleSelectionHelper.showDialog
@@ -406,6 +408,14 @@ class SubtitlesFragment : Fragment() {
         subtitles_remove_captions?.isChecked = state.removeCaptions
         subtitles_remove_captions?.setOnCheckedChangeListener { _, b ->
             state.removeCaptions = b
+        }
+        subtitles_filter_sub_lang?.setOnCheckedChangeListener { _, b ->
+            context?.let { ctx ->
+                val settingsManager = PreferenceManager.getDefaultSharedPreferences(ctx)
+                settingsManager.edit()
+                    .putBoolean(getString(R.string.filter_sub_lang_key), b)
+                    .apply()
+            }
         }
 
         subs_font_size.setOnLongClickListener { _ ->
