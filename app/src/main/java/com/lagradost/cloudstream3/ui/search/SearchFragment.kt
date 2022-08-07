@@ -64,6 +64,7 @@ class SearchFragment : Fragment() {
     }
 
     private val searchViewModel: SearchViewModel by activityViewModels()
+    private var filteredSearchQuality = listOf<Int>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +74,14 @@ class SearchFragment : Fragment() {
         activity?.window?.setSoftInputMode(
             WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE
         )
+        context?.let { ctx ->
+            filteredSearchQuality = PreferenceManager.getDefaultSharedPreferences(ctx)
+                ?.getStringSet(getString(R.string.pref_filter_search_quality_key), setOf())
+                ?.mapNotNull { entry ->
+                    entry.toIntOrNull() ?: return@mapNotNull null
+                } ?: listOf()
+            //Log.i("qualFilter", "Search filterList => ${filteredSearchQuality.toJson()}")
+        }
         return inflater.inflate(R.layout.fragment_search, container, false)
     }
 
@@ -402,7 +411,12 @@ class SearchFragment : Fragment() {
                 is Resource.Success -> {
                     it.value.let { data ->
                         if (data.isNotEmpty()) {
-                            (search_autofit_results?.adapter as SearchAdapter?)?.updateList(data)
+                            (search_autofit_results?.adapter as SearchAdapter?)?.updateList(
+                                data.filter { item ->
+                                    val searchQualVal = item.quality?.ordinal ?: -1
+                                    !filteredSearchQuality.contains(searchQualVal)
+                                }
+                            )
                         }
                     }
                     searchExitIcon.alpha = 1f
@@ -429,7 +443,14 @@ class SearchFragment : Fragment() {
                     val newItems = list.map { ongoing ->
                         val ongoingList = HomePageList(
                             ongoing.apiName,
-                            if (ongoing.data is Resource.Success) ongoing.data.value else ArrayList()
+                            if (ongoing.data is Resource.Success) {
+                                ongoing.data.value.filter { item ->
+                                    val searchQualVal = item.quality?.ordinal ?: -1
+                                    !filteredSearchQuality.contains(searchQualVal)
+                                }
+                            } else {
+                                ArrayList()
+                            }
                         )
                         ongoingList
                     }
