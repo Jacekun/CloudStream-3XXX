@@ -54,6 +54,7 @@
     <string name="override_site_key" translatable="false">override_site_key</string>
     <string name="redo_setup_key" translatable="false">redo_setup_key</string>
     <string name="filter_sub_lang_key" translatable="false">filter_sub_lang_key</string>
+    <string name="pref_filter_search_quality_key" translatable="false">pref_filter_search_quality_key</string>
 
     <!-- FORMAT MIGHT TRANSLATE, WILL CAUSE CRASH IF APPLIED WRONG -->
     <string name="extra_info_format" formatted="true" translatable="false">%d %s | %sMB</string>
@@ -234,6 +235,7 @@
     <string name="use_system_brightness_settings_des">Use system brightness in the app player instead of a dark
         overlay
     </string>
+    <string name="pref_filter_search_quality">Hide selected video quality on Search results</string>
 
     <string name="episode_sync_settings">Update watch progress</string>
     <string name="episode_sync_settings_des">Automatically sync your current episode progress</string>
