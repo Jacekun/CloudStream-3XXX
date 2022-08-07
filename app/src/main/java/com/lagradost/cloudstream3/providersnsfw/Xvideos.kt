@@ -4,7 +4,13 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.*
 
-class Xvideos : MainAPI() {
+
+class Xvideos2: Xvideos() {
+    override var mainUrl = "https://www.xvideos2.com"
+    override var name = "Xvideos2"
+}
+
+open class Xvideos : MainAPI() {
     override var mainUrl = "https://www.xvideos.com"
     override var name = "Xvideos"
     override val hasMainPage = true
