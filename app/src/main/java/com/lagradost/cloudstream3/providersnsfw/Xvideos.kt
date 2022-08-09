@@ -45,18 +45,18 @@ open class Xvideos : MainAPI() {
                         year = null
                     )
                 }
-            }
-            if (home.isNotEmpty()) {
-                return newHomePageResponse(
-                    list = HomePageList(
-                        name = categoryName,
-                        list = home,
-                        isHorizontalImages = true
-                    ),
-                    hasNext = true
-                )
-            } else {
-                throw ErrorLoadingException("No homepage data found!")
+                if (home.isNotEmpty()) {
+                    return newHomePageResponse(
+                        list = HomePageList(
+                            name = categoryName,
+                            list = home,
+                            isHorizontalImages = true
+                        ),
+                        hasNext = true
+                    )
+                } else {
+                    throw ErrorLoadingException("No homepage data found!")
+                }
             }
         } catch (e: Exception) {
             //e.printStackTrace()
