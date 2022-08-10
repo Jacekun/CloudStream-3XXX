@@ -11,7 +11,7 @@ body:
       options:
         - label: It **is not** a duplicate issue.
           required: true
-        - label: It **does not** exist on [Cloudstream 3](https://github.com/reduplicated/Cloudstream) Issues tab.
+        - label: It **does not** exist on main Cloudstream-3 Issues.
           required: true
         - label: It **is exclusively** an adult site.
           required: true
