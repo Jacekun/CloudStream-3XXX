@@ -3,7 +3,7 @@
   <img src="doc/ic_launcher.png" width="128" height="128" />
 </p> <br>
 
-A fork of [CloudStream-3](https://github.com/reduplicated/Cloudstream), with additional features and changes. Notably, NSFW sites <br>
+A fork of CloudStream 3, with additional features and changes. Notably, NSFW sites <br>
 
 ![Latest Release](https://img.shields.io/github/release/Jacekun/CloudStream-3XXX?style=for-the-badge)
 ![Download Count](https://img.shields.io/github/downloads/Jacekun/CloudStream-3XXX/total?style=for-the-badge) <br>
@@ -13,7 +13,7 @@ A fork of [CloudStream-3](https://github.com/reduplicated/Cloudstream), with add
 [**View release history**](doc/version_log.md)
 
 ## Features
-+ All features of CloudStream 3, corresponding to this [**commit head**](https://github.com/reduplicated/Cloudstream/tree/8ad17143a4e7da6506e63cde280c149cea5af58d).
++ All features of CloudStream 3, corresponding to this **commit head**: 8ad17143a4e7da6506e63cde280c149cea5af58d.
 + **NSFW** sites. *See below table*.
 + **Crunchyroll** site.
 
