@@ -166,7 +166,6 @@ object APIHolder {
             OpJavCom(),
             Vlxx(),
             Xvideos(),
-            Xvideos2(),
             Pornhub(),
             HentaiLa(),
             JKHentai(),

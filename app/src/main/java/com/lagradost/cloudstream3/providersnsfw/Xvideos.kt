@@ -5,11 +5,6 @@ import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.*
 
 
-class Xvideos2: Xvideos() {
-    override var mainUrl = "https://www.xvideos2.com"
-    override var name = "Xvideos2"
-}
-
 open class Xvideos : MainAPI() {
     override var mainUrl = "https://www.xvideos.com"
     override var name = "Xvideos"
@@ -19,8 +14,8 @@ open class Xvideos : MainAPI() {
     override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
 
     override val mainPage = mainPageOf(
-        mainUrl to "Main Page",
-        "$mainUrl/new/" to "New",
+        Pair(mainUrl, "Main Page"),
+        Pair("$mainUrl/new/", "New")
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
