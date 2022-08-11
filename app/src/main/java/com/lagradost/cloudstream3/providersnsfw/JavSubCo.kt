@@ -145,11 +145,10 @@ class JavSubCo : MainAPI() {
             year = it.uploadDate?.take(4)?.toIntOrNull()
             descript = "Title: $title ${System.lineSeparator()} ${it.description}"
 
-            // Add additional links
-            if (!contentUrl.isNullOrBlank()) {
-                //Raw link without needing to fetch from JavSub API
+            // Add additional links, Raw link without needing to fetch from JavSub API
+            //if (!contentUrl.isNullOrBlank()) {
                 //playerIframes.add("$prefixTag$contentUrl")
-            }
+            //}
             //Log.i(this.name, "Result => (contentUrl) $contentUrl")
         }
 

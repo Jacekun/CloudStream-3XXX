@@ -19,7 +19,7 @@ open class Xvideos : MainAPI() {
     override val supportedTypes = setOf(TvType.XXX, TvType.JAV, TvType.Hentai)
 
     override val mainPage = mainPageOf(
-        "$mainUrl" to "Main Page",
+        mainUrl to "Main Page",
         "$mainUrl/new/" to "New",
     )
 
