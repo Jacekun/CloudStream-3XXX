@@ -110,6 +110,7 @@ object APIHolder {
             PhimmoichillProvider(),
             HDrezkaProvider(),
             YomoviesProvider(),
+            SuperStream(),
 
 
             // Metadata providers
@@ -179,6 +180,10 @@ object APIHolder {
             api.init()
         }
         apiMap = null
+    }
+
+    fun String.capitalize(): String {
+        return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     }
 
     var apis: List<MainAPI> = arrayListOf()
@@ -1005,7 +1010,7 @@ data class MovieSearchResponse(
     override var type: TvType? = null,
 
     override var posterUrl: String? = null,
-    val year: Int? = null,
+    var year: Int? = null,
     override var id: Int? = null,
     override var quality: SearchQuality? = null,
     override var posterHeaders: Map<String, String>? = null,
