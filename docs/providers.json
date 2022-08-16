@@ -308,6 +308,12 @@
         "status": 1,
         "url": "https://kimcartoon.li"
     },
+    "KisskhProvider": {
+        "language": "en",
+        "name": "Kisskh",
+        "status": 1,
+        "url": "https://kisskh.me"
+    },
     "KuramanimeProvider": {
         "language": "id",
         "name": "Kuramanime",
@@ -594,6 +600,12 @@
         "status": 1,
         "url": "https://wcostream.cc"
     },
+    "WcofunProvider": {
+        "language": "en",
+        "name": "WCO Fun",
+        "status": 1,
+        "url": "https://www.wcofun.com"
+    },
     "XcineProvider": {
         "language": "de",
         "name": "Xcine",
@@ -604,7 +616,7 @@
         "language": "hi",
         "name": "Yomovies",
         "status": 1,
-        "url": "https://yomovies.vip"
+        "url": "https://yomovies.skin"
     },
     "ZoroProvider": {
         "language": "en",
