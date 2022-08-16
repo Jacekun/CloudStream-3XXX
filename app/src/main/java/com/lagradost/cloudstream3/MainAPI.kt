@@ -111,7 +111,7 @@ object APIHolder {
             HDrezkaProvider(),
             YomoviesProvider(),
             SuperStream(),
-
+            KisskhProvider(),
 
             // Metadata providers
             //TmdbProvider(),
@@ -152,6 +152,7 @@ object APIHolder {
             TocanimeProvider(),
             //MultiAnimeProvider(),
             NginxProvider(),
+            WcofunProvider(),
             OlgplyProvider(),
             AniflixProvider(),
             KimCartoonProvider(),
