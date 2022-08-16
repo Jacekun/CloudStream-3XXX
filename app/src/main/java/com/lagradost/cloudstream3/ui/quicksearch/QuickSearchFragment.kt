@@ -14,9 +14,9 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.lagradost.cloudstream3.APIHolder.filterProviderByPreferredMedia
+import com.lagradost.cloudstream3.APIHolder.filterSearchResultByFilmQuality
 import com.lagradost.cloudstream3.APIHolder.getApiFromNameNull
 import com.lagradost.cloudstream3.HomePageList
 import com.lagradost.cloudstream3.R
@@ -70,7 +70,6 @@ class QuickSearchFragment : Fragment() {
 
     private var providers: Set<String>? = null
     private lateinit var searchViewModel: SearchViewModel
-    private var filteredSearchQuality = listOf<Int>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -81,14 +80,7 @@ class QuickSearchFragment : Fragment() {
             WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE
         )
         searchViewModel = ViewModelProvider(this)[SearchViewModel::class.java]
-        context?.let { ctx ->
-            filteredSearchQuality = PreferenceManager.getDefaultSharedPreferences(ctx)
-                ?.getStringSet(getString(R.string.pref_filter_search_quality_key), setOf())
-                ?.mapNotNull { entry ->
-                entry.toIntOrNull() ?: return@mapNotNull null
-            } ?: listOf()
-            //Log.i("qualFilter", "QuickSearch filterList => ${filteredSearchQuality.toJson()}")
-        }
+
         return inflater.inflate(R.layout.quick_search, container, false)
     }
 
@@ -225,11 +217,7 @@ class QuickSearchFragment : Fragment() {
                         println("DATA: $data")
                         //Log.i("ApiError", "QuickSearch filterList => ${filteredSearchQuality.toJson()}")
                         (quick_search_autofit_results?.adapter as? SearchAdapter?)?.updateList(
-                            data.filter { item ->
-                                val searchQualVal = item.quality?.ordinal ?: -1
-                                //Log.i("ApiError", "QuickSearch item => ${item.toJson()}")
-                                !filteredSearchQuality.contains(searchQualVal)
-                            }
+                            context?.filterSearchResultByFilmQuality(data) ?: data
                         )
                     }
                     searchExitIcon?.alpha = 1f

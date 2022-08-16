@@ -409,10 +409,15 @@ class SubtitlesFragment : Fragment() {
         subtitles_remove_captions?.setOnCheckedChangeListener { _, b ->
             state.removeCaptions = b
         }
+        //Fetch current value from preference
+        context?.let { ctx ->
+            subtitles_filter_sub_lang?.isChecked = PreferenceManager.getDefaultSharedPreferences(ctx)
+                .getBoolean(getString(R.string.filter_sub_lang_key), false)
+        }
         subtitles_filter_sub_lang?.setOnCheckedChangeListener { _, b ->
             context?.let { ctx ->
-                val settingsManager = PreferenceManager.getDefaultSharedPreferences(ctx)
-                settingsManager.edit()
+                PreferenceManager.getDefaultSharedPreferences(ctx)
+                    .edit()
                     .putBoolean(getString(R.string.filter_sub_lang_key), b)
                     .apply()
             }

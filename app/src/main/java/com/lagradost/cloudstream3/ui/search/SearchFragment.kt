@@ -21,6 +21,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.APIHolder.filterProviderByPreferredMedia
+import com.lagradost.cloudstream3.APIHolder.filterSearchResultByFilmQuality
 import com.lagradost.cloudstream3.APIHolder.getApiFromName
 import com.lagradost.cloudstream3.APIHolder.getApiProviderLangSettings
 import com.lagradost.cloudstream3.APIHolder.getApiSettings
@@ -64,7 +65,6 @@ class SearchFragment : Fragment() {
     }
 
     private val searchViewModel: SearchViewModel by activityViewModels()
-    private var filteredSearchQuality = listOf<Int>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -74,14 +74,7 @@ class SearchFragment : Fragment() {
         activity?.window?.setSoftInputMode(
             WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE
         )
-        context?.let { ctx ->
-            filteredSearchQuality = PreferenceManager.getDefaultSharedPreferences(ctx)
-                ?.getStringSet(getString(R.string.pref_filter_search_quality_key), setOf())
-                ?.mapNotNull { entry ->
-                    entry.toIntOrNull() ?: return@mapNotNull null
-                } ?: listOf()
-            //Log.i("qualFilter", "Search filterList => ${filteredSearchQuality.toJson()}")
-        }
+
         return inflater.inflate(R.layout.fragment_search, container, false)
     }
 
@@ -411,12 +404,7 @@ class SearchFragment : Fragment() {
                 is Resource.Success -> {
                     it.value.let { data ->
                         if (data.isNotEmpty()) {
-                            (search_autofit_results?.adapter as SearchAdapter?)?.updateList(
-                                data.filter { item ->
-                                    val searchQualVal = item.quality?.ordinal ?: -1
-                                    !filteredSearchQuality.contains(searchQualVal)
-                                }
-                            )
+                            (search_autofit_results?.adapter as SearchAdapter?)?.updateList(data)
                         }
                     }
                     searchExitIcon.alpha = 1f
@@ -441,16 +429,11 @@ class SearchFragment : Fragment() {
                 listLock.lock()
                 (search_master_recycler?.adapter as ParentItemAdapter?)?.apply {
                     val newItems = list.map { ongoing ->
+                        val dataList = if (ongoing.data is Resource.Success) ongoing.data.value else ArrayList()
+                        val dataListFiltered = context?.filterSearchResultByFilmQuality(dataList) ?: dataList
                         val ongoingList = HomePageList(
                             ongoing.apiName,
-                            if (ongoing.data is Resource.Success) {
-                                ongoing.data.value.filter { item ->
-                                    val searchQualVal = item.quality?.ordinal ?: -1
-                                    !filteredSearchQuality.contains(searchQualVal)
-                                }
-                            } else {
-                                ArrayList()
-                            }
+                            dataListFiltered
                         )
                         ongoingList
                     }
