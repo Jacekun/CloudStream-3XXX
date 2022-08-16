@@ -27,6 +27,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.APIHolder.apis
+import com.lagradost.cloudstream3.utils.AppUtils.isRecyclerScrollable
 import com.lagradost.cloudstream3.APIHolder.filterProviderByPreferredMedia
 import com.lagradost.cloudstream3.APIHolder.getApiFromNameNull
 import com.lagradost.cloudstream3.APIHolder.getApiProviderLangSettings
@@ -212,7 +213,8 @@ class HomeFragment : Fragment() {
 
                     val count = adapter.itemCount
                     val currentHasNext = adapter.hasNext
-                    if (!recyclerView.canScrollVertically(1) && currentHasNext && expandCount != count) {
+                    //!recyclerView.canScrollVertically(1)
+                    if (!recyclerView.isRecyclerScrollable() && currentHasNext && expandCount != count) {
                         expandCount = count
                         ioSafe {
                             expandCallback?.invoke(name)?.let { newExpand ->
