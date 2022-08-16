@@ -28,10 +28,13 @@ class OlgplyProvider : TmdbProvider() {
         callback: (ExtractorLink) -> Unit
     ) {
         val foundVideo = WebViewResolver(
-            Regex("""movies4discord""")
+            Regex("""\.m3u8|i7njdjvszykaieynzsogaysdgb0hm8u1mzubmush4maopa4wde\.com""")
         ).resolveUsingWebView(
-            requestCreator("GET", url)
-        ).first ?: return
+            requestCreator(
+                "GET", url, referer = "https://olgply.xyz/"
+            )
+        )
+            .first ?: return
 
         callback.invoke(
             ExtractorLink(
@@ -39,7 +42,8 @@ class OlgplyProvider : TmdbProvider() {
                 "Movies4Discord",
                 foundVideo.url.toString(),
                 "",
-                Qualities.Unknown.value
+                Qualities.Unknown.value,
+                true
             )
         )
     }
@@ -57,55 +61,55 @@ class OlgplyProvider : TmdbProvider() {
 
         val apiUrl =
             "https://olgply.xyz/${tmdbId}${mappedData.season?.let { "/$it" } ?: ""}${mappedData.episode?.let { "/$it" } ?: ""}"
-        val html =
-            app.get(apiUrl).text
-        val rhino = Context.enter()
-        rhino.optimizationLevel = -1
-        val scope: Scriptable = rhino.initSafeStandardObjects()
-        val documentJs = """
-            Plyr = function(){};
-            
-            hlsPrototype = {
-                loadSource(url) {
-                    this.url = url;
-                }
-            };
-
-            function Hls() {};
-            Hls.isSupported = function(){return true};
-            
-            Hls.prototype = hlsPrototype;
-            Hls.prototype.constructor = Hls;
-
-            document = {
-                "querySelector" : function() {}
-            };
-        """.trimIndent()
-
-        val foundJs = jsRegex.find(html)?.groupValues?.getOrNull(0) ?: return false
-        try {
-            rhino.evaluateString(scope, documentJs + foundJs, "JavaScript", 1, null)
-        } catch (e: Exception) {
-        }
-
-        val hls = scope.get("hls", scope) as? ScriptableObject
-
-        if (hls != null) {
-            callback.invoke(
-                ExtractorLink(
-                    this.name,
-                    this.name,
-                    hls["url"].toString(),
-                    this.mainUrl + "/",
-                    Qualities.Unknown.value,
-                    headers = mapOf("range" to "bytes=0-"),
-                    isM3u8 = true
-                )
-            )
-        } else {
-            // Disgraceful fallback, but the js for Movies4Discord refuses to work correctly :(
-            loadLinksWithWebView(apiUrl, callback)
-        }
+//        val html =
+//            app.get(apiUrl, referer = "https://olgply.xyz/").text
+//        val rhino = Context.enter()
+//        rhino.optimizationLevel = -1
+//        val scope: Scriptable = rhino.initSafeStandardObjects()
+//        val documentJs = """
+//            Plyr = function(){};
+//
+//            hlsPrototype = {
+//                loadSource(url) {
+//                    this.url = url;
+//                }
+//            };
+//
+//            function Hls() {};
+//            Hls.isSupported = function(){return true};
+//
+//            Hls.prototype = hlsPrototype;
+//            Hls.prototype.constructor = Hls;
+//
+//            document = {
+//                "querySelector" : function() {}
+//            };
+//        """.trimIndent()
+//
+//        val foundJs = jsRegex.find(html)?.groupValues?.getOrNull(0) ?: return false
+//        try {
+//            rhino.evaluateString(scope, documentJs + foundJs, "JavaScript", 1, null)
+//        } catch (e: Exception) {
+//        }
+//
+//        val hls = scope.get("hls", scope) as? ScriptableObject
+//
+//        if (hls != null) {
+//            callback.invoke(
+//                ExtractorLink(
+//                    this.name,
+//                    this.name,
+//                    hls["url"].toString(),
+//                    this.mainUrl + "/",
+//                    Qualities.Unknown.value,
+//                    headers = mapOf("range" to "bytes=0-"),
+//                    isM3u8 = true
+//                )
+//            )
+//        } else {
+        // Disgraceful fallback, but the js for Movies4Discord refuses to work correctly :(
+        loadLinksWithWebView(apiUrl, callback)
+//        }
         return true
     }
 }
