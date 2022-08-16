@@ -111,6 +111,7 @@ object APIHolder {
             HDrezkaProvider(),
             YomoviesProvider(),
             SuperStream(),
+            DubokuProvider(),
             KisskhProvider(),
 
             // Metadata providers
