@@ -115,7 +115,7 @@
     "BflixProvider": {
         "language": "en",
         "name": "Bflix",
-        "status": 1,
+        "status": 0,
         "url": "https://bflix.ru"
     },
     "CimaNowProvider": {
@@ -233,7 +233,7 @@
     "FmoviesToProvider": {
         "language": "en",
         "name": "Fmovies.to",
-        "status": 1,
+        "status": 0,
         "url": "https://fmovies.to"
     },
     "FrenchStreamProvider": {
@@ -489,7 +489,7 @@
     "SflixProProvider": {
         "language": "en",
         "name": "Sflix.pro",
-        "status": 1,
+        "status": 0,
         "url": "https://sflix.pro"
     },
     "SflixProvider": {
