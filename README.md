@@ -1,3 +1,4 @@
+# Project archived. See ``main`` branch of [this repository](https://github.com/Jacekun/cs3xxx-repo).
 # CloudStream-3XXX
 <p align="center">
   <img src="doc/ic_launcher.png" width="128" height="128" />
