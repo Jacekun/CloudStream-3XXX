@@ -196,6 +196,16 @@ class JKAnimeProvider : MainAPI() {
         return true
     }
 
+
+    fun fetchjkanime(text: String?): List<String> {
+        if (text.isNullOrEmpty()) {
+            return listOf()
+        }
+        val linkRegex =
+            Regex("""(iframe.*class.*width)""")
+        return linkRegex.findAll(text).map { it.value.trim().removeSurrounding("\"").replace(Regex("(iframe(.class|.src=\")|=\"player_conte\".*src=\"|\".scrolling|\".width)"),"") }.toList()
+    }
+
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
@@ -205,11 +215,19 @@ class JKAnimeProvider : MainAPI() {
         app.get(data).document.select("script").apmap { script ->
             if (script.data().contains("var video = []")) {
                 val videos = script.data().replace("\\/", "/")
-                fetchUrls(videos).map {
+                val aaa = fetchjkanime(videos).map { it }.toList()
+                println("AAS $aaa")
+                fetchjkanime(videos).map {
                     it.replace("$mainUrl/jkfembed.php?u=", "https://embedsito.com/v/")
                         .replace("$mainUrl/jkokru.php?u=", "http://ok.ru/videoembed/")
                         .replace("$mainUrl/jkvmixdrop.php?u=", "https://mixdrop.co/e/")
                         .replace("$mainUrl/jk.php?u=", "$mainUrl/")
+                        .replace("/jkfembed.php?u=","https://embedsito.com/v/")
+                        .replace("/jkokru.php?u=", "http://ok.ru/videoembed/")
+                        .replace("/jkvmixdrop.php?u=", "https://mixdrop.co/e/")
+                        .replace("/jk.php?u=", "$mainUrl/")
+                        .replace("/um2.php?","$mainUrl/um2.php?")
+                        .replace("/um.php?","$mainUrl/um.php?")
                 }.apmap { link ->
                     loadExtractor(link, data, subtitleCallback, callback)
                     if (link.contains("um2.php")) {

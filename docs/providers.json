@@ -115,7 +115,7 @@
     "BflixProvider": {
         "language": "en",
         "name": "Bflix",
-        "status": 1,
+        "status": 0,
         "url": "https://bflix.ru"
     },
     "CimaNowProvider": {
@@ -177,6 +177,12 @@
         "status": 1,
         "url": "https://bestdubbedanime.com"
     },
+    "DubokuProvider": {
+        "language": "zh",
+        "name": "Duboku",
+        "status": 1,
+        "url": "https://www.duboku.tv"
+    },
     "EgyBestProvider": {
         "language": "ar",
         "name": "EgyBest",
@@ -227,7 +233,7 @@
     "FmoviesToProvider": {
         "language": "en",
         "name": "Fmovies.to",
-        "status": 1,
+        "status": 0,
         "url": "https://fmovies.to"
     },
     "FrenchStreamProvider": {
@@ -307,6 +313,12 @@
         "name": "Kim Cartoon",
         "status": 1,
         "url": "https://kimcartoon.li"
+    },
+    "KisskhProvider": {
+        "language": "en",
+        "name": "Kisskh",
+        "status": 1,
+        "url": "https://kisskh.me"
     },
     "KuramanimeProvider": {
         "language": "id",
@@ -477,7 +489,7 @@
     "SflixProProvider": {
         "language": "en",
         "name": "Sflix.pro",
-        "status": 1,
+        "status": 0,
         "url": "https://sflix.pro"
     },
     "SflixProvider": {
@@ -580,7 +592,7 @@
         "language": "en",
         "name": "WatchAsian",
         "status": 1,
-        "url": "https://watchasian.cx"
+        "url": "https://watchasian.pe"
     },
     "WatchCartoonOnlineProvider": {
         "language": "en",
@@ -594,6 +606,12 @@
         "status": 1,
         "url": "https://wcostream.cc"
     },
+    "WcofunProvider": {
+        "language": "en",
+        "name": "WCO Fun",
+        "status": 1,
+        "url": "https://www.wcofun.com"
+    },
     "XcineProvider": {
         "language": "de",
         "name": "Xcine",
@@ -604,7 +622,7 @@
         "language": "hi",
         "name": "Yomovies",
         "status": 1,
-        "url": "https://yomovies.vip"
+        "url": "https://yomovies.skin"
     },
     "ZoroProvider": {
         "language": "en",
